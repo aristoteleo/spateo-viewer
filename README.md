@@ -1,7 +1,7 @@
 # spateo-viewer
 
 
-Web application demonstrating 3D modeling of spatial transcriptomics
+Web application demonstrating 3D modeling of spatial transcriptomics.
 
 
 <p align="center">
