@@ -207,7 +207,8 @@ def switch_model(
         outlined=True,
         hide_details=True,
         classes="ml-8",
-        style="max-width: 400px; margin-left: 10px;",
+        prepend_inner_icon="mdi-file-document-outline",
+        style="max-width: 250px;",
         # filled=True,
         # rounded=True,
     )
@@ -220,6 +221,7 @@ def switch_model(
         hide_details=True,
         classes="ml-8",
         prepend_inner_icon="mdi-magnify",
+        style="max-width: 250px;",
         # filled=True,
         # rounded=True,
     )
@@ -279,7 +281,6 @@ def ui_standard_toolbar(
         tb.dense = True
         tb.clipped_right = True
         switch_model(server=server, plotter=plotter)
-        vuetify.VSpacer()
         toolbar_widgets(server=server, plotter=plotter, mode=mode, default_server_rendering=default_server_rendering)
 
 

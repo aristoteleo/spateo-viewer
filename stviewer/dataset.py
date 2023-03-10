@@ -71,7 +71,7 @@ def sample_dataset(
 
 def drosophila_E7_9h_dataset(
     path=local_dataset_manager.drosophila_E7_9h,
-    X_layer: str = "X_log1p",
+    X_layer: str = "X",
     pc_model_ids: Optional[list] = None,
     mesh_model_ids: Optional[list] = None,
 ):
@@ -85,7 +85,7 @@ def drosophila_E7_9h_dataset(
 
 def drosophila_E9_10h_dataset(
     path=local_dataset_manager.drosophila_E9_10h,
-    X_layer: str = "X_log1p",
+    X_layer: str = "X",
     pc_model_ids: Optional[list] = None,
     mesh_model_ids: Optional[list] = None,
 ):

@@ -99,7 +99,7 @@ def standard_pc_card(
     CBinCard, actor_name: str, card_title: str, default_values: Optional[dict] = None
 ):
     _default_values = {
-        "layer": "X_log1p",
+        "layer": "X",
         "scalars": "None",
         "point_size": 5,
         "color": "gainsboro",
