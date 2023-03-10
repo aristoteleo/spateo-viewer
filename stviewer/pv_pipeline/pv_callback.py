@@ -233,6 +233,7 @@ class PVCB:
 
         # State variable names
         self.SCALARS = f"{actor_name}_scalars_value"
+        self.MATRIX = f"{actor_name}_matrix_value"
         self.OPACITY = f"{actor_name}_opacity_value"
         self.AMBIENT = f"{actor_name}_ambient_value"
         self.COLOR = f"{actor_name}_color_value"
@@ -245,6 +246,7 @@ class PVCB:
 
         # Listen to state changes
         self._state.change(self.SCALARS)(self.on_scalars_change)
+        self._state.change(self.MATRIX)(self.on_scalars_change)
         self._state.change(self.OPACITY)(self.on_opacity_change)
         self._state.change(self.AMBIENT)(self.on_ambient_change)
         self._state.change(self.COLOR)(self.on_color_change)
@@ -275,9 +277,15 @@ class PVCB:
                     _adata.obs[self._state[self.SCALARS]].values
                 ).flatten()
             elif self._state[self.SCALARS] in set(_adata.var_names.tolist()):
-                array = np.asarray(
-                    _adata[:, self._state[self.SCALARS]].X.sum(axis=1).flatten()
-                )
+                matrix_id = self._state[self.MATRIX]
+                if matrix_id == "X":
+                    array = np.asarray(
+                        _adata[:, self._state[self.SCALARS]].X.sum(axis=1).flatten()
+                    )
+                else:
+                    array = np.asarray(
+                        _adata[:, self._state[self.SCALARS]].layers[matrix_id].sum(axis=1).flatten()
+                    )
             else:
                 array = np.ones(shape=(len(_obs_index),))
 

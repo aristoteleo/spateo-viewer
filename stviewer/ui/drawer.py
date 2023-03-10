@@ -71,30 +71,6 @@ def card(title, actor_name):
 
 
 def standard_card_components(CBinCard, default_values: dict):
-    with vuetify.VRow(classes="pt-2", dense=True):
-        # Style
-        with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
-                label="Style",
-                v_model=(CBinCard.STYLE, default_values["style"]),
-                items=(f"styles", ["surface", "points", "wireframe"]),
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
-        # Color
-        with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
-                label="Color",
-                v_model=(CBinCard.COLOR, default_values["color"]),
-                items=(f"hexcolors", list(hexcolors.keys())),
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
-
     # Opacity
     vuetify.VSlider(
         v_model=(CBinCard.OPACITY, default_values["opacity"]),
@@ -123,9 +99,9 @@ def standard_pc_card(
     CBinCard, actor_name: str, card_title: str, default_values: Optional[dict] = None
 ):
     _default_values = {
+        "layer": "X_log1p",
         "scalars": "None",
         "point_size": 5,
-        "style": "points",
         "color": "gainsboro",
         "cmap": "Purples",
         "opacity": 1,
@@ -148,6 +124,19 @@ def standard_pc_card(
                 )
             with vuetify.VCol(cols="6"):
                 vuetify.VSelect(
+                    label="Matrices",
+                    v_model=(CBinCard.MATRIX, _default_values["layer"]),
+                    items=("matrices", ["X", "X_counts", "X_log1p"]),
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-1",
+                )
+
+        with vuetify.VRow(classes="pt-2", dense=True):
+            # Colormap
+            with vuetify.VCol(cols="6"):
+                vuetify.VSelect(
                     label="Colormap",
                     v_model=(CBinCard.COLORMAP, _default_values["cmap"]),
                     items=("colormaps", plt.colormaps()),
@@ -156,9 +145,19 @@ def standard_pc_card(
                     outlined=True,
                     classes="pt-1",
                 )
+            # Color
+            with vuetify.VCol(cols="6"):
+                vuetify.VSelect(
+                    label="Color",
+                    v_model=(CBinCard.COLOR, _default_values["color"]),
+                    items=(f"hexcolors", list(hexcolors.keys())),
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-1",
+                )
 
         standard_card_components(CBinCard=CBinCard, default_values=_default_values)
-
         vuetify.VSlider(
             v_model=(CBinCard.POINTSIZE, _default_values["point_size"]),
             min=0,
@@ -184,6 +183,30 @@ def standard_mesh_card(
         _default_values.update(default_values)
 
     with card(title=card_title, actor_name=actor_name):
+        with vuetify.VRow(classes="pt-2", dense=True):
+            # Colormap
+            with vuetify.VCol(cols="12"):
+                vuetify.VSelect(
+                    label="Color",
+                    v_model=(CBinCard.COLOR, _default_values["color"]),
+                    items=(f"hexcolors", list(hexcolors.keys())),
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-1",
+                )
+        with vuetify.VRow(classes="pt-2", dense=True):
+            # Style
+            with vuetify.VCol(cols="12"):
+                vuetify.VSelect(
+                    label="Style",
+                    v_model=(CBinCard.STYLE, _default_values["style"]),
+                    items=(f"styles", ["surface", "points", "wireframe"]),
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-1",
+                )
         standard_card_components(CBinCard=CBinCard, default_values=_default_values)
 
 
