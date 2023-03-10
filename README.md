@@ -11,4 +11,4 @@ Web application demonstrating 3D modeling of spatial transcriptomics
 
 # Run the application
 
-``pythonstv_app.py --port 1234``
+``python stv_app.py --port 1234``
