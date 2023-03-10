@@ -7,7 +7,7 @@ from typing import Optional
 
 from anndata import AnnData
 from pyvista import BasePlotter
-
+from tkinter import Tk, filedialog
 from .assets import icon_manager
 from .server import get_trame_server
 from .ui import (
@@ -27,26 +27,35 @@ def standard_html(
     actor_names: list,
     tree: Optional[list] = None,
     mode: Literal["trame", "server", "client"] = "trame",
-    server_name: Optional[str] = None,
     template_name: str = "main",
     ui_name: str = "SPATEO VIEWER",
     ui_icon=icon_manager.spateo_logo,
     drawer_width: int = 300,
 ):
     # Get a Server to work with
-    server = get_trame_server(name=server_name)
+    server =get_trame_server()
     state, ctrl = server.state, server.controller
     state.trame__title = ui_name
     state.trame__favicon = ui_icon
     state.setdefault("active_ui", None)
-    # ctrl.on_server_ready.add(ctrl.view_update)
+    state.selected_dir = "None"
+    root = Tk()
+    root.withdraw()
+    root.wm_attributes("-topmost", 1)
 
+    def open_directory():
+        dirpath = filedialog.askdirectory(title="Select Directory")
+        if not dirpath:
+            return
+        state.selected_dir = dirpath
+    ctrl.open_directory = open_directory
+
+    # ctrl.on_server_ready.add(ctrl.view_update)
     # GUI
     ui_standard_layout = ui_layout(
         server=server, template_name=template_name, drawer_width=drawer_width
     )
     with ui_standard_layout as layout:
-
         # -----------------------------------------------------------------------------
         # ToolBar
         # -----------------------------------------------------------------------------

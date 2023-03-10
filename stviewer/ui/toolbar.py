@@ -12,6 +12,7 @@ from .utils import button, checkbox
 from ..assets import icon_manager, local_dataset_manager
 from ..dataset import sample_dataset
 
+
 # -----------------------------------------------------------------------------
 # GUI- UI title
 # -----------------------------------------------------------------------------
@@ -77,10 +78,24 @@ def toolbar_widgets(
 
     viewer = Viewer(plotter=plotter, server=server, suppress_rendering=mode == "client")
 
-    # Pushes the extra space on the left side of the component.
+    # Select local directory
     vuetify.VSpacer()
+    button(
+        # Must use single-quote string for JS here
+        click=server.controller.open_directory,
+        icon="mdi-file-document-outline",
+        tooltip="Select directory",
+    )
+    # Whether to save the image
+    button(
+        # Must use single-quote string for JS here
+        click=f"utils.download('screenshot.png', trigger('{viewer.SCREENSHOT}'), 'image/png')",
+        icon="mdi-file-png-box",
+        tooltip="Save screenshot",
+    )
 
     # Whether to toggle the theme between light and dark
+    vuetify.VDivider(vertical=True, classes="mx-1")
     checkbox(
         model="$vuetify.theme.dark",
         icons=("mdi-lightbulb-off-outline", "mdi-lightbulb-outline"),
@@ -93,16 +108,7 @@ def toolbar_widgets(
             icons=("mdi-lan-connect", "mdi-lan-disconnect"),
             tooltip=f"Toggle rendering mode ({{{{ {viewer.SERVER_RENDERING} ? 'remote' : 'local' }}}})",
         )
-    # Whether to save the image
-    button(
-        # Must use single-quote string for JS here
-        click=f"utils.download('screenshot.png', trigger('{viewer.SCREENSHOT}'), 'image/png')",
-        icon="mdi-file-png-box",
-        tooltip="Save screenshot",
-    )
-
     # Whether to add outline
-    vuetify.VDivider(vertical=True, classes="mx-1")
     checkbox(
         model=(viewer.OUTLINE, False),
         icons=("mdi-cube", "mdi-cube-off"),
@@ -131,17 +137,17 @@ def toolbar_widgets(
     button(
         click=viewer.view_yz,
         icon="mdi-axis-x-arrow",
-        tooltip="Reset Camera X",
+        tooltip="Reset camera X",
     )
     button(
         click=viewer.view_xz,
         icon="mdi-axis-y-arrow",
-        tooltip="Reset Camera Y",
+        tooltip="Reset camera Y",
     )
     button(
         click=viewer.view_xy,
         icon="mdi-axis-z-arrow",
-        tooltip="Reset Camera Z",
+        tooltip="Reset camera Z",
     )
 
 
@@ -154,52 +160,79 @@ class SwitchModels:
         self._server = server
         self._ctrl = ctrl
         self._state = state
-        self._plotter = plotter
+        self._init_plotter = plotter
 
         # State variable names
-        self.SELECT_DATASET = "dataset"
+        self.SELECT_SAMPLES = "select_samples"
+        self.PLOTTER = "plotter"
+        self.ADATA = "adata"
         self.UPLOAD_DIR = f"upload_dir"
 
         # Listen to state changes
-        self._state.change(self._plotter)(self.on_dataset_change)
-        self._state.change(self.UPLOAD_DIR)(self.upload_dir)
+        self._state.change(self.SELECT_SAMPLES)(self.on_dataset_change)
 
     @vuwrap
     def on_dataset_change(self, **kwargs):
-        self.DATASET = self._state[self.SELECT_DATASET]
+        if self._state[self.SELECT_SAMPLES] in ["none", "None", None]:
+            plotter = self._init_plotter
+        else:
+            print(self._state[self.SELECT_SAMPLES])
+            print(local_dataset_manager[self._state[self.SELECT_SAMPLES]])
+            (
+                adata,
+                pc_models,
+                pc_model_ids,
+                mesh_models,
+                mesh_model_ids,
+            ) = sample_dataset(path=local_dataset_manager[self._state[self.SELECT_SAMPLES]])
+            plotter, actors, actor_names, tree = drosophila_actors(
+                pc_models=pc_models,
+                pc_model_ids=pc_model_ids,
+                mesh_models=mesh_models,
+                mesh_model_ids=mesh_model_ids,
+            )
+
+        self._state[self.PLOTTER] = plotter
+        self._ctrl.view_update()
+
+    """
+    @vuwrap
+    def upload_dir(self, **kwargs):
+
         (
             adata,
             pc_models,
             pc_model_ids,
             mesh_models,
             mesh_model_ids,
-        ) = sample_dataset(
-            path=self.DATASET,
-            X_layer="X_log1p",
-        )
+        ) = sample_dataset(path=self._state[self.UPLOAD_DIR])
+
         plotter, actors, actor_names, tree = drosophila_actors(
             pc_models=pc_models,
             pc_model_ids=pc_model_ids,
             mesh_models=mesh_models,
             mesh_model_ids=mesh_model_ids,
         )
-
+        self._plotter.clear_actors()
         self._plotter = plotter
-        self._ctrl.view_update()
+        self._ctrl.view_update()"""
 
-    @vuwrap
-    def upload_dir(self, **kwargs):
-        local_dataset_manager.dir_url("upload_dir", self.UPLOAD_DIR)
-        self._ctrl.view_update()
+    def get_plotter(self):
+        if self._state[self.PLOTTER] is None:
+            self._state[self.PLOTTER] = self._init_plotter
+        return self._state[self.PLOTTER]
+
+    """def get_adata(self):
+        if self._state[self.ADATA] is None:
+            self._state[self.ADATA] = self._init_adata
+        return self._state[self.ADATA]"""
 
 
 def switch_model(
     server,
     plotter: BasePlotter,
 ):
-    SM = SwitchModels(server=server, plotter=plotter)
-    vuetify.VSpacer()
-    vuetify.VTextField(
+    """vuetify.VTextField(
         label="Upload Directory",
         v_model=(SM.UPLOAD_DIR, None),
         type="str",
@@ -211,36 +244,24 @@ def switch_model(
         style="max-width: 250px;",
         # filled=True,
         # rounded=True,
-    )
+    )"""
+
+    vuetify.VSpacer()
+    SM = SwitchModels(server=server, plotter=plotter)
     vuetify.VSelect(
-        label="Samples",
-        v_model=(SM.SELECT_DATASET, local_dataset_manager.drosophila_E7_9h),
-        items=("samples", [{"value": value, "text": key} for key, value in local_dataset_manager.get_assets().items()]),
+        label="Select Samples",
+        v_model=(SM.SELECT_SAMPLES, "drosophila_E7_9h"),
+        items=("select_samples", [key for key in local_dataset_manager.get_assets().keys()]),
         dense=True,
         outlined=True,
         hide_details=True,
         classes="ml-8",
         prepend_inner_icon="mdi-magnify",
-        style="max-width: 250px;",
+        style="max-width: 300px;",
         # filled=True,
-        # rounded=True,
+        rounded=True,
     )
-
-    """vuetify.VSelect(
-        label="Samples",
-        v_model=(SM.DATASET, local_dataset_manager.drosophila_E7_9h),
-        items=(
-            "samples",
-            [
-                {"value": local_dataset_manager.drosophila_E7_9h, "text": "Drosophila_E7_9h"},
-                {"value": local_dataset_manager.drosophila_E9_10h, "text": "Drosophila_E7_9h"},
-            ],
-        ),
-        classes="ml-8",
-        dense=True,
-        hide_details=True,
-        style="max-width: 300px",
-    )"""
+    return SM.get_plotter()
 
 
 def ui_standard_toolbar(
@@ -280,9 +301,11 @@ def ui_standard_toolbar(
     with layout.toolbar as tb:
         tb.dense = True
         tb.clipped_right = True
+
         switch_model(server=server, plotter=plotter)
         toolbar_widgets(server=server, plotter=plotter, mode=mode, default_server_rendering=default_server_rendering)
 
+    return plotter
 
 
 
