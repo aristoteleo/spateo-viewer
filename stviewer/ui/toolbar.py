@@ -177,14 +177,13 @@ class SwitchModels:
             plotter = self._init_plotter
         else:
             print(self._state[self.SELECT_SAMPLES])
-            print(local_dataset_manager[self._state[self.SELECT_SAMPLES]])
             (
                 adata,
                 pc_models,
                 pc_model_ids,
                 mesh_models,
                 mesh_model_ids,
-            ) = sample_dataset(path=local_dataset_manager[self._state[self.SELECT_SAMPLES]])
+            ) = sample_dataset(path=self._state[self.SELECT_SAMPLES])
             plotter, actors, actor_names, tree = drosophila_actors(
                 pc_models=pc_models,
                 pc_model_ids=pc_model_ids,
@@ -246,12 +245,15 @@ def switch_model(
         # rounded=True,
     )"""
 
+    avaliable_samples = [{"value": value, "text": key} for key, value in local_dataset_manager.get_assets().items()]
+    avaliable_samples.append({"value": server.state.selected_dir, "text": "uploaded_sample"})
+
     vuetify.VSpacer()
     SM = SwitchModels(server=server, plotter=plotter)
     vuetify.VSelect(
         label="Select Samples",
-        v_model=(SM.SELECT_SAMPLES, "drosophila_E7_9h"),
-        items=("select_samples", [key for key in local_dataset_manager.get_assets().keys()]),
+        v_model=(SM.SELECT_SAMPLES, {"value": local_dataset_manager.drosophila_E7_9h, "text": "drosophila_E7_9h"}),
+        items=("samples", avaliable_samples),
         dense=True,
         outlined=True,
         hide_details=True,
