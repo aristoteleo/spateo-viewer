@@ -32,7 +32,7 @@ state.setdefault("active_ui", None)
 plotter = create_plotter()
 # Init models
 state.init_dataset = True
-anndata_path, actors, actor_ids, tree = init_actors(plotter=plotter, path=local_dataset_manager.drosophila_E7_9h)
+anndata_path, actors, actor_ids, tree = init_actors(plotter=plotter, path=local_dataset_manager.drosophila_E16_17h)
 state.actor_ids = actor_ids
 state.tree = tree
 state.sample_adata_path = anndata_path

@@ -19,6 +19,7 @@ def abstract_anndata(path: str, X_layer: str = "X"):
 
 def abstract_models(path: str, model_ids: Optional[list] = None):
     model_files = os.listdir(path=path)
+    model_files.sort()
     assert len(model_files) != 0, "There is no file under this path."
 
     models = [pv.read(filename=os.path.join(path, f)) for f in model_files]
@@ -42,6 +43,7 @@ def sample_dataset(
     # Generate point cloud models
     pc_models_path = os.path.join(path, "pc_models")
     pc_model_files = os.listdir(path=pc_models_path)
+    pc_model_files.sort()
     if len(pc_model_files) == 0:
         pc_models, pc_model_ids = None, None
     else:
@@ -52,6 +54,7 @@ def sample_dataset(
     # Generate mesh models
     mesh_models_path = os.path.join(path, "mesh_models")
     mesh_model_files = os.listdir(path=mesh_models_path)
+    mesh_model_files.sort()
     if len(mesh_model_files) == 0:
         mesh_models, mesh_model_ids = None, None
     else:
