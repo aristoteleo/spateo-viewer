@@ -57,14 +57,10 @@ from trame.widgets import vuetify
 from .ui import pipeline, standard_pc_card, standard_mesh_card, button
 from .pv_pipeline import PVCB
 
-
-
-
 # GUI
 ui_standard_layout = ui_layout(
     server=server, template_name="main", drawer_width=300
 )
-
 
 def update_drawer():
     actors = [value for value in plotter.actors.values()]
@@ -74,17 +70,15 @@ def update_drawer():
     print(state.sample_adata_path)
 
     pipeline(server=server, actors=actors)
-    """vuetify.VDivider(classes="mb-2")
+    vuetify.VDivider(classes="mb-2")
     for actor, actor_id in zip(actors, state.actor_ids):
         CBinCard = PVCB(server=server, actor=actor, actor_name=actor_id, adata=adata)
         if str(actor_id).startswith("PC"):
             standard_pc_card(CBinCard, actor_id=actor_id, card_title=actor_id)
         if str(actor_id).startswith("Mesh"):
-            standard_mesh_card(CBinCard, actor_id=actor_id, card_title=actor_id)"""
-
+            standard_mesh_card(CBinCard, actor_id=actor_id, card_title=actor_id)
 
 ctrl.update_drawer = update_drawer
-
 
 with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
