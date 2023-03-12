@@ -9,17 +9,15 @@ import matplotlib.pyplot as plt
 from anndata import AnnData
 from pyvista.plotting.colors import hexcolors
 from trame.widgets import vuetify
+from trame.widgets.trame import GitTree
 
 from ..pv_pipeline import PVCB
+from ..dataset import abstract_anndata
 
-
-def pipeline(server, actors: list, actor_names: list, tree: Optional[list] = None):
+def pipeline(state, ctrl, actors: list):
     """Create a vuetify GitTree."""
-    from trame.widgets.trame import GitTree
-
-    state, ctrl = server.state, server.controller
-
-    n_actors, n_actor_names = len(actors), len(actor_names)
+    actor_ids = state.actor_ids
+    n_actors, n_actor_names = len(actors), len(actor_ids)
     assert (
         n_actors == n_actor_names
     ), "The number of ``actors`` is not equal to the number of ``actor_names``."
@@ -27,7 +25,7 @@ def pipeline(server, actors: list, actor_names: list, tree: Optional[list] = Non
     # Selection Change
     def actives_change(ids):
         _id = ids[0]
-        active_actor_name = actor_names[int(_id) - 1]
+        active_actor_name = actor_ids[int(_id) - 1]
         state.active_ui = active_actor_name
 
     # Visibility Change
@@ -38,27 +36,27 @@ def pipeline(server, actors: list, actor_names: list, tree: Optional[list] = Non
         active_actor.SetVisibility(_visibility)
         ctrl.view_update()
 
-    if tree is None:
-        tree = [
+    if state.tree is None:
+        state.tree = [
             {
                 "id": str(1 + i),
                 "parent": str(0) if i == 0 else str(1),
                 "visible": True if i == 0 else False,
-                "name": actor_names[i],
+                "name": actor_ids[i],
             }
-            for i, name in enumerate(actor_names)
+            for i, name in enumerate(actor_ids)
         ]
 
     GitTree(
-        sources=("pipeline", tree),
+        sources=("pipeline", state.tree),
         actives_change=(actives_change, "[$event]"),
         visibility_change=(visibility_change, "[$event]"),
     )
 
 
-def card(title, actor_name):
+def card(title, actor_id):
     """Create a vuetify card."""
-    with vuetify.VCard(v_show=f"active_ui == '{actor_name}'"):
+    with vuetify.VCard(v_show=f"active_ui == '{actor_id}'"):
         vuetify.VCardTitle(
             title,
             classes="grey lighten-1 py-1 grey--text text--darken-3",
@@ -96,7 +94,7 @@ def standard_card_components(CBinCard, default_values: dict):
 
 
 def standard_pc_card(
-    CBinCard, actor_name: str, card_title: str, default_values: Optional[dict] = None
+    CBinCard, actor_id: str, card_title: str, default_values: Optional[dict] = None
 ):
     _default_values = {
         "layer": "X",
@@ -110,7 +108,7 @@ def standard_pc_card(
     if not (default_values is None):
         _default_values.update(default_values)
 
-    with card(title=card_title, actor_name=actor_name):
+    with card(title=card_title, actor_id=actor_id):
         with vuetify.VRow(classes="pt-2", dense=True):
             with vuetify.VCol(cols="6"):
                 vuetify.VTextField(
@@ -171,7 +169,7 @@ def standard_pc_card(
 
 
 def standard_mesh_card(
-    CBinCard, actor_name: str, card_title: str, default_values: Optional[dict] = None
+    CBinCard, actor_id: str, card_title: str, default_values: Optional[dict] = None
 ):
     _default_values = {
         "style": "surface",
@@ -182,7 +180,7 @@ def standard_mesh_card(
     if not (default_values is None):
         _default_values.update(default_values)
 
-    with card(title=card_title, actor_name=actor_name):
+    with card(title=card_title, actor_id=actor_id):
         with vuetify.VRow(classes="pt-2", dense=True):
             # Colormap
             with vuetify.VCol(cols="12"):
@@ -218,10 +216,7 @@ def standard_mesh_card(
 def ui_standard_drawer(
     server,
     layout,
-    adata: AnnData,
-    actors: list,
-    actor_names: list,
-    tree: Optional[list] = None,
+    plotter,
 ):
     """
     Generate standard Drawer for Spateo UI.
@@ -230,12 +225,22 @@ def ui_standard_drawer(
         server: The trame server.
 
     """
+
     with layout.drawer as dr:
-        pipeline(server=server, actors=actors, actor_names=actor_names, tree=tree)
+        state, ctrl = server.state, server.controller
+        actors = [value for value in plotter.actors.values()]
+        adata = abstract_anndata(path=state.sample_adata_path)
+
+        pipeline(state, ctrl, actors=actors)
         vuetify.VDivider(classes="mb-2")
-        for actor, actor_name in zip(actors, actor_names):
-            CBinCard = PVCB(server=server, actor=actor, actor_name=actor_name, adata=adata)
-            if str(actor_name).startswith("PC"):
-                standard_pc_card(CBinCard, actor_name=actor_name, card_title=actor_name)
-            if str(actor_name).startswith("Mesh"):
-                standard_mesh_card(CBinCard, actor_name=actor_name, card_title=actor_name)
+        for actor, actor_id in zip(actors, state.actor_ids):
+            CBinCard = PVCB(server=server, actor=actor, actor_name=actor_id, adata=adata)
+            if str(actor_id).startswith("PC"):
+                standard_pc_card(CBinCard, actor_id=actor_id, card_title=actor_id)
+            if str(actor_id).startswith("Mesh"):
+                standard_mesh_card(CBinCard, actor_id=actor_id, card_title=actor_id)
+
+    # del layout.drawer
+
+
+

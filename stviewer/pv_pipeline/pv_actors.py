@@ -1,5 +1,5 @@
-
-from .pv_plotter import add_single_model, create_plotter
+import os
+from .pv_plotter import add_single_model
 
 try:
     from typing import Literal
@@ -7,34 +7,34 @@ except ImportError:
     from typing_extensions import Literal
 
 from typing import Optional
+from ..dataset import sample_dataset
 
 
 def generate_actors(
+    plotter,
     pc_models: Optional[list] = None,
     mesh_models: Optional[list] = None,
     pc_added_kwargs: Optional[dict] = None,
     mesh_added_kwargs: Optional[dict] = None,
-    **kwargs
 ):
-    # Generate a new plotter
-    plotter = create_plotter(**kwargs)
     # Generate actors for pc models
+    pc_kwargs = dict(model_style="points", model_size=3)
+    if not (pc_added_kwargs is None):
+        pc_kwargs.update(pc_added_kwargs)
     if not (pc_models is None):
-        if pc_added_kwargs is None:
-            pc_actors = [add_single_model(plotter=plotter, model=model) for model in pc_models]
-        else:
-            pc_actors = [add_single_model(plotter=plotter, model=model, **pc_added_kwargs) for model in pc_models]
+        pc_actors = [add_single_model(plotter=plotter, model=model, **pc_kwargs) for model in pc_models]
     else:
         pc_actors = None
+
     # Generate actors for mesh models
+    mesh_kwargs = dict(opacity=0.5, model_style="surface")
+    if not (mesh_added_kwargs is None):
+        mesh_kwargs.update(mesh_added_kwargs)
     if not (mesh_models is None):
-        if mesh_added_kwargs is None:
-            mesh_actors = [add_single_model(plotter=plotter, model=model) for model in mesh_models]
-        else:
-            mesh_actors = [add_single_model(plotter=plotter, model=model, **mesh_added_kwargs) for model in mesh_models]
+        mesh_actors = [add_single_model(plotter=plotter, model=model, **mesh_kwargs) for model in mesh_models]
     else:
         mesh_actors = None
-    return plotter, pc_actors, mesh_actors
+    return pc_actors, mesh_actors
 
 
 def standard_tree(actors: list, actor_names: list, base_id: int = 0):
@@ -81,30 +81,20 @@ def generate_actors_tree(
     return totel_actors, totel_actor_ids, totel_tree
 
 
-def drosophila_actors(
-    pc_models: Optional[list] = None,
-    pc_model_ids: Optional[list] = None,
-    pc_added_kwargs: Optional[dict] = None,
-    mesh_models: Optional[list] = None,
-    mesh_model_ids: Optional[list] = None,
-    mesh_added_kwargs: Optional[dict] = None,
-    **kwargs
-):
+def init_actors(plotter, path):
+    (
+        adata,
+        pc_models,
+        pc_model_ids,
+        mesh_models,
+        mesh_model_ids,
+    ) = sample_dataset(path=path)
 
     # Generate actors
-    pc_kwargs = dict(model_style="points", model_size=5)
-    if not (pc_added_kwargs is None):
-        pc_kwargs.update(pc_added_kwargs)
-    mesh_kwargs = dict(opacity=0.5, model_style="surface")
-    if not (mesh_added_kwargs is None):
-        mesh_kwargs.update(mesh_added_kwargs)
-
-    plotter, pc_actors, mesh_actors = generate_actors(
+    pc_actors, mesh_actors = generate_actors(
+        plotter=plotter,
         pc_models=pc_models,
         mesh_models=mesh_models,
-        pc_added_kwargs=pc_kwargs,
-        mesh_added_kwargs=mesh_kwargs,
-        **kwargs
     )
 
     # Generate the relationship tree of actors
@@ -115,4 +105,6 @@ def drosophila_actors(
         mesh_actor_ids=mesh_model_ids,
     )
 
-    return plotter, actors, actor_ids, tree
+    anndata_dir = os.path.join(path, "h5ad")
+    anndata_path = os.path.join(anndata_dir, os.listdir(path=anndata_dir)[0])
+    return anndata_path, actors, actor_ids, tree

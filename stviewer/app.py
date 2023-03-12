@@ -8,7 +8,7 @@ from typing import Optional
 from anndata import AnnData
 from pyvista import BasePlotter
 from tkinter import Tk, filedialog
-from .assets import icon_manager
+from .assets import icon_manager, local_dataset_manager
 from .server import get_trame_server
 from .ui import (
     ui_layout,
@@ -16,95 +16,66 @@ from .ui import (
     ui_standard_drawer,
     ui_standard_toolbar,
 )
-from .dataset import drosophila_E7_9h_dataset
-from .pv_pipeline import drosophila_actors
+from .pv_pipeline import create_plotter, init_actors
+from .dataset import sample_dataset, abstract_anndata
+import anndata as ad
+import os
+
+# Get a Server to work with
+server =get_trame_server()
+state, ctrl = server.state, server.controller
+state.trame__title = "SPATEO VIEWER"
+state.trame__favicon = icon_manager.spateo_logo
+state.setdefault("active_ui", None)
+
+# Generate a new plotter
+plotter = create_plotter()
+# Init models
+anndata_path, actors, actor_ids, tree = init_actors(plotter=plotter, path=local_dataset_manager.drosophila_E7_9h)
+state.actor_ids = actor_ids
+state.tree = tree
+state.sample_adata_path = anndata_path
 
 
-def standard_html(
-    plotter: BasePlotter,
-    adata: AnnData,
-    actors: list,
-    actor_names: list,
-    tree: Optional[list] = None,
-    mode: Literal["trame", "server", "client"] = "trame",
-    template_name: str = "main",
-    ui_name: str = "SPATEO VIEWER",
-    ui_icon=icon_manager.spateo_logo,
-    drawer_width: int = 300,
-):
-    # Get a Server to work with
-    server =get_trame_server()
-    state, ctrl = server.state, server.controller
-    state.trame__title = ui_name
-    state.trame__favicon = ui_icon
-    state.setdefault("active_ui", None)
-    state.selected_dir = "None"
-    root = Tk()
-    root.withdraw()
-    root.wm_attributes("-topmost", 1)
-
-    def open_directory():
-        dirpath = filedialog.askdirectory(title="Select Directory")
-        if not dirpath:
-            return
-        state.selected_dir = dirpath
-    ctrl.open_directory = open_directory
-
-    # ctrl.on_server_ready.add(ctrl.view_update)
-    # GUI
-    ui_standard_layout = ui_layout(
-        server=server, template_name=template_name, drawer_width=drawer_width
-    )
-    with ui_standard_layout as layout:
-        # -----------------------------------------------------------------------------
-        # ToolBar
-        # -----------------------------------------------------------------------------
-        ui_standard_toolbar(server=server, layout=layout, plotter=plotter, mode=mode)
-
-        # -----------------------------------------------------------------------------
-        # Drawer
-        # -----------------------------------------------------------------------------
-        ui_standard_drawer(server=server, layout=layout, adata=adata, actors=actors, actor_names=actor_names, tree=tree)
-
-        # -----------------------------------------------------------------------------
-        # Main Content
-        # -----------------------------------------------------------------------------
-        ui_standard_container(server=server, layout=layout, plotter=plotter, mode=mode)
-
-        # -----------------------------------------------------------------------------
-        # Footer
-        # -----------------------------------------------------------------------------
-        layout.footer.hide()
-
-    return server
+# Upload directory
+def open_directory():
+    dirpath = filedialog.askdirectory(title="Select Directory")
+    if not dirpath:
+        return
+    state.selected_dir = dirpath
+    ctrl.view_update()
 
 
-def stv_html(ui_name: str = "SPATEO VIEWER", **kwargs):
-    # Dataset
-    (
-        adata,
-        pc_models,
-        pc_model_ids,
-        mesh_models,
-        mesh_model_ids,
-    ) = drosophila_E7_9h_dataset()
+root = Tk()
+root.withdraw()
+root.wm_attributes("-topmost", 1)
+state.selected_dir = "None"
+ctrl.open_directory = open_directory
 
-    # Pyvista pipeline
-    plotter, actors, actor_names, tree = drosophila_actors(
-        pc_models=pc_models,
-        pc_model_ids=pc_model_ids,
-        mesh_models=mesh_models,
-        mesh_model_ids=mesh_model_ids,
-    )
 
-    # HTML
-    server = standard_html(
-        plotter=plotter,
-        adata=adata,
-        actors=actors,
-        actor_names=actor_names,
-        tree=tree,
-        ui_name=ui_name,
-        **kwargs
-    )
-    return server
+# GUI
+ui_standard_layout = ui_layout(
+    server=server, template_name="main", drawer_width=300
+)
+
+with ui_standard_layout as layout:
+    # -----------------------------------------------------------------------------
+    # ToolBar
+    # -----------------------------------------------------------------------------
+    ui_standard_toolbar(server=server, layout=layout, plotter=plotter, mode="trame")
+
+    # -----------------------------------------------------------------------------
+    # Drawer
+    # -----------------------------------------------------------------------------
+    ui_standard_drawer(server=server, layout=layout, plotter=plotter)
+
+    # -----------------------------------------------------------------------------
+    # Main Content
+    # -----------------------------------------------------------------------------
+    view = ui_standard_container(server=server, layout=layout, plotter=plotter, mode="trame")
+    # -----------------------------------------------------------------------------
+    # Footer
+    # -----------------------------------------------------------------------------
+    layout.footer.hide()
+    # layout.flush_content()
+

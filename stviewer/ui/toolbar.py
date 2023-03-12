@@ -7,11 +7,9 @@ from pyvista import BasePlotter
 from trame.widgets import vuetify, html
 
 from typing import Optional
-from ..pv_pipeline import Viewer, drosophila_actors, vuwrap
 from .utils import button, checkbox
 from ..assets import icon_manager, local_dataset_manager
-from ..dataset import sample_dataset
-
+from ..pv_pipeline import Viewer, SwitchModels
 
 # -----------------------------------------------------------------------------
 # GUI- UI title
@@ -151,108 +149,18 @@ def toolbar_widgets(
     )
 
 
-class SwitchModels:
-    """Callbacks for toolbar based on pyvista."""
-
-    def __init__(self, server, plotter):
-        """Initialize SwitchModels."""
-        state, ctrl = server.state, server.controller
-        self._server = server
-        self._ctrl = ctrl
-        self._state = state
-        self._init_plotter = plotter
-
-        # State variable names
-        self.SELECT_SAMPLES = "select_samples"
-        self.PLOTTER = "plotter"
-        self.ADATA = "adata"
-        self.UPLOAD_DIR = f"upload_dir"
-
-        # Listen to state changes
-        self._state.change(self.SELECT_SAMPLES)(self.on_dataset_change)
-
-    @vuwrap
-    def on_dataset_change(self, **kwargs):
-        if self._state[self.SELECT_SAMPLES] in ["none", "None", None]:
-            plotter = self._init_plotter
-        else:
-            print(self._state[self.SELECT_SAMPLES])
-            (
-                adata,
-                pc_models,
-                pc_model_ids,
-                mesh_models,
-                mesh_model_ids,
-            ) = sample_dataset(path=self._state[self.SELECT_SAMPLES])
-            plotter, actors, actor_names, tree = drosophila_actors(
-                pc_models=pc_models,
-                pc_model_ids=pc_model_ids,
-                mesh_models=mesh_models,
-                mesh_model_ids=mesh_model_ids,
-            )
-
-        self._state[self.PLOTTER] = plotter
-        self._ctrl.view_update()
-
-    """
-    @vuwrap
-    def upload_dir(self, **kwargs):
-
-        (
-            adata,
-            pc_models,
-            pc_model_ids,
-            mesh_models,
-            mesh_model_ids,
-        ) = sample_dataset(path=self._state[self.UPLOAD_DIR])
-
-        plotter, actors, actor_names, tree = drosophila_actors(
-            pc_models=pc_models,
-            pc_model_ids=pc_model_ids,
-            mesh_models=mesh_models,
-            mesh_model_ids=mesh_model_ids,
-        )
-        self._plotter.clear_actors()
-        self._plotter = plotter
-        self._ctrl.view_update()"""
-
-    def get_plotter(self):
-        if self._state[self.PLOTTER] is None:
-            self._state[self.PLOTTER] = self._init_plotter
-        return self._state[self.PLOTTER]
-
-    """def get_adata(self):
-        if self._state[self.ADATA] is None:
-            self._state[self.ADATA] = self._init_adata
-        return self._state[self.ADATA]"""
-
-
 def switch_model(
     server,
     plotter: BasePlotter,
 ):
-    """vuetify.VTextField(
-        label="Upload Directory",
-        v_model=(SM.UPLOAD_DIR, None),
-        type="str",
-        dense=True,
-        outlined=True,
-        hide_details=True,
-        classes="ml-8",
-        prepend_inner_icon="mdi-file-document-outline",
-        style="max-width: 250px;",
-        # filled=True,
-        # rounded=True,
-    )"""
-
-    avaliable_samples = [{"value": value, "text": key} for key, value in local_dataset_manager.get_assets().items()]
-    avaliable_samples.append({"value": server.state.selected_dir, "text": "uploaded_sample"})
+    avaliable_samples = [key for key in local_dataset_manager.get_assets().keys()]
+    avaliable_samples.append("uploaded_sample")
 
     vuetify.VSpacer()
     SM = SwitchModels(server=server, plotter=plotter)
     vuetify.VSelect(
         label="Select Samples",
-        v_model=(SM.SELECT_SAMPLES, {"value": local_dataset_manager.drosophila_E7_9h, "text": "drosophila_E7_9h"}),
+        v_model=(SM.SELECT_SAMPLES, None),
         items=("samples", avaliable_samples),
         dense=True,
         outlined=True,
@@ -260,10 +168,8 @@ def switch_model(
         classes="ml-8",
         prepend_inner_icon="mdi-magnify",
         style="max-width: 300px;",
-        # filled=True,
         rounded=True,
     )
-    return SM.get_plotter()
 
 
 def ui_standard_toolbar(
@@ -306,11 +212,6 @@ def ui_standard_toolbar(
 
         switch_model(server=server, plotter=plotter)
         toolbar_widgets(server=server, plotter=plotter, mode=mode, default_server_rendering=default_server_rendering)
-
-    return plotter
-
-
-
 
 
 

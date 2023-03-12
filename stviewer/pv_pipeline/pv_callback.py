@@ -1,7 +1,10 @@
-import io
+import io, os
 
 import numpy as np
 import pyvista as pv
+from ..assets import local_dataset_manager
+from .pv_actors import generate_actors, generate_actors_tree
+from ..dataset import sample_dataset
 # -----------------------------------------------------------------------------
 # Common Callback-ToolBar&Container
 # -----------------------------------------------------------------------------
@@ -135,87 +138,68 @@ class Viewer:
         return self._server.protocol.addAttachment(memoryview(buffer.read()))
 
 
-# -----------------------------------------------------------------------------
-# Common Callbacks-Drawer
-# -----------------------------------------------------------------------------
+class SwitchModels:
+    """Callbacks for toolbar based on pyvista."""
 
-"""
-class PVCB:
-    
-
-    def __init__(self, server, actor, actor_name):
+    def __init__(self, server, plotter):
+        """Initialize SwitchModels."""
         state, ctrl = server.state, server.controller
         self._server = server
         self._ctrl = ctrl
         self._state = state
-        self._actor = actor
-        self._actor_name = actor_name
+        self.plotter = plotter
 
-    def scalars(self):
-        @self._state.change(f"{self._actor_name}_scalars")
-        def _scalars(scalars=None, **kwargs):
-            if scalars is None:
-                self._actor.mapper.scalar_visibility = False
+        # State variable names
+        self.SELECT_SAMPLES = "select_samples"
+
+        # Listen to state changes
+        self._state.change(self.SELECT_SAMPLES)(self.on_dataset_change)
+
+    @vuwrap
+    def on_dataset_change(self, **kwargs):
+        if self._state[self.SELECT_SAMPLES] is None:
+            pass
+        else:
+
+            if self._state[self.SELECT_SAMPLES] == "uploaded_sample":
+                path = self._state.selected_dir
             else:
-                self._actor.mapper.scalar_visibility = True
-                self._actor.mapper.dataset.set_active_scalars(scalars)
-                # self._actor.mapper.array_name = scalars
+                path = local_dataset_manager[self._state[self.SELECT_SAMPLES]]
+            (
+                adata,
+                pc_models,
+                pc_model_ids,
+                mesh_models,
+                mesh_model_ids,
+            ) = sample_dataset(path=path)
+
+            # Generate actors
+            self.plotter.clear()
+            pc_actors, mesh_actors = generate_actors(
+                plotter=self.plotter,
+                pc_models=pc_models,
+                mesh_models=mesh_models,
+            )
+
+            # Generate the relationship tree of actors
+            actors, actor_ids, tree = generate_actors_tree(
+                pc_actors=pc_actors,
+                pc_actor_ids=pc_model_ids,
+                mesh_actors=mesh_actors,
+                mesh_actor_ids=mesh_model_ids,
+            )
+
+            self._state.sample_adata_path = os.path.join(
+                os.path.join(path, "h5ad"), os.listdir(path=os.path.join(path, "h5ad"))[0]
+            )
+            self._state.actor_ids = actor_ids
+            self._state.tree = tree
             self._ctrl.view_update()
 
-    def opacity(self):
-        @self._state.change(f"{self._actor_name}_opacity")
-        def _opacity(opacity=1.0, **kwargs):
-            self._actor.prop.opacity = opacity
-            self._ctrl.view_update()
 
-    def ambient(self):
-        @self._state.change(f"{self._actor_name}_ambient")
-        def _ambient(ambient=0.2, **kwargs):
-            self._actor.prop.ambient = ambient
-            self._ctrl.view_update()
-
-    def color(self):
-        @self._state.change(f"{self._actor_name}_color")
-        def _color(color="gainsboro", **kwargs):
-            self._actor.prop.color = color
-            self._ctrl.view_update()
-
-    def colormap(self):
-        @self._state.change(f"{self._actor_name}_colormap")
-        def colormap(colormap="rainbow", **kwargs):
-            self._actor.mapper.lookup_table.cmap = colormap
-            self._ctrl.view_update()
-
-    def style(self):
-        @self._state.change(f"{self._actor_name}_style")
-        def _style(style="surface", **kwargs):
-            self._actor.prop.style = style
-            self._ctrl.view_update()
-
-    def point_size(self):
-        @self._state.change(f"{self._actor_name}_point_size")
-        def _point_size(point_size=5.0, **kwargs):
-            self._actor.prop.point_size = point_size
-            self._ctrl.view_update()
-
-    def line_width(self):
-        @self._state.change(f"{self._actor_name}_line_width")
-        def _line_width(line_width=2.0, **kwargs):
-            self._actor.prop.line_width = line_width
-            self._ctrl.view_update()
-
-    def as_spheres(self):
-        @self._state.change(f"{self._actor_name}_render_points_as_spheres")
-        def _as_spheres(as_spheres=False, **kwargs):
-            self._actor.prop.render_points_as_spheres = as_spheres
-            self._ctrl.view_update()
-
-    def as_tubes(self):
-        @self._state.change(f"{self._actor_name}_render_lines_as_tubes")
-        def _as_tubes(as_tubes=False, **kwargs):
-            self._actor.prop.render_lines_as_tubes = as_tubes
-            self._ctrl.view_update()
-"""
+# -----------------------------------------------------------------------------
+# Common Callbacks-Drawer
+# -----------------------------------------------------------------------------
 
 
 class PVCB:

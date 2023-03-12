@@ -1,5 +1,4 @@
-from stviewer import stv_html
+from stviewer import server
 
-server = stv_html()
 if __name__ == "__main__":
     server.start()

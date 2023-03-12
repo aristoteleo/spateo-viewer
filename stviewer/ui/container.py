@@ -63,7 +63,9 @@ def ui_standard_container(
                 view = PyVistaRemoteView(plotter, **kwargs)
             elif mode == "client":
                 view = PyVistaLocalView(plotter, **kwargs)
+
+            ctrl.view_update = view.update
             ctrl.view_reset_camera = view.reset_camera
             ctrl.view_push_camera = view.push_camera
             ctrl.on_server_ready.add(view.update)
-            ctrl.view_update = view.update
+    return view

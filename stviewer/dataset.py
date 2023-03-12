@@ -8,8 +8,6 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-from .assets import local_dataset_manager
-
 
 def abstract_anndata(path: str, X_layer: str = "X"):
     adata = ad.read_h5ad(filename=path)
@@ -62,37 +60,4 @@ def sample_dataset(
         mesh_models, mesh_model_ids = abstract_models(path=mesh_models_path, model_ids=mesh_model_ids)
 
     return adata, pc_models, pc_model_ids, mesh_models, mesh_model_ids
-
-
-##############
-# Drosophila #
-##############
-
-
-def drosophila_E7_9h_dataset(
-    path=local_dataset_manager.drosophila_E7_9h,
-    X_layer: str = "X",
-    pc_model_ids: Optional[list] = None,
-    mesh_model_ids: Optional[list] = None,
-):
-    return sample_dataset(
-        path=path,
-        X_layer=X_layer,
-        pc_model_ids=pc_model_ids,
-        mesh_model_ids=mesh_model_ids,
-    )
-
-
-def drosophila_E9_10h_dataset(
-    path=local_dataset_manager.drosophila_E9_10h,
-    X_layer: str = "X",
-    pc_model_ids: Optional[list] = None,
-    mesh_model_ids: Optional[list] = None,
-):
-    return sample_dataset(
-        path=path,
-        X_layer=X_layer,
-        pc_model_ids=pc_model_ids,
-        mesh_model_ids=mesh_model_ids,
-    )
 

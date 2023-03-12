@@ -1,1 +1,1 @@
-from .app import stv_html
+from .app import server
