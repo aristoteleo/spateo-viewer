@@ -119,3 +119,4 @@ class LocalFileManager:
 local_dataset_manager = LocalFileManager(__file__)
 local_dataset_manager.dir_url("drosophila_E7_9h", r"./dataset/drosophila_E7_9h")
 local_dataset_manager.dir_url("drosophila_E9_10h", r"./dataset/drosophila_E9_10h")
+local_dataset_manager.dir_url("drosophila_E16_17h", r"./dataset/drosophila_E16_17h")
