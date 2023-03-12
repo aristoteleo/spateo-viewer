@@ -9,13 +9,14 @@ import matplotlib.pyplot as plt
 from anndata import AnnData
 from pyvista.plotting.colors import hexcolors
 from trame.widgets import vuetify
-from trame.widgets.trame import GitTree
 
 from ..pv_pipeline import PVCB
 
 
-def pipeline(state, ctrl, actors: list):
+def pipeline(server, actors: list):
     """Create a vuetify GitTree."""
+
+    state, ctrl = server.state, server.controller
     actor_ids = state.actor_ids
     n_actors, n_actor_names = len(actors), len(actor_ids)
     assert (
@@ -47,11 +48,13 @@ def pipeline(state, ctrl, actors: list):
             for i, name in enumerate(actor_ids)
         ]
 
+    from trame.widgets.trame import GitTree
     GitTree(
         sources=("pipeline", state.tree),
         actives_change=(actives_change, "[$event]"),
         visibility_change=(visibility_change, "[$event]"),
     )
+    return GitTree
 
 
 def card(title, actor_id):

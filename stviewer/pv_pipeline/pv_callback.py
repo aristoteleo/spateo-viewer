@@ -188,6 +188,7 @@ class SwitchModels:
                 mesh_actor_ids=mesh_model_ids,
             )
 
+            self._state.init_dataset = False
             self._state.sample_adata_path = os.path.join(
                 os.path.join(path, "h5ad"), os.listdir(path=os.path.join(path, "h5ad"))[0]
             )

@@ -31,6 +31,7 @@ state.setdefault("active_ui", None)
 # Generate a new plotter
 plotter = create_plotter()
 # Init models
+state.init_dataset = True
 anndata_path, actors, actor_ids, tree = init_actors(plotter=plotter, path=local_dataset_manager.drosophila_E7_9h)
 state.actor_ids = actor_ids
 state.tree = tree
@@ -52,11 +53,38 @@ root.wm_attributes("-topmost", 1)
 state.selected_dir = "None"
 ctrl.open_directory = open_directory
 
+from trame.widgets import vuetify
+from .ui import pipeline, standard_pc_card, standard_mesh_card, button
+from .pv_pipeline import PVCB
+
+
+
 
 # GUI
 ui_standard_layout = ui_layout(
     server=server, template_name="main", drawer_width=300
 )
+
+
+def update_drawer():
+    actors = [value for value in plotter.actors.values()]
+    adata = abstract_anndata(path=state.sample_adata_path)
+    print(state.tree)
+    print(state.actor_ids)
+    print(state.sample_adata_path)
+
+    pipeline(server=server, actors=actors)
+    """vuetify.VDivider(classes="mb-2")
+    for actor, actor_id in zip(actors, state.actor_ids):
+        CBinCard = PVCB(server=server, actor=actor, actor_name=actor_id, adata=adata)
+        if str(actor_id).startswith("PC"):
+            standard_pc_card(CBinCard, actor_id=actor_id, card_title=actor_id)
+        if str(actor_id).startswith("Mesh"):
+            standard_mesh_card(CBinCard, actor_id=actor_id, card_title=actor_id)"""
+
+
+ctrl.update_drawer = update_drawer
+
 
 with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
@@ -67,8 +95,12 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
-    ui_standard_drawer(server=server, layout=layout, plotter=plotter)
-    layout.drawer.events(ctrl.update_drawer)
+    with layout.drawer as dr:
+        dr.clear()
+        ctrl.update_drawer()
+        # layout.on_server_reload(update_drawer)
+        layout.icon.click = ctrl.update_drawer
+        # ctrl.update_drawer()
 
     # -----------------------------------------------------------------------------
     # Main Content
