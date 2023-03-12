@@ -99,6 +99,12 @@ def toolbar_widgets(
         icons=("mdi-lightbulb-off-outline", "mdi-lightbulb-outline"),
         tooltip=f"Toggle theme",
     )
+    # Whether to toggle the background color between white and black
+    checkbox(
+        model=(viewer.BACKGROUND, False),
+        icons=("mdi-palette-swatch-outline", "mdi-palette-swatch"),
+        tooltip=f"Toggle background({{{{ {viewer.BACKGROUND} ? 'white' : 'black' }}}})",
+    )
     # Server rendering options
     if mode == "trame":
         checkbox(
@@ -106,7 +112,9 @@ def toolbar_widgets(
             icons=("mdi-lan-connect", "mdi-lan-disconnect"),
             tooltip=f"Toggle rendering mode ({{{{ {viewer.SERVER_RENDERING} ? 'remote' : 'local' }}}})",
         )
+
     # Whether to add outline
+    vuetify.VDivider(vertical=True, classes="mx-1")
     checkbox(
         model=(viewer.OUTLINE, False),
         icons=("mdi-cube", "mdi-cube-off"),

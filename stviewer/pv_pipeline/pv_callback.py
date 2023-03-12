@@ -5,6 +5,7 @@ import pyvista as pv
 from ..assets import local_dataset_manager
 from .pv_actors import generate_actors, generate_actors_tree
 from ..dataset import sample_dataset
+import matplotlib.colors as mc
 # -----------------------------------------------------------------------------
 # Common Callback-ToolBar&Container
 # -----------------------------------------------------------------------------
@@ -36,6 +37,7 @@ class Viewer:
 
         # State variable names
         self.SHOW_UI = f"{plotter._id_name}_show_ui"
+        self.BACKGROUND = f"{plotter._id_name}_background"
         self.GRID = f"{plotter._id_name}_grid_visibility"
         self.OUTLINE = f"{plotter._id_name}_outline_visibility"
         self.EDGES = f"{plotter._id_name}_edge_visibility"
@@ -47,6 +49,7 @@ class Viewer:
         ctrl.get_render_window = lambda: self.plotter.render_window
 
         # Listen to state changes
+        self._state.change(self.BACKGROUND)(self.on_background_change)
         self._state.change(self.GRID)(self.on_grid_visiblity_change)
         self._state.change(self.OUTLINE)(self.on_outline_visiblity_change)
         self._state.change(self.EDGES)(self.on_edge_visiblity_change)
@@ -54,6 +57,14 @@ class Viewer:
         self._state.change(self.SERVER_RENDERING)(self.on_rendering_mode_change)
         # Listen to events
         self._ctrl.trigger(self.SCREENSHOT)(self.screenshot)
+
+    @vuwrap
+    def on_background_change(self, **kwargs):
+        """Update background color."""
+        if self._state[self.BACKGROUND]:
+            self.plotter.background_color = "white"
+        else:
+            self.plotter.background_color = "black"
 
     @vuwrap
     def on_edge_visiblity_change(self, **kwargs):
@@ -97,7 +108,9 @@ class Viewer:
     def on_grid_visiblity_change(self, **kwargs):
         """Handle axes grid visibility."""
         if self._state[self.GRID]:
-            self.plotter.show_grid()
+            bg_rgb = mc.to_rgb(self.plotter.background_color.name)
+            cbg_rgb = (1 - bg_rgb[0], 1 - bg_rgb[1], 1 - bg_rgb[2])
+            self.plotter.show_grid(color=cbg_rgb)
         else:
             self.plotter.remove_bounds_axes()
 
@@ -105,7 +118,9 @@ class Viewer:
     def on_outline_visiblity_change(self, **kwargs):
         """Handle outline visibility."""
         if self._state[self.OUTLINE]:
-            self.plotter.add_bounding_box(reset_camera=False)
+            bg_rgb = mc.to_rgb(self.plotter.background_color.name)
+            cbg_rgb = (1 - bg_rgb[0], 1 - bg_rgb[1], 1 - bg_rgb[2])
+            self.plotter.add_bounding_box(color=cbg_rgb, reset_camera=False)
         else:
             self.plotter.remove_bounding_box()
 
