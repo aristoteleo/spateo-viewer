@@ -160,7 +160,6 @@ class SwitchModels:
         if self._state[self.SELECT_SAMPLES] is None:
             pass
         else:
-
             if self._state[self.SELECT_SAMPLES] == "uploaded_sample":
                 path = self._state.selected_dir
             else:
@@ -174,7 +173,7 @@ class SwitchModels:
             ) = sample_dataset(path=path)
 
             # Generate actors
-            self.plotter.clear()
+            self.plotter.clear_actors()
             pc_actors, mesh_actors = generate_actors(
                 plotter=self.plotter,
                 pc_models=pc_models,

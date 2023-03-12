@@ -87,7 +87,7 @@ def toolbar_widgets(
     # Whether to save the image
     button(
         # Must use single-quote string for JS here
-        click=f"utils.download('screenshot.png', trigger('{viewer.SCREENSHOT}'), 'image/png')",
+        click=f"utils.download('spateo_viewer_screenshot.png', trigger('{viewer.SCREENSHOT}'), 'image/png')",
         icon="mdi-file-png-box",
         tooltip="Save screenshot",
     )

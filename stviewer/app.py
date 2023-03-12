@@ -68,11 +68,13 @@ with ui_standard_layout as layout:
     # Drawer
     # -----------------------------------------------------------------------------
     ui_standard_drawer(server=server, layout=layout, plotter=plotter)
+    layout.drawer.events(ctrl.update_drawer)
 
     # -----------------------------------------------------------------------------
     # Main Content
     # -----------------------------------------------------------------------------
     view = ui_standard_container(server=server, layout=layout, plotter=plotter, mode="trame")
+
     # -----------------------------------------------------------------------------
     # Footer
     # -----------------------------------------------------------------------------
