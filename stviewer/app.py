@@ -53,14 +53,14 @@ root.wm_attributes("-topmost", 1)
 state.selected_dir = "None"
 ctrl.open_directory = open_directory
 
-from trame.widgets import vuetify
-from .ui import pipeline, standard_pc_card, standard_mesh_card, button
-from .pv_pipeline import PVCB
-
 # GUI
 ui_standard_layout = ui_layout(
     server=server, template_name="main", drawer_width=300
 )
+"""
+from trame.widgets import vuetify
+from .ui import pipeline, standard_pc_card, standard_mesh_card, button
+from .pv_pipeline import PVCB
 
 def update_drawer():
     actors = [value for value in plotter.actors.values()]
@@ -79,7 +79,7 @@ def update_drawer():
             standard_mesh_card(CBinCard, actor_id=actor_id, card_title=actor_id)
 
 ctrl.update_drawer = update_drawer
-
+"""
 with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # ToolBar
@@ -89,12 +89,15 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
-    with layout.drawer as dr:
-        dr.clear()
-        ctrl.update_drawer()
-        # layout.on_server_reload(update_drawer)
-        layout.icon.click = ctrl.update_drawer
-        # ctrl.update_drawer()
+    ui_standard_drawer(server=server, layout=layout, plotter=plotter)
+    """
+    #with layout.drawer as dr:
+    #    dr.clear()
+    #    ctrl.update_drawer()
+    #    # layout.on_server_reload(update_drawer)
+    #    layout.icon.click = ctrl.update_drawer
+    #    # ctrl.update_drawer()
+    """
 
     # -----------------------------------------------------------------------------
     # Main Content

@@ -255,7 +255,6 @@ class PVCB:
             _adata = self._adata.copy()
             _obs_index = self._actor.mapper.dataset.point_data["obs_index"]
             _adata = _adata[_obs_index, :]
-
             if self._state[self.SCALARS] in set(_adata.obs_keys()):
                 array = np.asarray(
                     _adata.obs[self._state[self.SCALARS]].values
@@ -264,14 +263,15 @@ class PVCB:
                 matrix_id = self._state[self.MATRIX]
                 if matrix_id == "X":
                     array = np.asarray(
-                        _adata[:, self._state[self.SCALARS]].X.sum(axis=1).flatten()
+                        _adata[:, self._state[self.SCALARS]].X.sum(axis=1)
                     )
                 else:
                     array = np.asarray(
-                        _adata[:, self._state[self.SCALARS]].layers[matrix_id].sum(axis=1).flatten()
+                        _adata[:, self._state[self.SCALARS]].layers[matrix_id].sum(axis=1)
                     )
+                print(array)
             else:
-                array = np.ones(shape=(len(_obs_index),))
+                array = np.ones(shape=(len(_obs_index), 1))
 
             self._actor.mapper.dataset.point_data[self._state[self.SCALARS]] = array
             self._actor.mapper.SelectColorArray(self._state[self.SCALARS])

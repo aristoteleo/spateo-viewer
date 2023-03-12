@@ -230,42 +230,12 @@ def ui_standard_drawer(
 
     """
 
-    def update_drawer():
-        layout.drawer.clear()
-        """state, ctrl = server.state, server.controller
-        actors = [value for value in plotter.actors.values()]
-        adata = abstract_anndata(path=state.sample_adata_path)
-        print(state.sample_adata_path)
-        pipeline(state, ctrl, actors=actors)
-        vuetify.VDivider(classes="mb-2")
-        for actor, actor_id in zip(actors, state.actor_ids):
-            CBinCard = PVCB(server=server, actor=actor, actor_name=actor_id, adata=adata)
-            if str(actor_id).startswith("PC"):
-                standard_pc_card(CBinCard, actor_id=actor_id, card_title=actor_id)
-            if str(actor_id).startswith("Mesh"):
-                standard_mesh_card(CBinCard, actor_id=actor_id, card_title=actor_id)
-
-        button(
-            # Must use single-quote string for JS here
-            click=ctrl.update_drawer,
-            icon="mdi-file-document-outline",
-            tooltip="Select directory",
-        )"""
-
-    server.controller.update_drawer = update_drawer
-    layout.drawer.clear()
     with layout.drawer as dr:
-        button(
-            # Must use single-quote string for JS here
-            click=server.controller.update_drawer,
-            icon="mdi-file-document-outline",
-            tooltip="Select directory",
-        )
         state, ctrl = server.state, server.controller
         actors = [value for value in plotter.actors.values()]
         adata = abstract_anndata(path=state.sample_adata_path)
-        print(state.sample_adata_path)
-        pipeline(state, ctrl, actors=actors)
+
+        pipeline(server=server, actors=actors)
         vuetify.VDivider(classes="mb-2")
         for actor, actor_id in zip(actors, state.actor_ids):
             CBinCard = PVCB(server=server, actor=actor, actor_name=actor_id, adata=adata)
