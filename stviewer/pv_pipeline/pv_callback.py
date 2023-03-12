@@ -284,7 +284,6 @@ class PVCB:
                     array = np.asarray(
                         _adata[:, self._state[self.SCALARS]].layers[matrix_id].sum(axis=1)
                     )
-                print(array)
             else:
                 array = np.ones(shape=(len(_obs_index), 1))
 
