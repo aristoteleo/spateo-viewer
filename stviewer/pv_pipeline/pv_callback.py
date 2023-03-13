@@ -209,6 +209,7 @@ class SwitchModels:
             )
             self._state.actor_ids = actor_ids
             self._state.tree = tree
+            self._state.drawer_content = self._state[self.SELECT_SAMPLES]
             self._ctrl.view_update()
 
 

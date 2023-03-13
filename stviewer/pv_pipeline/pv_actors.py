@@ -8,6 +8,7 @@ except ImportError:
 
 from typing import Optional
 from ..dataset import sample_dataset
+from ..assets import local_dataset_manager
 
 
 def generate_actors(
@@ -108,3 +109,37 @@ def init_actors(plotter, path):
     anndata_dir = os.path.join(path, "h5ad")
     anndata_path = os.path.join(anndata_dir, os.listdir(path=anndata_dir)[0])
     return anndata_path, actors, actor_ids, tree
+
+
+def sample_actors(path):
+    (
+        adata,
+        pc_models,
+        pc_model_ids,
+        mesh_models,
+        mesh_model_ids,
+    ) = sample_dataset(path=path)
+
+    # Generate actors
+    from .pv_plotter import create_plotter
+    sub_plotter = create_plotter()
+    pc_actors, mesh_actors = generate_actors(
+        plotter=sub_plotter,
+        pc_models=pc_models,
+        mesh_models=mesh_models,
+    )
+
+    # Generate the relationship tree of actors
+    actors, actor_ids, tree = generate_actors_tree(
+        pc_actors=pc_actors,
+        pc_actor_ids=pc_model_ids,
+        mesh_actors=mesh_actors,
+        mesh_actor_ids=mesh_model_ids,
+    )
+    return sub_plotter, actor_ids, tree
+
+
+all_samples_actors = {
+    sample: sample_actors(path=local_dataset_manager[sample])
+    for sample in local_dataset_manager.get_assets().keys()
+}

@@ -63,4 +63,3 @@ def sample_dataset(
         mesh_models, mesh_model_ids = abstract_models(path=mesh_models_path, model_ids=mesh_model_ids)
 
     return adata, pc_models, pc_model_ids, mesh_models, mesh_model_ids
-
