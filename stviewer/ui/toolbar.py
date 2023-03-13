@@ -103,7 +103,7 @@ def toolbar_widgets(
     checkbox(
         model=(viewer.BACKGROUND, False),
         icons=("mdi-palette-swatch-outline", "mdi-palette-swatch"),
-        tooltip=f"Toggle background({{{{ {viewer.BACKGROUND} ? 'white' : 'black' }}}})",
+        tooltip=f"Toggle background ({{{{ {viewer.BACKGROUND} ? 'white' : 'black' }}}})",
     )
     # Server rendering options
     if mode == "trame":
