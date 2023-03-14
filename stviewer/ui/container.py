@@ -68,4 +68,3 @@ def ui_standard_container(
             ctrl.view_reset_camera = view.reset_camera
             ctrl.view_push_camera = view.push_camera
             ctrl.on_server_ready.add(view.update)
-    return view

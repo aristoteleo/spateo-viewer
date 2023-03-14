@@ -6,101 +6,49 @@ except ImportError:
 from typing import Optional
 
 import matplotlib.pyplot as plt
-from anndata import AnnData
 from pyvista.plotting.colors import hexcolors
 from trame.widgets import vuetify
-
+from trame.widgets.trame import GitTree
 from ..pv_pipeline import PVCB
 
 
-def pipeline(server, actors: list, actor_ids: list, actors_tree: list):
-    # Create a vuetify GitTree.
-
+def pipeline(server, plotter):
+    """Create a vuetify GitTree."""
     state, ctrl = server.state, server.controller
-    n_actors, n_actor_names = len(actors), len(actor_ids)
-    assert (
-        n_actors == n_actor_names
-    ), "The number of ``actors`` is not equal to the number of ``actor_names``."
 
     # Selection Change
+    @ctrl.set("actives_change")
     def actives_change(ids):
         _id = ids[0]
-        active_actor_name = actor_ids[int(_id) - 1]
-        state.active_ui = active_actor_name
+        active_actor_id = state.actor_ids[int(_id) - 1]
+        state.active_ui = active_actor_id
+        ctrl.view_update()
 
     # Visibility Change
+    @ctrl.set("visibility_change")
     def visibility_change(event):
         _id = event["id"]
         _visibility = event["visible"]
+        actors = [value for value in plotter.actors.values()]
         active_actor = actors[int(_id) - 1]
         active_actor.SetVisibility(_visibility)
         ctrl.view_update()
 
-    if actors_tree is None:
-        actors_tree = [
-            {
-                "id": str(1 + i),
-                "parent": str(0) if i == 0 else str(1),
-                "visible": True if i == 0 else False,
-                "name": actor_ids[i],
-            }
-            for i, name in enumerate(actor_ids)
-        ]
+    @ctrl.set("card_change")
+    def card_change(server, plotter):
+        standard_card(server=server, plotter=plotter)
 
-    from trame.widgets.trame import GitTree
     GitTree(
-        sources=("pipeline", actors_tree),
-        actives_change=(actives_change, "[$event]"),
-        visibility_change=(visibility_change, "[$event]"),
+        sources=("pipeline", ),
+        actives_change=(ctrl.actives_change, "[$event]"),
+        visibility_change=(ctrl.visibility_change, "[$event]"),
     )
-"""
-def pipeline(server, actors: list):
-    
-
-    state, ctrl = server.state, server.controller
-    actor_ids = state.actor_ids
-    n_actors, n_actor_names = len(actors), len(actor_ids)
-    assert (
-        n_actors == n_actor_names
-    ), "The number of ``actors`` is not equal to the number of ``actor_names``."
-
-    # Selection Change
-    def actives_change(ids):
-        _id = ids[0]
-        active_actor_name = actor_ids[int(_id) - 1]
-        state.active_ui = active_actor_name
-
-    # Visibility Change
-    def visibility_change(event):
-        _id = event["id"]
-        _visibility = event["visible"]
-        active_actor = actors[int(_id) - 1]
-        active_actor.SetVisibility(_visibility)
-        ctrl.view_update()
-
-    if state.tree is None:
-        state.tree = [
-            {
-                "id": str(1 + i),
-                "parent": str(0) if i == 0 else str(1),
-                "visible": True if i == 0 else False,
-                "name": actor_ids[i],
-            }
-            for i, name in enumerate(actor_ids)
-        ]
-
-    from trame.widgets.trame import GitTree
-    GitTree(
-        sources=("pipeline", state.tree),
-        actives_change=(actives_change, "[$event]"),
-        visibility_change=(visibility_change, "[$event]"),
-    )
-"""
 
 
 def card(title, actor_id):
     """Create a vuetify card."""
-    with vuetify.VCard(v_show=f"active_ui == '{actor_id}'"):
+    # with vuetify.VCard(v_show=f"active_ui == '{actor_id}'"):
+    with vuetify.VCard(sources=(), v_show=f"active_ui == '{actor_id}'"):
         vuetify.VCardTitle(
             title,
             classes="grey lighten-1 py-1 grey--text text--darken-3",
@@ -252,11 +200,23 @@ def standard_mesh_card(
         standard_card_components(CBinCard=CBinCard, default_values=_default_values)
 
 
+def standard_card(server, plotter):
+    actors = [value for value in plotter.actors.values()]
+    for actor, actor_id in zip(actors, server.state.actor_ids):
+        CBinCard = PVCB(server=server, actor=actor, actor_id=actor_id)
+
+        card_title = str(actor_id).split("__")[0]
+        if str(card_title).startswith("PC"):
+            standard_pc_card(CBinCard, actor_id=actor_id, card_title=card_title)
+        if str(card_title).startswith("Mesh"):
+            standard_mesh_card(CBinCard, actor_id=actor_id, card_title=card_title)
+
+
 # -----------------------------------------------------------------------------
 # GUI-standard Drawer
 # -----------------------------------------------------------------------------
 
-from ..dataset import abstract_anndata
+
 def ui_standard_drawer(
     server,
     layout,
@@ -271,16 +231,6 @@ def ui_standard_drawer(
     """
 
     with layout.drawer as dr:
-        state, ctrl = server.state, server.controller
-        actors = [value for value in plotter.actors.values()]
-        adata = abstract_anndata(path=state.sample_adata_path)
-
-        pipeline(server=server, actors=actors)
+        pipeline(server=server, plotter=plotter)
         vuetify.VDivider(classes="mb-2")
-        for actor, actor_id in zip(actors, state.actor_ids):
-            CBinCard = PVCB(server=server, actor=actor, actor_name=actor_id, adata=adata)
-            if str(actor_id).startswith("PC"):
-                standard_pc_card(CBinCard, actor_id=actor_id, card_title=actor_id)
-            if str(actor_id).startswith("Mesh"):
-                standard_mesh_card(CBinCard, actor_id=actor_id, card_title=actor_id)
-
+        standard_card(server=server, plotter=plotter)

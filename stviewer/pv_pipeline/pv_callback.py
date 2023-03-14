@@ -2,10 +2,12 @@ import io, os
 
 import numpy as np
 import pyvista as pv
-from ..assets import local_dataset_manager
-from .pv_actors import generate_actors, generate_actors_tree
-from ..dataset import sample_dataset
 import matplotlib.colors as mc
+
+from .pv_actors import generate_actors, generate_actors_tree
+from ..assets import local_dataset_manager
+from ..dataset import sample_dataset, abstract_anndata
+
 # -----------------------------------------------------------------------------
 # Common Callback-ToolBar&Container
 # -----------------------------------------------------------------------------
@@ -185,7 +187,7 @@ class SwitchModels:
                 pc_model_ids,
                 mesh_models,
                 mesh_model_ids,
-            ) = sample_dataset(path=path)
+            ) = sample_dataset(sample_id=self._state[self.SELECT_SAMPLES], path=path)
 
             # Generate actors
             self.plotter.clear_actors()
@@ -196,20 +198,22 @@ class SwitchModels:
             )
 
             # Generate the relationship tree of actors
-            actors, actor_ids, tree = generate_actors_tree(
+            actors, actor_ids, actor_tree = generate_actors_tree(
                 pc_actors=pc_actors,
                 pc_actor_ids=pc_model_ids,
                 mesh_actors=mesh_actors,
                 mesh_actor_ids=mesh_model_ids,
             )
 
+            self._state.sample_id = self._state[self.SELECT_SAMPLES]
             self._state.init_dataset = False
             self._state.sample_adata_path = os.path.join(
                 os.path.join(path, "h5ad"), os.listdir(path=os.path.join(path, "h5ad"))[0]
             )
             self._state.actor_ids = actor_ids
-            self._state.tree = tree
-            self._state.drawer_content = self._state[self.SELECT_SAMPLES]
+            self._state.pipeline = actor_tree
+            self._ctrl.view_update()
+            self._ctrl.card_change(self._server, self.plotter)
             self._ctrl.view_update()
 
 
@@ -221,28 +225,30 @@ class SwitchModels:
 class PVCB:
     """Callbacks for drawer based on pyvista."""
 
-    def __init__(self, server, actor, actor_name, adata):
+    def __init__(self, server, actor, actor_id):
         """Initialize PVCB."""
         state, ctrl = server.state, server.controller
+        adata = abstract_anndata(path=state.sample_adata_path)
+
         self._server = server
         self._ctrl = ctrl
         self._state = state
         self._actor = actor
-        self._actor_name = actor_name
+        self._actor_id = actor_id
         self._adata = adata
 
         # State variable names
-        self.SCALARS = f"{actor_name}_scalars_value"
-        self.MATRIX = f"{actor_name}_matrix_value"
-        self.OPACITY = f"{actor_name}_opacity_value"
-        self.AMBIENT = f"{actor_name}_ambient_value"
-        self.COLOR = f"{actor_name}_color_value"
-        self.COLORMAP = f"{actor_name}_colormap_value"
-        self.STYLE = f"{actor_name}_style_value"
-        self.POINTSIZE = f"{actor_name}_point_size_value"
-        self.LINEWIDTH = f"{actor_name}_line_width_value"
-        self.ASSPHERES = f"{actor_name}_as_spheres_value"
-        self.ASTUBES = f"{actor_name}_as_tubes_value"
+        self.SCALARS = f"{actor_id}_scalars_value"
+        self.MATRIX = f"{actor_id}_matrix_value"
+        self.OPACITY = f"{actor_id}_opacity_value"
+        self.AMBIENT = f"{actor_id}_ambient_value"
+        self.COLOR = f"{actor_id}_color_value"
+        self.COLORMAP = f"{actor_id}_colormap_value"
+        self.STYLE = f"{actor_id}_style_value"
+        self.POINTSIZE = f"{actor_id}_point_size_value"
+        self.LINEWIDTH = f"{actor_id}_line_width_value"
+        self.ASSPHERES = f"{actor_id}_as_spheres_value"
+        self.ASTUBES = f"{actor_id}_as_tubes_value"
 
         # Listen to state changes
         self._state.change(self.SCALARS)(self.on_scalars_change)
