@@ -1,8 +1,7 @@
 from .container import ui_standard_container
 from .drawer import (
-    card,
+    standard_card,
     pipeline,
-    standard_card_components,
     standard_mesh_card,
     standard_pc_card,
     ui_standard_drawer,

@@ -212,8 +212,7 @@ class SwitchModels:
             )
             self._state.actor_ids = actor_ids
             self._state.pipeline = actor_tree
-            self._ctrl.view_update()
-            self._ctrl.card_change(self._server, self.plotter)
+            self._state.active_ui = None
             self._ctrl.view_update()
 
 
