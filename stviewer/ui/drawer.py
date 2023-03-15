@@ -171,52 +171,28 @@ def standard_mesh_card(
                 outlined=True,
                 classes="pt-1",
             )
-        # Opacity
-        vuetify.VSlider(
-            v_model=(CBinCard.OPACITY, _default_values["opacity"]),
-            min=0,
-            max=1,
-            step=0.01,
-            label="Opacity",
-            classes="mt-1",
-            hide_details=True,
-            dense=True,
-        )
-        # Ambient
-        vuetify.VSlider(
-            v_model=(CBinCard.AMBIENT, _default_values["ambient"]),
-            min=0,
-            max=1,
-            step=0.01,
-            label="Ambient",
-            classes="mt-1",
-            hide_details=True,
-            dense=True,
-        )
-
-
-def standard_card(server, plotter):
-    """Create a vuetify card."""
-    state, ctrl = server.state, server.controller
-
-    actors = [value for value in plotter.actors.values()]
-    for actor, actor_id in zip(actors, state.actor_ids):
-        with vuetify.VCard(sources=("pipeline", ), v_show=f"active_ui === '{actor_id}'"):
-            card_title = str(actor_id).split("__")[0]
-            vuetify.VCardTitle(
-                card_title,
-                classes="grey lighten-1 py-1 grey--text text--darken-3",
-                style="user-select: none; cursor: pointer",
-                hide_details=True,
-                dense=True,
-            )
-            with vuetify.VCardText(classes="py-2"):
-                # actor = [value for value in plotter.actors.values()][state.actor_ids.index(state.active_ui)]
-                CBinCard = PVCB(server=server, actor=actor, actor_id=actor_id)
-                if str(card_title).startswith("PC"):
-                    standard_pc_card(CBinCard)
-                if str(card_title).startswith("Mesh"):
-                    standard_mesh_card(CBinCard)
+    # Opacity
+    vuetify.VSlider(
+        v_model=(CBinCard.OPACITY, _default_values["opacity"]),
+        min=0,
+        max=1,
+        step=0.01,
+        label="Opacity",
+        classes="mt-1",
+        hide_details=True,
+        dense=True,
+    )
+    # Ambient
+    vuetify.VSlider(
+        v_model=(CBinCard.AMBIENT, _default_values["ambient"]),
+        min=0,
+        max=1,
+        step=0.01,
+        label="Ambient",
+        classes="mt-1",
+        hide_details=True,
+        dense=True,
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -236,8 +212,33 @@ def ui_standard_drawer(
         server: The trame server.
 
     """
+    state, ctrl = server.state, server.controller
+
+    @ctrl.set("update_card")
+    def standard_card(server, plotter):
+        """Create a vuetify card."""
+        actors = [value for value in plotter.actors.values()]
+        for actor, actor_id in zip(actors, state.actor_ids):
+            # with vuetify.VCard((CBinCard.AMBIENT, _default_values["ambient"]),):
+            with vuetify.VCard(v_show=f"active_ui === '{actor_id}'"):
+                card_title = str(actor_id).split("__")[0]
+                vuetify.VCardTitle(
+                    card_title,
+                    classes="grey lighten-1 py-1 grey--text text--darken-3",
+                    style="user-select: none; cursor: pointer",
+                    hide_details=True,
+                    dense=True,
+                )
+                with vuetify.VCardText(classes="py-2"):
+                    # actor = [value for value in plotter.actors.values()][state.actor_ids.index(state.active_ui)]
+                    CBinCard = PVCB(server=server, actor=actor, actor_id=actor_id)
+                    if str(card_title).startswith("PC"):
+                        standard_pc_card(CBinCard)
+                    if str(card_title).startswith("Mesh"):
+                        standard_mesh_card(CBinCard)
 
     with layout.drawer as dr:
         pipeline(server=server, plotter=plotter)
         vuetify.VDivider(classes="mb-2")
-        standard_card(server=server, plotter=plotter)
+        #standard_card(server=server, plotter=plotter)
+        ctrl.update_card(server=server, plotter=plotter)
