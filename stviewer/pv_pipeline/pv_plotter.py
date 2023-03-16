@@ -1,6 +1,5 @@
 from typing import Optional, Union
 
-import matplotlib as mpl
 import pyvista as pv
 from pyvista import Plotter, PolyData, UnstructuredGrid
 

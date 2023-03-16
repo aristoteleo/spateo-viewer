@@ -4,7 +4,9 @@ except ImportError:
     from typing_extensions import Literal
 
 from tkinter import Tk, filedialog
+
 from .assets import icon_manager, local_dataset_manager
+from .pv_pipeline import create_plotter, init_actors
 from .server import get_trame_server
 from .ui import (
     ui_layout,
@@ -12,10 +14,9 @@ from .ui import (
     ui_standard_drawer,
     ui_standard_toolbar,
 )
-from .pv_pipeline import create_plotter, init_actors
 
 # Get a Server to work with
-server =get_trame_server()
+server = get_trame_server()
 state, ctrl = server.state, server.controller
 state.trame__title = "SPATEO VIEWER"
 state.trame__favicon = icon_manager.spateo_logo
@@ -26,7 +27,11 @@ plotter = create_plotter()
 # Init models
 state.init_dataset = True
 state.sample_id = "drosophila_E16_17h"
-anndata_path, actors, actor_ids, actor_tree = init_actors(plotter=plotter, sample_id=state.sample_id, path=local_dataset_manager[state.sample_id])
+anndata_path, actors, actor_ids, actor_tree = init_actors(
+    plotter=plotter,
+    sample_id=state.sample_id,
+    path=local_dataset_manager[state.sample_id],
+)
 state.actor_ids = actor_ids
 state.pipeline = actor_tree
 state.sample_adata_path = anndata_path
@@ -48,10 +53,7 @@ state.selected_dir = "None"
 ctrl.open_directory = open_directory
 
 # GUI
-ui_standard_layout = ui_layout(
-    server=server, template_name="main", drawer_width=300
-)
-
+ui_standard_layout = ui_layout(server=server, template_name="main", drawer_width=300)
 with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # ToolBar
@@ -73,4 +75,3 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     layout.footer.hide()
     # layout.flush_content()
-

@@ -3,13 +3,14 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-from pyvista import BasePlotter
-from trame.widgets import vuetify, html
-
 from typing import Optional
-from .utils import button, checkbox
+
+from pyvista import BasePlotter
+from trame.widgets import html, vuetify
+
 from ..assets import icon_manager, local_dataset_manager
-from ..pv_pipeline import Viewer, SwitchModels
+from ..pv_pipeline import SwitchModels, Viewer
+from .utils import button, checkbox
 
 # -----------------------------------------------------------------------------
 # GUI- UI title
@@ -17,10 +18,7 @@ from ..pv_pipeline import Viewer, SwitchModels
 
 
 def ui_title(
-    layout,
-    title_name="SPATEO VIEWER",
-    title_icon: Optional[str] = None,
-    **kwargs
+    layout, title_name="SPATEO VIEWER", title_icon: Optional[str] = None, **kwargs
 ):
     """
     Define the title name and logo of the UI.
@@ -38,12 +36,14 @@ def ui_title(
 
     # Update the toolbar's name
     layout.title.set_text(title_name)
-    layout.title.style = "font-family:arial; font-size:25px; font-weight: 550; color: gray;"
+    layout.title.style = (
+        "font-family:arial; font-size:25px; font-weight: 550; color: gray;"
+    )
 
     # Update the toolbar's icon
     if not (title_icon is None):
         with layout.icon as icon:
-            icon.style = "margin-left: 10px;" # "width: 7vw; height: 7vh;"
+            icon.style = "margin-left: 10px;"  # "width: 7vw; height: 7vh;"
             html.Img(src=title_icon, height=40, **kwargs)
 
 
@@ -157,7 +157,7 @@ def toolbar_widgets(
     )
 
 
-def switch_model(
+def toolbar_switch_model(
     server,
     plotter: BasePlotter,
 ):
@@ -218,27 +218,10 @@ def ui_standard_toolbar(
         tb.dense = True
         tb.clipped_right = True
 
-        switch_model(server=server, plotter=plotter)
-        toolbar_widgets(server=server, plotter=plotter, mode=mode, default_server_rendering=default_server_rendering)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        toolbar_switch_model(server=server, plotter=plotter)
+        toolbar_widgets(
+            server=server,
+            plotter=plotter,
+            mode=mode,
+            default_server_rendering=default_server_rendering,
+        )

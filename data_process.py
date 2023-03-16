@@ -1,7 +1,10 @@
 import anndata as ad
 import dynamo as dyn
 from scipy.sparse import csr_matrix
-adata = ad.read_h5ad("./stviewer/assets/dataset/drosophila_E9_10h/h5ad/E9-10h_cellbin.h5ad")
+
+adata = ad.read_h5ad(
+    "./stviewer/assets/dataset/drosophila_E9_10h/h5ad/E9-10h_cellbin.h5ad"
+)
 print(adata)
 X_counts = csr_matrix(adata.layers["counts_X"].copy())
 adata.X = adata.layers["counts_X"].copy()
@@ -18,4 +21,7 @@ adata.X = X_counts
 adata.layers["X_counts"] = X_counts
 adata.layers["X_log1p"] = csr_matrix(X_log1p)
 
-adata.write_h5ad("./stviewer/assets/dataset/drosophila_E9_10h/h5ad/E9-10h_cellbin.h5ad", compression="gzip")
+adata.write_h5ad(
+    "./stviewer/assets/dataset/drosophila_E9_10h/h5ad/E9-10h_cellbin.h5ad",
+    compression="gzip",
+)

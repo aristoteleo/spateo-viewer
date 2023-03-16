@@ -1,12 +1,14 @@
-import io, os
+import io
+import os
 
+import matplotlib.colors as mc
 import numpy as np
 import pyvista as pv
-import matplotlib.colors as mc
 
-from .pv_actors import generate_actors, generate_actors_tree
+from stviewer.assets.dataset_acquisition import abstract_anndata, sample_dataset
+
 from ..assets import local_dataset_manager
-from ..dataset import sample_dataset, abstract_anndata
+from .pv_actors import generate_actors, generate_actors_tree
 
 # -----------------------------------------------------------------------------
 # Common Callback-ToolBar&Container
@@ -208,7 +210,8 @@ class SwitchModels:
             self._state.sample_id = self._state[self.SELECT_SAMPLES]
             self._state.init_dataset = False
             self._state.sample_adata_path = os.path.join(
-                os.path.join(path, "h5ad"), os.listdir(path=os.path.join(path, "h5ad"))[0]
+                os.path.join(path, "h5ad"),
+                os.listdir(path=os.path.join(path, "h5ad"))[0],
             )
             self._state.actor_ids = actor_ids
             self._state.pipeline = actor_tree
@@ -287,7 +290,9 @@ class PVCB:
                     )
                 else:
                     array = np.asarray(
-                        _adata[:, self._state[self.SCALARS]].layers[matrix_id].sum(axis=1)
+                        _adata[:, self._state[self.SCALARS]]
+                        .layers[matrix_id]
+                        .sum(axis=1)
                     )
             else:
                 array = np.ones(shape=(len(_obs_index), 1))
@@ -334,4 +339,3 @@ class PVCB:
     def on_as_tubes_change(self, **kwargs):
         self._actor.prop.render_lines_as_tubes = self._state[self.ASTUBES]
         self._ctrl.view_update()
-

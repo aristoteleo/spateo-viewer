@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from pyvista.plotting.colors import hexcolors
 from trame.widgets import vuetify
 from trame.widgets.trame import GitTree
+
 from ..pv_pipeline import PVCB
 
 
@@ -34,15 +35,13 @@ def pipeline(server, plotter):
         ctrl.view_update()
 
     GitTree(
-        sources=("pipeline", ),
+        sources=("pipeline",),
         actives_change=(ctrl.actives_change, "[$event]"),
         visibility_change=(ctrl.visibility_change, "[$event]"),
     )
 
 
-def standard_pc_card(
-    CBinCard, default_values: Optional[dict] = None
-):
+def standard_pc_card(CBinCard, default_values: Optional[dict] = None):
     _default_values = {
         "layer": "X",
         "scalars": "None",
@@ -135,9 +134,7 @@ def standard_pc_card(
     )
 
 
-def standard_mesh_card(
-    CBinCard, default_values: Optional[dict] = None
-):
+def standard_mesh_card(CBinCard, default_values: Optional[dict] = None):
     _default_values = {
         "style": "surface",
         "color": "gainsboro",
@@ -240,5 +237,5 @@ def ui_standard_drawer(
     with layout.drawer as dr:
         pipeline(server=server, plotter=plotter)
         vuetify.VDivider(classes="mb-2")
-        #standard_card(server=server, plotter=plotter)
+        # standard_card(server=server, plotter=plotter)
         ctrl.update_card(server=server, plotter=plotter)

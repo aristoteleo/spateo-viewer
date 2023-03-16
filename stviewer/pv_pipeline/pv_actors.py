@@ -1,4 +1,5 @@
 import os
+
 from .pv_plotter import add_single_model
 
 try:
@@ -7,7 +8,8 @@ except ImportError:
     from typing_extensions import Literal
 
 from typing import Optional
-from ..dataset import sample_dataset
+
+from ..assets import sample_dataset
 
 
 def generate_actors(
@@ -22,7 +24,10 @@ def generate_actors(
     if not (pc_added_kwargs is None):
         pc_kwargs.update(pc_added_kwargs)
     if not (pc_models is None):
-        pc_actors = [add_single_model(plotter=plotter, model=model, **pc_kwargs) for model in pc_models]
+        pc_actors = [
+            add_single_model(plotter=plotter, model=model, **pc_kwargs)
+            for model in pc_models
+        ]
     else:
         pc_actors = None
 
@@ -31,7 +36,10 @@ def generate_actors(
     if not (mesh_added_kwargs is None):
         mesh_kwargs.update(mesh_added_kwargs)
     if not (mesh_models is None):
-        mesh_actors = [add_single_model(plotter=plotter, model=model, **mesh_kwargs) for model in mesh_models]
+        mesh_actors = [
+            add_single_model(plotter=plotter, model=model, **mesh_kwargs)
+            for model in mesh_models
+        ]
     else:
         mesh_actors = None
     return pc_actors, mesh_actors
@@ -70,7 +78,9 @@ def generate_actors_tree(
 
     if not (mesh_actors is None):
         mesh_actors, mesh_actor_ids, mesh_tree = standard_tree(
-            actors=mesh_actors, actor_names=mesh_actor_ids, base_id=0 if pc_actors is None else len(pc_actors)
+            actors=mesh_actors,
+            actor_names=mesh_actor_ids,
+            base_id=0 if pc_actors is None else len(pc_actors),
         )
     else:
         mesh_actors, mesh_actor_ids, mesh_tree = None, None, None
