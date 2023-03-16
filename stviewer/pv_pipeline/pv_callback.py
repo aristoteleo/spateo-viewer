@@ -189,7 +189,7 @@ class SwitchModels:
                 pc_model_ids,
                 mesh_models,
                 mesh_model_ids,
-            ) = sample_dataset(sample_id=self._state[self.SELECT_SAMPLES], path=path)
+            ) = sample_dataset(path=path)
 
             # Generate actors
             self.plotter.clear_actors()
@@ -207,7 +207,6 @@ class SwitchModels:
                 mesh_actor_ids=mesh_model_ids,
             )
 
-            self._state.sample_id = self._state[self.SELECT_SAMPLES]
             self._state.init_dataset = False
             self._state.sample_adata_path = os.path.join(
                 os.path.join(path, "h5ad"),

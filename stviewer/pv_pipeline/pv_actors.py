@@ -91,14 +91,14 @@ def generate_actors_tree(
     return totel_actors, totel_actor_ids, totel_tree
 
 
-def init_actors(plotter, sample_id, path):
+def init_actors(plotter, path):
     (
         adata,
         pc_models,
         pc_model_ids,
         mesh_models,
         mesh_model_ids,
-    ) = sample_dataset(sample_id=sample_id, path=path)
+    ) = sample_dataset(path=path)
 
     # Generate actors
     pc_actors, mesh_actors = generate_actors(

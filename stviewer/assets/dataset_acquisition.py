@@ -36,7 +36,6 @@ def abstract_models(path: str, model_ids: Optional[list] = None):
 
 
 def sample_dataset(
-    sample_id: str,
     path: str,
     X_layer: str = "X",
     pc_model_ids: Optional[list] = None,
@@ -57,9 +56,7 @@ def sample_dataset(
         pc_models, pc_model_ids = None, None
     else:
         if pc_model_ids is None:
-            pc_model_ids = [
-                f"PC_{str(i).split('_')[1]}__{sample_id}" for i in pc_model_files
-            ]
+            pc_model_ids = [f"PC_{str(i).split('_')[1]}" for i in pc_model_files]
         pc_models, pc_model_ids = abstract_models(
             path=pc_models_path, model_ids=pc_model_ids
         )
@@ -72,9 +69,7 @@ def sample_dataset(
         mesh_models, mesh_model_ids = None, None
     else:
         if mesh_model_ids is None:
-            mesh_model_ids = [
-                f"Mesh_{str(i).split('_')[1]}__{sample_id}" for i in mesh_model_files
-            ]
+            mesh_model_ids = [f"Mesh_{str(i).split('_')[1]}" for i in mesh_model_files]
         mesh_models, mesh_model_ids = abstract_models(
             path=mesh_models_path, model_ids=mesh_model_ids
         )

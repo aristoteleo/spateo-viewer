@@ -7,38 +7,13 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 from pyvista.plotting.colors import hexcolors
-from trame.widgets import vuetify
-from trame.widgets.trame import GitTree
+from trame.widgets import html, trame, vuetify
 
 from ..pv_pipeline import PVCB
 
-
-def pipeline(server, plotter):
-    """Create a vuetify GitTree."""
-    state, ctrl = server.state, server.controller
-
-    # Selection Change
-    @ctrl.set("actives_change")
-    def actives_change(ids):
-        _id = ids[0]
-        active_actor_id = state.actor_ids[int(_id) - 1]
-        state.active_ui = active_actor_id
-        ctrl.view_update()
-
-    # Visibility Change
-    @ctrl.set("visibility_change")
-    def visibility_change(event):
-        _id = event["id"]
-        _visibility = event["visible"]
-        active_actor = [value for value in plotter.actors.values()][int(_id) - 1]
-        active_actor.SetVisibility(_visibility)
-        ctrl.view_update()
-
-    GitTree(
-        sources=("pipeline",),
-        actives_change=(ctrl.actives_change, "[$event]"),
-        visibility_change=(ctrl.visibility_change, "[$event]"),
-    )
+# -----------------------------------------------------------------------------
+# Card
+# -----------------------------------------------------------------------------
 
 
 def standard_pc_card(CBinCard, default_values: Optional[dict] = None):
@@ -192,6 +167,82 @@ def standard_mesh_card(CBinCard, default_values: Optional[dict] = None):
     )
 
 
+def standard_card(server, plotter):
+    """Create a vuetify card."""
+
+    with vuetify.VCard(v_show="active_ui"):
+        vuetify.VCardTitle(
+            "{{ active_ui }}",
+            classes="grey lighten-1 py-1 grey--text text--darken-3",
+            style="user-select: none; cursor: pointer",
+            hide_details=True,
+            dense=True,
+        )
+        actors = [value for value in plotter.actors.values()]
+        for actor, actor_id in zip(actors, server.state.actor_ids):
+            with vuetify.VCardText(classes="py-2", v_show="active_ui"):
+                CBinCard = PVCB(server=server, actor=actor, actor_id=actor_id)
+                if str(actor_id).startswith("PC"):
+                    standard_pc_card(CBinCard)
+                if str(actor_id).startswith("Mesh"):
+                    standard_mesh_card(CBinCard)
+
+    """      
+    actors = [value for value in plotter.actors.values()]
+    for actor, actor_id in zip(actors, server.state.actor_ids):
+        # with vuetify.VCard((CBinCard.AMBIENT, _default_values["ambient"]),):
+        with vuetify.VCard(v_show=f"active_ui === '{actor_id}'"):
+            card_title = str(actor_id).split("__")[0]
+            vuetify.VCardTitle(
+                card_title,
+                classes="grey lighten-1 py-1 grey--text text--darken-3",
+                style="user-select: none; cursor: pointer",
+                hide_details=True,
+                dense=True,
+            )
+            with vuetify.VCardText(classes="py-2"):
+                # actor = [value for value in plotter.actors.values()][state.actor_ids.index(state.active_ui)]
+                CBinCard = PVCB(server=server, actor=actor, actor_id=actor_id)
+                if str(card_title).startswith("PC"):
+                    standard_pc_card(CBinCard)
+                if str(card_title).startswith("Mesh"):
+                    standard_mesh_card(CBinCard)"""
+
+
+# -----------------------------------------------------------------------------
+# GitTree
+# -----------------------------------------------------------------------------
+
+
+def pipeline(server, plotter):
+    """Create a vuetify GitTree."""
+    state, ctrl = server.state, server.controller
+
+    # Selection Change
+    @ctrl.set("actives_change")
+    def actives_change(ids):
+        _id = ids[0]
+        active_actor_id = state.actor_ids[int(_id) - 1]
+        state.active_ui = active_actor_id
+        state.active_id = int(_id)
+        ctrl.view_update()
+
+    # Visibility Change
+    @ctrl.set("visibility_change")
+    def visibility_change(event):
+        _id = event["id"]
+        _visibility = event["visible"]
+        active_actor = [value for value in plotter.actors.values()][int(_id) - 1]
+        active_actor.SetVisibility(_visibility)
+        ctrl.view_update()
+
+    trame.GitTree(
+        sources=("pipeline",),
+        actives_change=(ctrl.actives_change, "[$event]"),
+        visibility_change=(ctrl.visibility_change, "[$event]"),
+    )
+
+
 # -----------------------------------------------------------------------------
 # GUI-standard Drawer
 # -----------------------------------------------------------------------------
@@ -209,33 +260,10 @@ def ui_standard_drawer(
         server: The trame server.
 
     """
-    state, ctrl = server.state, server.controller
-
-    @ctrl.set("update_card")
-    def standard_card(server, plotter):
-        """Create a vuetify card."""
-        actors = [value for value in plotter.actors.values()]
-        for actor, actor_id in zip(actors, state.actor_ids):
-            # with vuetify.VCard((CBinCard.AMBIENT, _default_values["ambient"]),):
-            with vuetify.VCard(v_show=f"active_ui === '{actor_id}'"):
-                card_title = str(actor_id).split("__")[0]
-                vuetify.VCardTitle(
-                    card_title,
-                    classes="grey lighten-1 py-1 grey--text text--darken-3",
-                    style="user-select: none; cursor: pointer",
-                    hide_details=True,
-                    dense=True,
-                )
-                with vuetify.VCardText(classes="py-2"):
-                    # actor = [value for value in plotter.actors.values()][state.actor_ids.index(state.active_ui)]
-                    CBinCard = PVCB(server=server, actor=actor, actor_id=actor_id)
-                    if str(card_title).startswith("PC"):
-                        standard_pc_card(CBinCard)
-                    if str(card_title).startswith("Mesh"):
-                        standard_mesh_card(CBinCard)
 
     with layout.drawer as dr:
         pipeline(server=server, plotter=plotter)
         vuetify.VDivider(classes="mb-2")
-        # standard_card(server=server, plotter=plotter)
-        ctrl.update_card(server=server, plotter=plotter)
+        standard_card(server=server, plotter=plotter)
+        # ctrl.update_card(server=server, plotter=plotter)
+        # vuetify.VCard(source=("pipeline", ))
