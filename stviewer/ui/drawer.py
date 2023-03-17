@@ -170,7 +170,7 @@ def standard_mesh_card(CBinCard, default_values: Optional[dict] = None):
 def standard_card(server, plotter):
     """Create a vuetify card."""
 
-    with vuetify.VCard(): # v_show="active_ui"
+    with vuetify.VCard():  # v_show="active_ui"
         vuetify.VCardTitle(
             "{{ active_ui }}",
             classes="grey lighten-1 py-1 grey--text text--darken-3",
@@ -180,7 +180,9 @@ def standard_card(server, plotter):
         )
         actors = [value for value in plotter.actors.values()]
         for actor, actor_id in zip(actors, server.state.actor_ids):
-            with vuetify.VCardText(classes="py-2", v_show=f"active_ui === '{actor_id}'"):
+            with vuetify.VCardText(
+                classes="py-2", v_show=f"active_ui === '{actor_id}'"
+            ):
                 CBinCard = PVCB(server=server, actor=actor, actor_id=actor_id)
                 if str(actor_id).startswith("PC"):
                     standard_pc_card(CBinCard)
@@ -241,6 +243,7 @@ def pipeline(server, plotter):
         actives_change=(ctrl.actives_change, "[$event]"),
         visibility_change=(ctrl.visibility_change, "[$event]"),
     )
+
 
 # -----------------------------------------------------------------------------
 # GUI-standard Drawer

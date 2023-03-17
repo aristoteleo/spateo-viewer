@@ -14,6 +14,7 @@ from .ui import (
     ui_standard_drawer,
     ui_standard_toolbar,
 )
+
 # export WSLINK_MAX_MSG_SIZE=1000000000    # 1GB
 
 # Get a Server to work with
