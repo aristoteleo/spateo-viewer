@@ -121,3 +121,14 @@ local_dataset_manager = LocalFileManager(__file__)
 local_dataset_manager.dir_url("drosophila_E7_9h", r"./dataset/drosophila_E7_9h")
 local_dataset_manager.dir_url("drosophila_E9_10h", r"./dataset/drosophila_E9_10h")
 local_dataset_manager.dir_url("drosophila_E16_17h", r"./dataset/drosophila_E16_17h")
+"""
+# -----------------------------------------------------------------------------
+# Data file information
+# -----------------------------------------------------------------------------
+from trame.assets.remote import HttpFile
+dataset_file = HttpFile(
+    "./data/disk_out_ref.vtu",
+    "https://github.com/Kitware/trame/raw/master/examples/data/disk_out_ref.vtu",
+    __file__,
+)
+"""
