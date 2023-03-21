@@ -30,7 +30,7 @@ plotter = create_plotter()
 state.init_dataset = True
 anndata_path, actors, actor_ids, actor_tree = init_actors(
     plotter=plotter,
-    path=local_dataset_manager.drosophila_E16_17h,
+    path=local_dataset_manager.drosophila_E15_16h,
 )
 state.actor_ids = actor_ids
 state.active_id = 0

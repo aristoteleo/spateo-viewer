@@ -1,7 +1,4 @@
 from typing import Optional
-
-import anndata as ad
-import dynamo as dyn
 from scipy.sparse import csr_matrix, issparse
 
 
@@ -12,7 +9,8 @@ def anndata_preprocess(
     X_log1p: Optional[str] = "X_log1p",
     spatial_key: str = "3d_align_spatial",
 ):
-    adata = ad.read_h5ad(filename=path)
+    import dynamo as dyn
+    adata = dyn.read_h5ad(filename=path)
 
     # matrices
     X_counts = (
@@ -39,6 +37,7 @@ def anndata_preprocess(
     # preprocess
     del adata.uns, adata.layers, adata.obsm, adata.obsp, adata.varm
     adata.X = X_counts
+    dyn.pp.normalize_cell_expr_by_size_factors(adata=adata, layers="X", skip_log=True)
     adata.layers["X_counts"] = X_counts
     adata.layers["X_log1p"] = X_log1p
     adata.obsm["spatial"] = spatial_coords
