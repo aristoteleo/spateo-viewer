@@ -6,10 +6,11 @@ except ImportError:
 from typing import Optional
 
 import matplotlib.pyplot as plt
+from pyvista import BasePlotter
 from pyvista.plotting.colors import hexcolors
 from trame.widgets import trame, vuetify
-from ..pv_pipeline import PVCB
 
+from ..pv_pipeline import PVCB
 
 # -----------------------------------------------------------------------------
 # Card
@@ -205,21 +206,22 @@ def pipeline(server, plotter):
 # GUI-standard Drawer
 # -----------------------------------------------------------------------------
 
+
 def ui_standard_drawer(
     server,
     layout,
-    plotter,
+    plotter: BasePlotter,
 ):
     """
     Generate standard Drawer for Spateo UI.
 
     Args:
         server: The trame server.
-
+        layout: The layout object.
+        plotter: The PyVista plotter to connect with the UI.
     """
-    state, ctrl = server.state, server.controller
-    PVCB(server=server, plotter=plotter)
 
+    PVCB(server=server, plotter=plotter)
     with layout.drawer as dr:
         pipeline(server=server, plotter=plotter)
         vuetify.VDivider(classes="mb-2")
@@ -231,7 +233,11 @@ def ui_standard_drawer(
                 hide_details=True,
                 dense=True,
             )
-            with vuetify.VCardText(classes="py-2", v_show=f"active_model_type === 'PC'"):
+            with vuetify.VCardText(
+                classes="py-2", v_show=f"active_model_type === 'PC'"
+            ):
                 standard_pc_card()
-            with vuetify.VCardText(classes="py-2", v_show=f"active_model_type === 'Mesh'"):
+            with vuetify.VCardText(
+                classes="py-2", v_show=f"active_model_type === 'Mesh'"
+            ):
                 standard_mesh_card()

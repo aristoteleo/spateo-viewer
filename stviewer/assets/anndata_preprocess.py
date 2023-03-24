@@ -1,4 +1,5 @@
 from typing import Optional
+
 from scipy.sparse import csr_matrix, issparse
 
 
@@ -10,6 +11,7 @@ def anndata_preprocess(
     spatial_key: str = "3d_align_spatial",
 ):
     import dynamo as dyn
+
     adata = dyn.read_h5ad(filename=path)
 
     # matrices

@@ -48,11 +48,13 @@ def open_directory():
     state.selected_dir = dirpath
     ctrl.view_update()
 
+
 root = Tk()
 root.withdraw()
 root.wm_attributes("-topmost", 1)
 state.selected_dir = "None"
 ctrl.open_directory = open_directory
+
 
 # GUI
 ui_standard_layout = ui_layout(server=server, template_name="main", drawer_width=300)

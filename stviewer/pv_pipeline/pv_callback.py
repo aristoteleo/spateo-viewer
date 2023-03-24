@@ -5,11 +5,9 @@ import matplotlib.colors as mc
 import numpy as np
 import pyvista as pv
 
-from ..assets.dataset_acquisition import abstract_anndata, sample_dataset
-
 from ..assets import local_dataset_manager
+from ..assets.dataset_acquisition import abstract_anndata, sample_dataset
 from .pv_actors import generate_actors, generate_actors_tree
-
 
 # -----------------------------------------------------------------------------
 # Common Callback-ToolBar&Container
@@ -261,10 +259,11 @@ class PVCB:
         self._state.change(self.ASSPHERES)(self.on_as_spheres_change)
         self._state.change(self.ASTUBES)(self.on_as_tubes_change)
 
-
     @vuwrap
     def on_scalars_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         self._actor = active_actor
 
         if self._state[self.SCALARS] in ["none", "None", None]:
@@ -300,46 +299,64 @@ class PVCB:
         self._ctrl.view_update()
 
     def on_opacity_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.prop.opacity = self._state[self.OPACITY]
         self._ctrl.view_update()
 
     def on_ambient_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.prop.ambient = self._state[self.AMBIENT]
         self._ctrl.view_update()
 
     def on_color_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.prop.color = self._state[self.COLOR]
         self._ctrl.view_update()
 
     def on_colormap_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.mapper.lookup_table.cmap = self._state[self.COLORMAP]
         self._ctrl.view_update()
 
     def on_style_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.prop.style = self._state[self.STYLE]
         self._ctrl.view_update()
 
     def on_point_size_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.prop.point_size = self._state[self.POINTSIZE]
         self._ctrl.view_update()
 
     def on_line_width_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.prop.line_width = self._state[self.LINEWIDTH]
         self._ctrl.view_update()
 
     def on_as_spheres_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.prop.render_points_as_spheres = self._state[self.ASSPHERES]
         self._ctrl.view_update()
 
     def on_as_tubes_change(self, **kwargs):
-        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor = [value for value in self._plotter.actors.values()][
+            int(self._state.active_id) - 1
+        ]
         active_actor.prop.render_lines_as_tubes = self._state[self.ASTUBES]
         self._ctrl.view_update()
