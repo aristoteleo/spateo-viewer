@@ -1,12 +1,12 @@
-# spateo-viewer
-
-
 <p align="center">
   <img height="150" src="https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/image/spateo_logo.png" />
 </p>
 
 
-**spateo-viewer： Web application demonstrating 3D modeling of spatial transcriptomics.**
+# spateo-viewer
+
+
+**Web application demonstrating 3D modeling of spatial transcriptomics.**
 
 
 <p align="center">
