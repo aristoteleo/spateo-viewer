@@ -32,10 +32,12 @@ anndata_path, actors, actor_ids, actor_tree = init_actors(
     plotter=plotter,
     path=local_dataset_manager.drosophila_E15_16h,
 )
-state.actor_ids = actor_ids
-state.active_id = 0
-state.pipeline = actor_tree
 state.sample_adata_path = anndata_path
+state.actor_ids = actor_ids
+state.pipeline = actor_tree
+state.active_id = 0
+state.active_ui = actor_ids[0]
+state.active_model_type = str(state.active_ui).split("_")[0]
 
 
 # Upload directory
@@ -45,7 +47,6 @@ def open_directory():
         return
     state.selected_dir = dirpath
     ctrl.view_update()
-
 
 root = Tk()
 root.withdraw()

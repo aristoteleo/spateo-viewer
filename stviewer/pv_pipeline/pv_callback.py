@@ -5,10 +5,11 @@ import matplotlib.colors as mc
 import numpy as np
 import pyvista as pv
 
-from stviewer.assets.dataset_acquisition import abstract_anndata, sample_dataset
+from ..assets.dataset_acquisition import abstract_anndata, sample_dataset
 
 from ..assets import local_dataset_manager
 from .pv_actors import generate_actors, generate_actors_tree
+
 
 # -----------------------------------------------------------------------------
 # Common Callback-ToolBar&Container
@@ -225,30 +226,27 @@ class SwitchModels:
 class PVCB:
     """Callbacks for drawer based on pyvista."""
 
-    def __init__(self, server, actor, actor_id):
+    def __init__(self, server, plotter):
         """Initialize PVCB."""
         state, ctrl = server.state, server.controller
-        adata = abstract_anndata(path=state.sample_adata_path)
 
         self._server = server
         self._ctrl = ctrl
         self._state = state
-        self._actor = actor
-        self._actor_id = actor_id
-        self._adata = adata
+        self._plotter = plotter
 
         # State variable names
-        self.SCALARS = f"{actor_id}_scalars_value"
-        self.MATRIX = f"{actor_id}_matrix_value"
-        self.OPACITY = f"{actor_id}_opacity_value"
-        self.AMBIENT = f"{actor_id}_ambient_value"
-        self.COLOR = f"{actor_id}_color_value"
-        self.COLORMAP = f"{actor_id}_colormap_value"
-        self.STYLE = f"{actor_id}_style_value"
-        self.POINTSIZE = f"{actor_id}_point_size_value"
-        self.LINEWIDTH = f"{actor_id}_line_width_value"
-        self.ASSPHERES = f"{actor_id}_as_spheres_value"
-        self.ASTUBES = f"{actor_id}_as_tubes_value"
+        self.SCALARS = f"actor_scalars_value"
+        self.MATRIX = f"actor_matrix_value"
+        self.OPACITY = f"actor_opacity_value"
+        self.AMBIENT = f"actor_ambient_value"
+        self.COLOR = f"actor_color_value"
+        self.COLORMAP = f"actor_colormap_value"
+        self.STYLE = f"actor_style_value"
+        self.POINTSIZE = f"actor_point_size_value"
+        self.LINEWIDTH = f"actor_line_width_value"
+        self.ASSPHERES = f"actor_as_spheres_value"
+        self.ASTUBES = f"actor_as_tubes_value"
 
         # Listen to state changes
         self._state.change(self.SCALARS)(self.on_scalars_change)
@@ -263,19 +261,17 @@ class PVCB:
         self._state.change(self.ASSPHERES)(self.on_as_spheres_change)
         self._state.change(self.ASTUBES)(self.on_as_tubes_change)
 
-    def get_model(self):
-        return self._actor.mapper.dataset
-
-    def get_adata(self):
-        return self._adata
 
     @vuwrap
     def on_scalars_change(self, **kwargs):
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        self._actor = active_actor
+
         if self._state[self.SCALARS] in ["none", "None", None]:
-            self._actor.mapper.scalar_visibility = False
+            active_actor.mapper.scalar_visibility = False
         else:
-            _adata = self._adata.copy()
-            _obs_index = self._actor.mapper.dataset.point_data["obs_index"]
+            _adata = abstract_anndata(path=self._state.sample_adata_path)
+            _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
             _adata = _adata[_obs_index, :]
             if self._state[self.SCALARS] in set(_adata.obs_keys()):
                 array = np.asarray(
@@ -296,45 +292,54 @@ class PVCB:
             else:
                 array = np.ones(shape=(len(_obs_index), 1))
 
-            self._actor.mapper.dataset.point_data[self._state[self.SCALARS]] = array
-            self._actor.mapper.SelectColorArray(self._state[self.SCALARS])
-            self._actor.mapper.lookup_table.SetRange(np.min(array), np.max(array))
-            self._actor.mapper.SetScalarModeToUsePointFieldData()
-            self._actor.mapper.scalar_visibility = True
+            active_actor.mapper.dataset.point_data[self._state[self.SCALARS]] = array
+            active_actor.mapper.SelectColorArray(self._state[self.SCALARS])
+            active_actor.mapper.lookup_table.SetRange(np.min(array), np.max(array))
+            active_actor.mapper.SetScalarModeToUsePointFieldData()
+            active_actor.mapper.scalar_visibility = True
         self._ctrl.view_update()
 
     def on_opacity_change(self, **kwargs):
-        self._actor.prop.opacity = self._state[self.OPACITY]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.prop.opacity = self._state[self.OPACITY]
         self._ctrl.view_update()
 
     def on_ambient_change(self, **kwargs):
-        self._actor.prop.ambient = self._state[self.AMBIENT]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.prop.ambient = self._state[self.AMBIENT]
         self._ctrl.view_update()
 
     def on_color_change(self, **kwargs):
-        self._actor.prop.color = self._state[self.COLOR]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.prop.color = self._state[self.COLOR]
         self._ctrl.view_update()
 
     def on_colormap_change(self, **kwargs):
-        self._actor.mapper.lookup_table.cmap = self._state[self.COLORMAP]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.mapper.lookup_table.cmap = self._state[self.COLORMAP]
         self._ctrl.view_update()
 
     def on_style_change(self, **kwargs):
-        self._actor.prop.style = self._state[self.STYLE]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.prop.style = self._state[self.STYLE]
         self._ctrl.view_update()
 
     def on_point_size_change(self, **kwargs):
-        self._actor.prop.point_size = self._state[self.POINTSIZE]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.prop.point_size = self._state[self.POINTSIZE]
         self._ctrl.view_update()
 
     def on_line_width_change(self, **kwargs):
-        self._actor.prop.line_width = self._state[self.LINEWIDTH]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.prop.line_width = self._state[self.LINEWIDTH]
         self._ctrl.view_update()
 
     def on_as_spheres_change(self, **kwargs):
-        self._actor.prop.render_points_as_spheres = self._state[self.ASSPHERES]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.prop.render_points_as_spheres = self._state[self.ASSPHERES]
         self._ctrl.view_update()
 
     def on_as_tubes_change(self, **kwargs):
-        self._actor.prop.render_lines_as_tubes = self._state[self.ASTUBES]
+        active_actor = [value for value in self._plotter.actors.values()][int(self._state.active_id) - 1]
+        active_actor.prop.render_lines_as_tubes = self._state[self.ASTUBES]
         self._ctrl.view_update()
