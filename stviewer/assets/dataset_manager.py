@@ -118,13 +118,13 @@ class LocalFileManager:
 
 
 local_dataset_manager = LocalFileManager(__file__)
-local_dataset_manager.dir_url("drosophila_E7_9h", r"./dataset/drosophila_E7_9h")
+local_dataset_manager.dir_url("drosophila_E7_8h", r"./dataset/drosophila_E7_8h")
 local_dataset_manager.dir_url("drosophila_E8_9h", r"./dataset/drosophila_E8_9h")
-local_dataset_manager.dir_url("drosophila_E12_13h", r"./dataset/drosophila_E12_13h")
-local_dataset_manager.dir_url("drosophila_E13_14h", r"./dataset/drosophila_E13_14h")
-local_dataset_manager.dir_url("drosophila_E15_16h", r"./dataset/drosophila_E15_16h")
-local_dataset_manager.dir_url("drosophila_E16_17h", r"./dataset/drosophila_E16_17h")
-local_dataset_manager.dir_url("drosophila_E17_18h", r"./dataset/drosophila_E17_18h")
+# local_dataset_manager.dir_url("drosophila_E12_13h", r"./dataset/drosophila_E12_13h")
+# local_dataset_manager.dir_url("drosophila_E13_14h", r"./dataset/drosophila_E13_14h")
+# local_dataset_manager.dir_url("drosophila_E15_16h", r"./dataset/drosophila_E15_16h")
+# local_dataset_manager.dir_url("drosophila_E16_17h", r"./dataset/drosophila_E16_17h")
+# local_dataset_manager.dir_url("drosophila_E17_18h", r"./dataset/drosophila_E17_18h")
 """
 # -----------------------------------------------------------------------------
 # Data file information
