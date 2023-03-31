@@ -20,7 +20,7 @@ def generate_actors(
     mesh_added_kwargs: Optional[dict] = None,
 ):
     # Generate actors for pc models
-    pc_kwargs = dict(model_style="points", model_size=3)
+    pc_kwargs = dict(model_style="points", model_size=8)
     if not (pc_added_kwargs is None):
         pc_kwargs.update(pc_added_kwargs)
     if not (pc_models is None):

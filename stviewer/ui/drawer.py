@@ -21,7 +21,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
     _default_values = {
         "layer": "X",
         "scalars": "None",
-        "point_size": 5,
+        "point_size": 8,
         "color": "gainsboro",
         "cmap": "viridis",
         "opacity": 1,
@@ -53,23 +53,33 @@ def standard_pc_card(default_values: Optional[dict] = None):
             )
 
     with vuetify.VRow(classes="pt-2", dense=True):
+        # Color
+        # with vuetify.VCol(cols="6"):
+        #     vuetify.VSelect(
+        #         label="Color",
+        #         v_model=("actor_color_value", _default_values["color"]),
+        #         items=(f"hexcolors", list(hexcolors.keys())),
+        #         hide_details=True,
+        #         dense=True,
+        #         outlined=True,
+        #         classes="pt-1",
+        #     )
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                label="Color",
+                v_model=("actor_color_value", _default_values["color"]),
+                type="str",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
         # Colormap
         with vuetify.VCol(cols="6"):
             vuetify.VSelect(
                 label="Colormap",
                 v_model=("actor_colormap_value", _default_values["cmap"]),
                 items=("colormaps", plt.colormaps()),
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
-        # Color
-        with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
-                label="Color",
-                v_model=("actor_color_value", _default_values["color"]),
-                items=(f"hexcolors", list(hexcolors.keys())),
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -121,12 +131,22 @@ def standard_mesh_card(default_values: Optional[dict] = None):
         _default_values.update(default_values)
 
     with vuetify.VRow(classes="pt-2", dense=True):
-        # Colormap
+        # Color
+        # with vuetify.VCol(cols="12"):
+        #     vuetify.VSelect(
+        #         label="Color",
+        #         v_model=("actor_color_value", _default_values["color"]),
+        #         items=(f"hexcolors", list(hexcolors.keys())),
+        #         hide_details=True,
+        #         dense=True,
+        #         outlined=True,
+        #         classes="pt-1",
+        #     )
         with vuetify.VCol(cols="12"):
-            vuetify.VSelect(
+            vuetify.VTextField(
                 label="Color",
                 v_model=("actor_color_value", _default_values["color"]),
-                items=(f"hexcolors", list(hexcolors.keys())),
+                type="str",
                 hide_details=True,
                 dense=True,
                 outlined=True,
