@@ -18,7 +18,14 @@
 
 # Run the application
 
-``python stv_app.py --port 1234``
+### 1. first clone our package to local directory 
+**git clone https://github.com/aristoteleo/spateo-viewer.git**
+### 2. cd to the spateo-viewer directory
+**cd ./spateo-viewer**
+### 3. install necessary packages: 
+**pip install -r requirements.txt**
+### 4. open the server 
+**python stv_app.py --port 1234**
 
 
 # Citation
