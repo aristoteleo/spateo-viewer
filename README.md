@@ -18,7 +18,7 @@
 
 # Run the application
 
-### 1. first clone our package to local directory 
+### 1. first clone our package to a local directory 
 **git clone https://github.com/aristoteleo/spateo-viewer.git**
 ### 2. cd to the spateo-viewer directory
 **cd ./spateo-viewer**
