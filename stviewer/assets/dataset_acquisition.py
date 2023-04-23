@@ -15,7 +15,7 @@ def abstract_anndata(path: str, X_layer: str = "X"):
     if X_layer != "X":
         assert (
             X_layer in adata.layers.keys()
-        ), "`X_layer` does not exist in `adata.layers`."
+        ), f"``{X_layer}`` does not exist in `adata.layers`."
         adata.X = adata.layers[X_layer]
     return adata
 
@@ -50,28 +50,50 @@ def sample_dataset(
 
     # Generate point cloud models
     pc_models_path = os.path.join(path, "pc_models")
-    pc_model_files = os.listdir(path=pc_models_path)
-    pc_model_files.sort()
-    if len(pc_model_files) == 0:
-        pc_models, pc_model_ids = None, None
-    else:
+    if os.path.exists(pc_models_path):
+        pc_model_files = os.listdir(path=pc_models_path)
+        pc_model_files.sort()
+
         if pc_model_ids is None:
             pc_model_ids = [f"PC_{str(i).split('_')[1]}" for i in pc_model_files]
         pc_models, pc_model_ids = abstract_models(
             path=pc_models_path, model_ids=pc_model_ids
         )
+    else:
+        pc_models, pc_model_ids = None, None
 
     # Generate mesh models
     mesh_models_path = os.path.join(path, "mesh_models")
-    mesh_model_files = os.listdir(path=mesh_models_path)
-    mesh_model_files.sort()
-    if len(mesh_model_files) == 0:
-        mesh_models, mesh_model_ids = None, None
-    else:
+    if os.path.exists(mesh_models_path):
+        mesh_model_files = os.listdir(path=mesh_models_path)
+        mesh_model_files.sort()
+
         if mesh_model_ids is None:
             mesh_model_ids = [f"Mesh_{str(i).split('_')[1]}" for i in mesh_model_files]
         mesh_models, mesh_model_ids = abstract_models(
             path=mesh_models_path, model_ids=mesh_model_ids
         )
+    else:
+        mesh_models, mesh_model_ids = None, None
 
-    return adata, pc_models, pc_model_ids, mesh_models, mesh_model_ids
+    # Generate morphometric models
+    mm_models_path = os.path.join(path, "morphometric_models")
+    if os.path.exists(mm_models_path):
+        mm_model_folders = os.listdir(path=mm_models_path)
+        mm_model_folders.sort()
+
+        mm_models, mm_model_ids = [], []
+        for mm_model_folder in mm_model_folders:
+            sub_mm_models_path = os.path.join(mm_models_path, mm_model_folder)
+            sub_mm_model_files = os.listdir(path=sub_mm_models_path)
+            sub_mm_model_files.sort()
+            sub_mm_model_ids = [f"{mm_model_folder}_{str(i).split('_')[1]}" for i in sub_mm_model_files]
+            sub_mm_models, sub_mm_model_ids = abstract_models(
+                path=sub_mm_models_path, model_ids=sub_mm_model_ids
+            )
+            mm_models.extend(sub_mm_models)
+            mm_model_ids.extend(sub_mm_model_ids)
+    else:
+        mm_models, mm_model_ids = None, None
+
+    return adata, pc_models, pc_model_ids, mesh_models, mesh_model_ids, mm_models, mm_model_ids

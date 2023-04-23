@@ -188,14 +188,18 @@ class SwitchModels:
                 pc_model_ids,
                 mesh_models,
                 mesh_model_ids,
+                mm_models,
+                mm_model_ids
             ) = sample_dataset(path=path)
 
             # Generate actors
             self.plotter.clear_actors()
-            pc_actors, mesh_actors = generate_actors(
+            pc_actors, mesh_actors, mm_actors = generate_actors(
                 plotter=self.plotter,
                 pc_models=pc_models,
                 mesh_models=mesh_models,
+                mm_models=mm_models,
+                mm_model_ids=mm_model_ids,
             )
 
             # Generate the relationship tree of actors
@@ -212,6 +216,7 @@ class SwitchModels:
                 os.listdir(path=os.path.join(path, "h5ad"))[0],
             )
             self._state.actor_ids = actor_ids
+            self._state.mm_actor_ids = mm_model_ids
             self._state.pipeline = actor_tree
             self._ctrl.view_update()
 
@@ -245,6 +250,11 @@ class PVCB:
         self.LINEWIDTH = f"actor_line_width_value"
         self.ASSPHERES = f"actor_as_spheres_value"
         self.ASTUBES = f"actor_as_tubes_value"
+        self.SHOW_VECTORPC = f"show_vectorpc"
+        self.SHOW_VECTORMESH = f"show_vectormesh"
+        self.SHOW_TRAJECTORY = f"show_trajectory"
+        self.MM_COLOR = f"mm_actor_color_value"
+        self.MM_COLORMAP = f"mm_actor_colormap_value"
 
         # Listen to state changes
         self._state.change(self.SCALARS)(self.on_scalars_change)
@@ -258,44 +268,58 @@ class PVCB:
         self._state.change(self.LINEWIDTH)(self.on_line_width_change)
         self._state.change(self.ASSPHERES)(self.on_as_spheres_change)
         self._state.change(self.ASTUBES)(self.on_as_tubes_change)
+        self._state.change(self.SHOW_VECTORPC)(self.on_show_vectorpc_change)
+        self._state.change(self.SHOW_VECTORMESH)(self.on_show_vectormesh_change)
+        self._state.change(self.SHOW_TRAJECTORY)(self.on_show_trajectory_change)
+        self._state.change(self.MM_COLOR)(self.on_mm_color_change)
+        self._state.change(self.MM_COLORMAP)(self.on_mm_colormap_change)
 
     @vuwrap
     def on_scalars_change(self, **kwargs):
         active_actor = [value for value in self._plotter.actors.values()][
             int(self._state.active_id) - 1
         ]
+        active_mm_actor = None if self._state.active_mm_id is None else [value for value in self._plotter.actors.values()][
+            len(self._state.actor_ids) + self._state.active_mm_id
+        ]
         self._actor = active_actor
 
         if self._state[self.SCALARS] in ["none", "None", None]:
             active_actor.mapper.scalar_visibility = False
+            if not (active_mm_actor is None):
+                active_mm_actor.mapper.scalar_visibility = False
         else:
-            _adata = abstract_anndata(path=self._state.sample_adata_path)
-            _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
-            _adata = _adata[_obs_index, :]
-            if self._state[self.SCALARS] in set(_adata.obs_keys()):
-                array = np.asarray(
-                    _adata.obs[self._state[self.SCALARS]].values
-                ).flatten()
-            elif self._state[self.SCALARS] in set(_adata.var_names.tolist()):
-                matrix_id = self._state[self.MATRIX]
-                if matrix_id == "X":
-                    array = np.asarray(
-                        _adata[:, self._state[self.SCALARS]].X.sum(axis=1)
-                    )
-                else:
-                    array = np.asarray(
-                        _adata[:, self._state[self.SCALARS]]
-                        .layers[matrix_id]
-                        .sum(axis=1)
-                    )
-            else:
-                array = np.ones(shape=(len(_obs_index), 1))
-
-            active_actor.mapper.dataset.point_data[self._state[self.SCALARS]] = array
-            active_actor.mapper.SelectColorArray(self._state[self.SCALARS])
-            active_actor.mapper.lookup_table.SetRange(np.min(array), np.max(array))
-            active_actor.mapper.SetScalarModeToUsePointFieldData()
-            active_actor.mapper.scalar_visibility = True
+            _raw_adata = abstract_anndata(path=self._state.sample_adata_path)
+            for i, _active_actor in enumerate([active_actor, active_mm_actor]):
+                if not (_active_actor is None):
+                    _obs_index = _active_actor.mapper.dataset.point_data["obs_index"]
+                    _adata = _raw_adata[_obs_index, :].copy()
+                    if self._state[self.SCALARS] in set(_adata.obs_keys()):
+                        array = np.asarray(
+                            _adata.obs[self._state[self.SCALARS]].values
+                        ).flatten()
+                    elif self._state[self.SCALARS] in set(_adata.var_names.tolist()):
+                        matrix_id = self._state[self.MATRIX]
+                        if matrix_id == "X_counts":
+                            array = np.asarray(
+                                _adata[:, self._state[self.SCALARS]].X.sum(axis=1)
+                            )
+                        else:
+                            array = np.asarray(
+                                _adata[:, self._state[self.SCALARS]]
+                                .layers[matrix_id]
+                                .sum(axis=1)
+                            )
+                    else:
+                        array = np.ones(shape=(len(_obs_index), 1))
+                    if i == 0:
+                        value_range_min, value_range_max = np.min(array), np.max(array)
+                    _active_actor.mapper.dataset.point_data[self._state[self.SCALARS]] = array
+                    _active_actor.mapper.SelectColorArray(self._state[self.SCALARS])
+                    _active_actor.mapper.lookup_table.SetRange(value_range_min, value_range_max)
+                    _active_actor.mapper.lookup_table.cmap = self._state[self.COLORMAP]
+                    _active_actor.mapper.SetScalarModeToUsePointFieldData()
+                    _active_actor.mapper.scalar_visibility = True
         self._ctrl.view_update()
 
     def on_opacity_change(self, **kwargs):
@@ -360,3 +384,58 @@ class PVCB:
         ]
         active_actor.prop.render_lines_as_tubes = self._state[self.ASTUBES]
         self._ctrl.view_update()
+
+    def on_show_vectorpc_change(self, **kwargs):
+        if not (self._state.mm_actor_ids is None):
+            _title = self._state.actor_ids[self._state.active_id - 1].split("_")[1]
+            _mm_ids = list(self._state.mm_actor_ids)
+            if True in list(map(lambda x: str(x).startswith(_title), _mm_ids)):
+                mm_id_index = _mm_ids.index(f"{_title}_VectorPC")
+                active_vectorpc = [value for value in self._plotter.actors.values()][
+                    len(self._state.actor_ids) + mm_id_index
+                ]
+                active_vectorpc.SetVisibility(self._state[self.SHOW_VECTORPC])
+                self._state.active_mm_id = mm_id_index if self._state[self.SHOW_VECTORPC] == True else None
+                self._ctrl.view_update()
+
+    def on_show_vectormesh_change(self, **kwargs):
+        if not (self._state.mm_actor_ids is None):
+            _title = self._state.actor_ids[self._state.active_id - 1].split("_")[1]
+            _mm_ids = list(self._state.mm_actor_ids)
+            if True in list(map(lambda x: str(x).startswith(_title), _mm_ids)):
+                mm_id_index = _mm_ids.index(f"{_title}_VectorMesh")
+                active_vectormesh = [value for value in self._plotter.actors.values()][
+                    len(self._state.actor_ids) + mm_id_index
+                ]
+                active_vectormesh.SetVisibility(self._state[self.SHOW_VECTORMESH])
+                self._state.active_mm_id = mm_id_index if self._state[self.SHOW_VECTORMESH] == True else None
+                self._ctrl.view_update()
+
+    def on_show_trajectory_change(self, **kwargs):
+        if not (self._state.mm_actor_ids is None):
+            _title = self._state.actor_ids[self._state.active_id - 1].split("_")[1]
+            _mm_ids = list(self._state.mm_actor_ids)
+            if True in list(map(lambda x: str(x).startswith(_title), _mm_ids)):
+                mm_id_index = _mm_ids.index(f"{_title}_Trajectory")
+                active_trajectory = [value for value in self._plotter.actors.values()][
+                    len(self._state.actor_ids) + mm_id_index
+                ]
+                active_trajectory.SetVisibility(self._state[self.SHOW_TRAJECTORY])
+                self._state.active_mm_id = mm_id_index if self._state[self.SHOW_TRAJECTORY] == True else None
+                self._ctrl.view_update()
+
+    def on_mm_color_change(self, **kwargs):
+        if not (self._state.active_mm_id is None):
+            active_mm_actor = [value for value in self._plotter.actors.values()][
+                len(self._state.actor_ids) + self._state.active_mm_id
+            ]
+            active_mm_actor.prop.color = self._state[self.MM_COLOR]
+            self._ctrl.view_update()
+
+    def on_mm_colormap_change(self, **kwargs):
+        if not (self._state.active_mm_id is None):
+            active_mm_actor = [value for value in self._plotter.actors.values()][
+                len(self._state.actor_ids) + self._state.active_mm_id
+            ]
+            active_mm_actor.mapper.lookup_table.cmap = self._state[self.MM_COLORMAP]
+            self._ctrl.view_update()

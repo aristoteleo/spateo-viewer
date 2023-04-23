@@ -1,4 +1,6 @@
 import os
+import warnings
+warnings.filterwarnings('ignore')
 
 from .pv_plotter import add_single_model
 
@@ -16,8 +18,11 @@ def generate_actors(
     plotter,
     pc_models: Optional[list] = None,
     mesh_models: Optional[list] = None,
+    mm_models: Optional[list] = None,
+    mm_model_ids: Optional[list] = None,
     pc_added_kwargs: Optional[dict] = None,
     mesh_added_kwargs: Optional[dict] = None,
+    mm_added_kwargs: Optional[dict] = None,
 ):
     # Generate actors for pc models
     pc_kwargs = dict(model_style="points", model_size=8)
@@ -42,7 +47,24 @@ def generate_actors(
         ]
     else:
         mesh_actors = None
-    return pc_actors, mesh_actors
+
+    # Generate actors for morphometric models
+    mm_kwargs = dict(opacity=0.3)
+    if not (mm_added_kwargs is None):
+        mm_kwargs.update(mm_added_kwargs)
+    if not (mm_models is None):
+        mm_actors = []
+        mm_model_ids = ["Trajectory"] * len(mm_models) if mm_model_ids is None else mm_model_ids
+        for model, model_id in zip(mm_models, mm_model_ids):
+            if str(model_id).endswith("Trajectory"):
+                _mm_actor = add_single_model(plotter=plotter, model=model, model_style="wireframe", **mm_kwargs)
+            else:
+                _mm_actor = add_single_model(plotter=plotter, model=model, model_style="surface", **mm_kwargs)
+            _mm_actor.SetVisibility(False)
+            mm_actors.append(_mm_actor)
+    else:
+        mm_actors = None
+    return pc_actors, mesh_actors, mm_actors
 
 
 def standard_tree(actors: list, actor_names: list, base_id: int = 0):
@@ -98,13 +120,17 @@ def init_actors(plotter, path):
         pc_model_ids,
         mesh_models,
         mesh_model_ids,
+        mm_models,
+        mm_model_ids
     ) = sample_dataset(path=path)
 
     # Generate actors
-    pc_actors, mesh_actors = generate_actors(
+    pc_actors, mesh_actors, mm_actors = generate_actors(
         plotter=plotter,
         pc_models=pc_models,
         mesh_models=mesh_models,
+        mm_models=mm_models,
+        mm_model_ids=mm_model_ids,
     )
 
     # Generate the relationship tree of actors
@@ -117,4 +143,4 @@ def init_actors(plotter, path):
 
     anndata_dir = os.path.join(path, "h5ad")
     anndata_path = os.path.join(anndata_dir, os.listdir(path=anndata_dir)[0])
-    return anndata_path, actors, actor_ids, tree
+    return anndata_path, actors, actor_ids, tree, mm_actors, mm_model_ids

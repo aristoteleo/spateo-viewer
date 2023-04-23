@@ -1,5 +1,6 @@
-from typing import Optional
 
+from typing import Optional
+import anndata as ad
 from scipy.sparse import csr_matrix, issparse
 
 
@@ -10,9 +11,7 @@ def anndata_preprocess(
     X_log1p: Optional[str] = "X_log1p",
     spatial_key: str = "3d_align_spatial",
 ):
-    import dynamo as dyn
-
-    adata = dyn.read_h5ad(filename=path)
+    adata = ad.read_h5ad(filename=path)
 
     # matrices
     X_counts = (
@@ -27,6 +26,7 @@ def anndata_preprocess(
             else csr_matrix(adata.layers[X_log1p])
         )
     else:
+        import dynamo as dyn
         adata.X = X_counts.copy()
         dyn.pp.normalize_cell_expr_by_size_factors(
             adata=adata, layers="X", skip_log=False
@@ -39,10 +39,19 @@ def anndata_preprocess(
     # preprocess
     del adata.uns, adata.layers, adata.obsm, adata.obsp, adata.varm
     adata.X = X_counts
-    dyn.pp.normalize_cell_expr_by_size_factors(adata=adata, layers="X", skip_log=True)
-    adata.layers["X_counts"] = X_counts
     adata.layers["X_log1p"] = X_log1p
     adata.obsm["spatial"] = spatial_coords
 
     adata.write_h5ad(output_path, compression="gzip")
     return adata
+
+
+"""
+import os
+os.chdir(f"spateo-viewer/stviewer/assets/dataset")
+adata = anndata_preprocess(
+    path=r"drosophila_E8_9h/h5ad/E8_9h_cellbin_v3.h5ad",
+    output_path=r"drosophila_E8_9h/h5ad/E8_9h_cellbin_v3_new.h5ad"
+)
+print(adata)
+"""

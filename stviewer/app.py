@@ -28,7 +28,7 @@ state.setdefault("active_ui", None)
 plotter = create_plotter()
 # Init models
 state.init_dataset = True
-anndata_path, actors, actor_ids, actor_tree = init_actors(
+anndata_path, actors, actor_ids, actor_tree, mm_actors, mm_actor_ids = init_actors(
     plotter=plotter,
     path=local_dataset_manager.drosophila_E7_8h,
 )
@@ -38,7 +38,8 @@ state.pipeline = actor_tree
 state.active_id = 0
 state.active_ui = actor_ids[0]
 state.active_model_type = str(state.active_ui).split("_")[0]
-
+state.mm_actor_ids = mm_actor_ids
+state.active_mm_id = None
 
 # Upload directory
 def open_directory():

@@ -7,7 +7,6 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 from pyvista import BasePlotter
-from pyvista.plotting.colors import hexcolors
 from trame.widgets import trame, vuetify
 
 from ..pv_pipeline import PVCB
@@ -17,15 +16,29 @@ from ..pv_pipeline import PVCB
 # -----------------------------------------------------------------------------
 
 
+def _get_default_cmap():
+    import matplotlib as mpl
+    from matplotlib.colors import LinearSegmentedColormap
+    if "default_cmap" not in mpl.colormaps():
+        colors = ["#4B0082", "#800080", "#F97306", "#FFA500", "#FFD700", "#FFFFCB"]
+        nodes = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+
+        mpl.colormaps.register(LinearSegmentedColormap.from_list("default_cmap", list(zip(nodes, colors))))
+    return "default_cmap"
+
+
 def standard_pc_card(default_values: Optional[dict] = None):
+    _get_default_cmap()
     _default_values = {
-        "layer": "X",
+        "layer": "X_counts",
         "scalars": "None",
         "point_size": 8,
         "color": "gainsboro",
-        "cmap": "viridis",
+        "cmap": _get_default_cmap(),
         "opacity": 1,
         "ambient": 0.2,
+        "mm_color": "gainsboro",
+        "mm_cmap": _get_default_cmap()
     }
     if not (default_values is None):
         _default_values.update(default_values)
@@ -45,7 +58,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
             vuetify.VSelect(
                 label="Matrices",
                 v_model=("actor_matrix_value", _default_values["layer"]),
-                items=("matrices", ["X", "X_counts", "X_log1p"]),
+                items=("matrices", ["X_counts", "X_log1p"]),
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -53,17 +66,6 @@ def standard_pc_card(default_values: Optional[dict] = None):
             )
 
     with vuetify.VRow(classes="pt-2", dense=True):
-        # Color
-        # with vuetify.VCol(cols="6"):
-        #     vuetify.VSelect(
-        #         label="Color",
-        #         v_model=("actor_color_value", _default_values["color"]),
-        #         items=(f"hexcolors", list(hexcolors.keys())),
-        #         hide_details=True,
-        #         dense=True,
-        #         outlined=True,
-        #         classes="pt-1",
-        #     )
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 label="Color",
@@ -79,7 +81,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
             vuetify.VSelect(
                 label="Colormap",
                 v_model=("actor_colormap_value", _default_values["cmap"]),
-                items=("colormaps", plt.colormaps()),
+                items=("colormaps", ["default_cmap"] + plt.colormaps()),
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -117,31 +119,70 @@ def standard_pc_card(default_values: Optional[dict] = None):
         classes="mt-1",
         hide_details=True,
         dense=True,
+
     )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        # Whether to show vectorfield model
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("show_vectorpc", False),
+                on_icon="mdi-pyramid",
+                off_icon="mdi-pyramid-off",
+                dense=True,
+                hide_details=True,
+                label="VectorField",
+                classes="pt-1",
+            )
+        # Whether to show trajectory model
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("show_trajectory", False),
+                on_icon="mdi-octahedron",
+                off_icon="mdi-octahedron-off",
+                dense=True,
+                hide_details=True,
+                label="Trajectory",
+                classes="pt-1",
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        # MM Color
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                label="MM Color",
+                v_model=("mm_actor_color_value", _default_values["mm_color"]),
+                type="str",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+        # MM Colormap
+        with vuetify.VCol(cols="6"):
+            vuetify.VSelect(
+                label="MM Colormap",
+                v_model=("mm_actor_colormap_value", _default_values["mm_cmap"]),
+                items=("mm_colormaps", ["default_cmap"] + plt.colormaps()),
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
 
 
 def standard_mesh_card(default_values: Optional[dict] = None):
+    _get_default_cmap()
     _default_values = {
         "style": "surface",
         "color": "gainsboro",
         "opacity": 0.5,
         "ambient": 0.2,
+        "mm_color": "gainsboro",
+        "mm_cmap": None,
     }
     if not (default_values is None):
         _default_values.update(default_values)
 
     with vuetify.VRow(classes="pt-2", dense=True):
-        # Color
-        # with vuetify.VCol(cols="12"):
-        #     vuetify.VSelect(
-        #         label="Color",
-        #         v_model=("actor_color_value", _default_values["color"]),
-        #         items=(f"hexcolors", list(hexcolors.keys())),
-        #         hide_details=True,
-        #         dense=True,
-        #         outlined=True,
-        #         classes="pt-1",
-        #     )
         with vuetify.VCol(cols="12"):
             vuetify.VTextField(
                 label="Color",
@@ -186,6 +227,52 @@ def standard_mesh_card(default_values: Optional[dict] = None):
         hide_details=True,
         dense=True,
     )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        # Whether to show vectorfield model
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("show_vectormesh", False),
+                on_icon="mdi-pyramid",
+                off_icon="mdi-pyramid-off",
+                dense=True,
+                hide_details=True,
+                label="Vetorfield",
+                classes="pt-1",
+            )
+        # Whether to show trajectory model
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("show_trajectory", False),
+                on_icon="mdi-octahedron",
+                off_icon="mdi-octahedron-off",
+                dense=True,
+                hide_details=True,
+                label="Trajectory",
+                classes="pt-1",
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        # MM Color
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                label="MM Color",
+                v_model=("mm_actor_color_value", _default_values["mm_color"]),
+                type="str",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+        # MM Colormap
+        with vuetify.VCol(cols="6"):
+            vuetify.VSelect(
+                label="MM Colormap",
+                v_model=("mm_actor_colormap_value", _default_values["mm_cmap"]),
+                items=("mm_colormaps", ["default_cmap"] + plt.colormaps()),
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
 
 
 # -----------------------------------------------------------------------------
