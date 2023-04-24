@@ -19,11 +19,14 @@ from ..pv_pipeline import PVCB
 def _get_default_cmap():
     import matplotlib as mpl
     from matplotlib.colors import LinearSegmentedColormap
+
     if "default_cmap" not in mpl.colormaps():
         colors = ["#4B0082", "#800080", "#F97306", "#FFA500", "#FFD700", "#FFFFCB"]
         nodes = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
-        mpl.colormaps.register(LinearSegmentedColormap.from_list("default_cmap", list(zip(nodes, colors))))
+        mpl.colormaps.register(
+            LinearSegmentedColormap.from_list("default_cmap", list(zip(nodes, colors)))
+        )
     return "default_cmap"
 
 
@@ -38,7 +41,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
         "opacity": 1,
         "ambient": 0.2,
         "mm_color": "gainsboro",
-        "mm_cmap": _get_default_cmap()
+        "mm_cmap": _get_default_cmap(),
     }
     if not (default_values is None):
         _default_values.update(default_values)
@@ -119,7 +122,6 @@ def standard_pc_card(default_values: Optional[dict] = None):
         classes="mt-1",
         hide_details=True,
         dense=True,
-
     )
     with vuetify.VRow(classes="pt-2", dense=True):
         # Whether to show vectorfield model

@@ -1,6 +1,7 @@
 import os
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 
 from .pv_plotter import add_single_model
 
@@ -54,12 +55,18 @@ def generate_actors(
         mm_kwargs.update(mm_added_kwargs)
     if not (mm_models is None):
         mm_actors = []
-        mm_model_ids = ["Trajectory"] * len(mm_models) if mm_model_ids is None else mm_model_ids
+        mm_model_ids = (
+            ["Trajectory"] * len(mm_models) if mm_model_ids is None else mm_model_ids
+        )
         for model, model_id in zip(mm_models, mm_model_ids):
             if str(model_id).endswith("Trajectory"):
-                _mm_actor = add_single_model(plotter=plotter, model=model, model_style="wireframe", **mm_kwargs)
+                _mm_actor = add_single_model(
+                    plotter=plotter, model=model, model_style="wireframe", **mm_kwargs
+                )
             else:
-                _mm_actor = add_single_model(plotter=plotter, model=model, model_style="surface", **mm_kwargs)
+                _mm_actor = add_single_model(
+                    plotter=plotter, model=model, model_style="surface", **mm_kwargs
+                )
             _mm_actor.SetVisibility(False)
             mm_actors.append(_mm_actor)
     else:
@@ -121,7 +128,7 @@ def init_actors(plotter, path):
         mesh_models,
         mesh_model_ids,
         mm_models,
-        mm_model_ids
+        mm_model_ids,
     ) = sample_dataset(path=path)
 
     # Generate actors

@@ -1,5 +1,5 @@
-
 from typing import Optional
+
 import anndata as ad
 from scipy.sparse import csr_matrix, issparse
 
@@ -27,6 +27,7 @@ def anndata_preprocess(
         )
     else:
         import dynamo as dyn
+
         adata.X = X_counts.copy()
         dyn.pp.normalize_cell_expr_by_size_factors(
             adata=adata, layers="X", skip_log=False

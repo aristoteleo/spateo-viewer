@@ -189,7 +189,7 @@ class SwitchModels:
                 mesh_models,
                 mesh_model_ids,
                 mm_models,
-                mm_model_ids
+                mm_model_ids,
             ) = sample_dataset(path=path)
 
             # Generate actors
@@ -279,9 +279,13 @@ class PVCB:
         active_actor = [value for value in self._plotter.actors.values()][
             int(self._state.active_id) - 1
         ]
-        active_mm_actor = None if self._state.active_mm_id is None else [value for value in self._plotter.actors.values()][
-            len(self._state.actor_ids) + self._state.active_mm_id
-        ]
+        active_mm_actor = (
+            None
+            if self._state.active_mm_id is None
+            else [value for value in self._plotter.actors.values()][
+                len(self._state.actor_ids) + self._state.active_mm_id
+            ]
+        )
         self._actor = active_actor
 
         if self._state[self.SCALARS] in ["none", "None", None]:
@@ -314,9 +318,13 @@ class PVCB:
                         array = np.ones(shape=(len(_obs_index), 1))
                     if i == 0:
                         value_range_min, value_range_max = np.min(array), np.max(array)
-                    _active_actor.mapper.dataset.point_data[self._state[self.SCALARS]] = array
+                    _active_actor.mapper.dataset.point_data[
+                        self._state[self.SCALARS]
+                    ] = array
                     _active_actor.mapper.SelectColorArray(self._state[self.SCALARS])
-                    _active_actor.mapper.lookup_table.SetRange(value_range_min, value_range_max)
+                    _active_actor.mapper.lookup_table.SetRange(
+                        value_range_min, value_range_max
+                    )
                     _active_actor.mapper.lookup_table.cmap = self._state[self.COLORMAP]
                     _active_actor.mapper.SetScalarModeToUsePointFieldData()
                     _active_actor.mapper.scalar_visibility = True
@@ -395,7 +403,9 @@ class PVCB:
                     len(self._state.actor_ids) + mm_id_index
                 ]
                 active_vectorpc.SetVisibility(self._state[self.SHOW_VECTORPC])
-                self._state.active_mm_id = mm_id_index if self._state[self.SHOW_VECTORPC] == True else None
+                self._state.active_mm_id = (
+                    mm_id_index if self._state[self.SHOW_VECTORPC] == True else None
+                )
                 self._ctrl.view_update()
 
     def on_show_vectormesh_change(self, **kwargs):
@@ -408,7 +418,9 @@ class PVCB:
                     len(self._state.actor_ids) + mm_id_index
                 ]
                 active_vectormesh.SetVisibility(self._state[self.SHOW_VECTORMESH])
-                self._state.active_mm_id = mm_id_index if self._state[self.SHOW_VECTORMESH] == True else None
+                self._state.active_mm_id = (
+                    mm_id_index if self._state[self.SHOW_VECTORMESH] == True else None
+                )
                 self._ctrl.view_update()
 
     def on_show_trajectory_change(self, **kwargs):
@@ -421,7 +433,9 @@ class PVCB:
                     len(self._state.actor_ids) + mm_id_index
                 ]
                 active_trajectory.SetVisibility(self._state[self.SHOW_TRAJECTORY])
-                self._state.active_mm_id = mm_id_index if self._state[self.SHOW_TRAJECTORY] == True else None
+                self._state.active_mm_id = (
+                    mm_id_index if self._state[self.SHOW_TRAJECTORY] == True else None
+                )
                 self._ctrl.view_update()
 
     def on_mm_color_change(self, **kwargs):
