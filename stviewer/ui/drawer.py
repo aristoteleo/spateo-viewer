@@ -302,6 +302,11 @@ def pipeline(server, plotter):
         _visibility = event["visible"]
         active_actor = [value for value in plotter.actors.values()][int(_id) - 1]
         active_actor.SetVisibility(_visibility)
+        if _visibility is True:
+            state.vis_ids.append(int(_id) - 1)
+        else:
+            state.vis_ids.remove(int(_id) - 1)
+        state.vis_ids = list(set(state.vis_ids))
         ctrl.view_update()
 
     trame.GitTree(

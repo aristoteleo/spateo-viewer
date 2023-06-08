@@ -39,7 +39,7 @@ class Viewer:
         self.plotter.suppress_rendering = suppress_rendering
 
         # State variable names
-        self.SHOW_UI = f"{plotter._id_name}_show_ui"
+        self.SHOW_MAIN_MODEL = f"{plotter._id_name}_show_main_model"
         self.BACKGROUND = f"{plotter._id_name}_background"
         self.GRID = f"{plotter._id_name}_grid_visibility"
         self.OUTLINE = f"{plotter._id_name}_outline_visibility"
@@ -52,6 +52,7 @@ class Viewer:
         ctrl.get_render_window = lambda: self.plotter.render_window
 
         # Listen to state changes
+        self._state.change(self.SHOW_MAIN_MODEL)(self.on_show_main_model_change)
         self._state.change(self.BACKGROUND)(self.on_background_change)
         self._state.change(self.GRID)(self.on_grid_visiblity_change)
         self._state.change(self.OUTLINE)(self.on_outline_visiblity_change)
@@ -60,6 +61,18 @@ class Viewer:
         self._state.change(self.SERVER_RENDERING)(self.on_rendering_mode_change)
         # Listen to events
         self._ctrl.trigger(self.SCREENSHOT)(self.screenshot)
+
+    @vuwrap
+    def on_show_main_model_change(self, **kwargs):
+        """Toggle main model visibility."""
+        # _id = int(self._state.active_id) - 1 if self._state.active_id != 0 else int(self._state.active_id)
+        # active_actor = [value for value in self.plotter.actors.values()][_id]
+        # active_actor.SetVisibility(self._state[self.SHOW_MAIN_MODEL])
+
+        for i in self._state.vis_ids:
+            actor = [value for value in self.plotter.actors.values()][i]
+            actor.SetVisibility(self._state[self.SHOW_MAIN_MODEL])
+        self._ctrl.view_update()
 
     @vuwrap
     def on_background_change(self, **kwargs):

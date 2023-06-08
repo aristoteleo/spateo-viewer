@@ -91,6 +91,12 @@ def toolbar_widgets(
         icon="mdi-file-png-box",
         tooltip="Save screenshot",
     )
+    # Whether to show the main model
+    checkbox(
+        model=(viewer.SHOW_MAIN_MODEL, True),
+        icons=("mdi-eye-outline", "mdi-eye-off-outline"),
+        tooltip=f"Toggle main model visibility ({{{{ {viewer.SHOW_MAIN_MODEL} ? 'True' : 'False' }}}})",
+    )
 
     # Whether to toggle the theme between light and dark
     vuetify.VDivider(vertical=True, classes="mx-1")

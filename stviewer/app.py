@@ -40,6 +40,11 @@ state.active_ui = actor_ids[0]
 state.active_model_type = str(state.active_ui).split("_")[0]
 state.mm_actor_ids = mm_actor_ids
 state.active_mm_id = None
+state.vis_ids = []
+for i, actor in enumerate(plotter.actors.values()):
+    if actor.visibility:
+        state.vis_ids.append(i)
+
 
 # Upload directory
 def open_directory():
