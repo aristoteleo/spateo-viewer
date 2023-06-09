@@ -12,7 +12,7 @@ except ImportError:
 
 from typing import Optional
 
-from ..assets import sample_dataset
+from stviewer.assets import sample_dataset
 
 
 def generate_actors(

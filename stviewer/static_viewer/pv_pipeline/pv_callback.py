@@ -5,8 +5,9 @@ import matplotlib.colors as mc
 import numpy as np
 import pyvista as pv
 
-from ..assets import local_dataset_manager
-from ..assets.dataset_acquisition import abstract_anndata, sample_dataset
+from stviewer.assets import local_dataset_manager
+from stviewer.assets.dataset_acquisition import abstract_anndata, sample_dataset
+
 from .pv_actors import generate_actors, generate_actors_tree
 
 # -----------------------------------------------------------------------------

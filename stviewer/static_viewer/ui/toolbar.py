@@ -8,8 +8,9 @@ from typing import Optional
 from pyvista import BasePlotter
 from trame.widgets import html, vuetify
 
-from ..assets import icon_manager, local_dataset_manager
-from ..pv_pipeline import SwitchModels, Viewer
+from stviewer.assets import icon_manager, local_dataset_manager
+from stviewer.static_viewer.pv_pipeline import SwitchModels, Viewer
+
 from .utils import button, checkbox
 
 # -----------------------------------------------------------------------------

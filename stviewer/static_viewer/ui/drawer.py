@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from pyvista import BasePlotter
 from trame.widgets import trame, vuetify
 
-from ..pv_pipeline import PVCB
+from stviewer.static_viewer.pv_pipeline import PVCB
 
 # -----------------------------------------------------------------------------
 # Card
