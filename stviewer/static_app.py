@@ -4,7 +4,9 @@ except ImportError:
     from typing_extensions import Literal
 
 from tkinter import Tk, filedialog
+
 from trame.widgets import trame
+
 from .assets import icon_manager, local_dataset_manager
 from .server import get_trame_server
 from .static_viewer import (
@@ -78,12 +80,15 @@ with ui_standard_layout as layout:
     # ToolBar
     # -----------------------------------------------------------------------------
     ui_standard_toolbar(
-        server=static_server, layout=layout, plotter=plotter, mode="trame")
+        server=static_server, layout=layout, plotter=plotter, mode="trame"
+    )
 
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
-    ui_standard_drawer(server=static_server, layout=layout, plotter=plotter, mode="trame")
+    ui_standard_drawer(
+        server=static_server, layout=layout, plotter=plotter, mode="trame"
+    )
 
     # -----------------------------------------------------------------------------
     # Main Content

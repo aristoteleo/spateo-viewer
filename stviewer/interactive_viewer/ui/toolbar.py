@@ -136,4 +136,7 @@ def ui_standard_toolbar(
     with layout.toolbar as tb:
         tb.dense = True
         tb.clipped_right = True
-        toolbar_widgets(server=server, plotter=plotter,)
+        toolbar_widgets(
+            server=server,
+            plotter=plotter,
+        )

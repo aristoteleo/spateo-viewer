@@ -5,10 +5,9 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-import pyvista as pv
 from tkinter import Tk, filedialog
-from trame.widgets import trame
 
+import pyvista as pv
 from trame.app import get_server
 from trame.ui.vuetify import SinglePageLayout
 from trame.widgets import html, trame
@@ -19,17 +18,15 @@ from vtkmodules.vtkFiltersGeneral import vtkExtractSelectedFrustum
 from vtkmodules.vtkIOXML import vtkXMLPolyDataReader
 from vtkmodules.web.utils import mesh as vtk_mesh
 
-from vtkmodules.vtkFiltersCore import vtkThreshold
-from vtkmodules.vtkFiltersGeneral import vtkExtractSelectedFrustum
-from .assets import icon_manager, local_dataset_manager, abstract_anndata
-from .server import get_trame_server
+from .assets import abstract_anndata, icon_manager, local_dataset_manager
 from .interactive_viewer import (
-    create_plotter,
     add_single_model,
+    create_plotter,
     ui_layout,
     ui_standard_container,
     ui_standard_toolbar,
 )
+from .server import get_trame_server
 
 # export WSLINK_MAX_MSG_SIZE=1000000000    # 1GB
 
@@ -41,12 +38,19 @@ state.trame__favicon = icon_manager.spateo_logo
 state.setdefault("active_ui", None)
 
 # Generate inite model
-init_model_path = os.path.join(local_dataset_manager.drosophila_E7_8h, "pc_models/0_Embryo_E7_8h_aligned_pc_model.vtk")
-init_anndata_path = os.path.join(local_dataset_manager.drosophila_E7_8h, "h5ad/E7_8h_cellbin_v3.h5ad")
+init_model_path = os.path.join(
+    local_dataset_manager.drosophila_E7_8h,
+    "pc_models/0_Embryo_E7_8h_aligned_pc_model.vtk",
+)
+init_anndata_path = os.path.join(
+    local_dataset_manager.drosophila_E7_8h, "h5ad/E7_8h_cellbin_v3.h5ad"
+)
 
 plotter = create_plotter()
 main_model = pv.read(filename=init_model_path)
-main_actor = add_single_model(plotter=plotter, model=main_model, model_style="points", model_size=8)
+main_actor = add_single_model(
+    plotter=plotter, model=main_model, model_style="points", model_size=8
+)
 
 # Init parameters
 state.update(
@@ -84,7 +88,9 @@ threshold.SetInputArrayToProcess(0, 0, 0, 1, "vtkInsidedness")
 
 
 # GUI
-ui_standard_layout = ui_layout(server=interactive_server, template_name="main", drawer_width=300)
+ui_standard_layout = ui_layout(
+    server=interactive_server, template_name="main", drawer_width=300
+)
 with ui_standard_layout as layout:
     # Let the server know the browser pixel ratio
     trame.ClientTriggers(mounted="pixel_ratio = window.devicePixelRatio")
@@ -97,7 +103,6 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
-
 
     # -----------------------------------------------------------------------------
     # Main Content

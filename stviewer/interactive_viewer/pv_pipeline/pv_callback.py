@@ -4,10 +4,10 @@ import os
 import matplotlib.colors as mc
 import numpy as np
 import pyvista as pv
+from vtkmodules.web.utils import mesh as vtk_mesh
 
 from stviewer.assets import local_dataset_manager
 from stviewer.assets.dataset_acquisition import abstract_anndata, sample_dataset
-from vtkmodules.web.utils import mesh as vtk_mesh
 
 VIEW_INTERACT = [
     {"button": 1, "action": "Rotate"},
@@ -89,7 +89,9 @@ class Viewer:
                 }
             )
         else:
-            self._state.interactorSettings = VIEW_SELECT if mode == "select" else VIEW_INTERACT
+            self._state.interactorSettings = (
+                VIEW_SELECT if mode == "select" else VIEW_INTERACT
+            )
             self._state.update(
                 {
                     "frustrum": None,
@@ -106,6 +108,7 @@ class Viewer:
 
         from vtkmodules.vtkFiltersCore import vtkThreshold
         from vtkmodules.vtkFiltersGeneral import vtkExtractSelectedFrustum
+
         extract = vtkExtractSelectedFrustum()
         extract.SetInputData(self.main_model)
 
