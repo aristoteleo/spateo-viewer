@@ -4,7 +4,7 @@ except ImportError:
     from typing_extensions import Literal
 
 from tkinter import Tk, filedialog
-
+from trame.widgets import trame
 from .assets import icon_manager, local_dataset_manager
 from .server import get_trame_server
 from .static_viewer import (
@@ -19,7 +19,7 @@ from .static_viewer import (
 # export WSLINK_MAX_MSG_SIZE=1000000000    # 1GB
 
 # Get a Server to work with
-static_server = get_trame_server()
+static_server = get_trame_server(name="spateo_static_viewer")
 state, ctrl = static_server.state, static_server.controller
 state.trame__title = "SPATEO VIEWER"
 state.trame__favicon = icon_manager.spateo_logo
@@ -71,17 +71,19 @@ ui_standard_layout = ui_layout(
     server=static_server, template_name="main", drawer_width=300
 )
 with ui_standard_layout as layout:
+    # Let the server know the browser pixel ratio
+    trame.ClientTriggers(mounted="pixel_ratio = window.devicePixelRatio")
+
     # -----------------------------------------------------------------------------
     # ToolBar
     # -----------------------------------------------------------------------------
     ui_standard_toolbar(
-        server=static_server, layout=layout, plotter=plotter, mode="trame"
-    )
+        server=static_server, layout=layout, plotter=plotter, mode="trame")
 
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
-    ui_standard_drawer(server=static_server, layout=layout, plotter=plotter)
+    ui_standard_drawer(server=static_server, layout=layout, plotter=plotter, mode="trame")
 
     # -----------------------------------------------------------------------------
     # Main Content

@@ -325,6 +325,7 @@ def ui_standard_drawer(
     server,
     layout,
     plotter: BasePlotter,
+    mode: Literal["trame", "server", "client"] = "trame",
 ):
     """
     Generate standard Drawer for Spateo UI.
@@ -333,9 +334,14 @@ def ui_standard_drawer(
         server: The trame server.
         layout: The layout object.
         plotter: The PyVista plotter to connect with the UI.
+        mode: The UI view mode. Options are:
+
+            * ``'trame'``: Uses a view that can switch between client and server rendering modes.
+            * ``'server'``: Uses a view that is purely server rendering.
+            * ``'client'``: Uses a view that is purely client rendering (generally safe without a virtual frame buffer)
     """
 
-    PVCB(server=server, plotter=plotter)
+    PVCB(server=server, plotter=plotter, suppress_rendering=mode == "client")
     with layout.drawer as dr:
         pipeline(server=server, plotter=plotter)
         vuetify.VDivider(classes="mb-2")

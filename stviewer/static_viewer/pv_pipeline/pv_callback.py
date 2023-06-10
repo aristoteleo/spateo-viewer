@@ -243,7 +243,7 @@ class SwitchModels:
 class PVCB:
     """Callbacks for drawer based on pyvista."""
 
-    def __init__(self, server, plotter):
+    def __init__(self, server, plotter, suppress_rendering=False):
         """Initialize PVCB."""
         state, ctrl = server.state, server.controller
 
@@ -251,6 +251,7 @@ class PVCB:
         self._ctrl = ctrl
         self._state = state
         self._plotter = plotter
+        self._plotter.suppress_rendering = suppress_rendering
 
         # State variable names
         self.SCALARS = f"actor_scalars_value"
