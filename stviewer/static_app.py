@@ -5,7 +5,7 @@ except ImportError:
 
 from tkinter import Tk, filedialog
 
-from trame.widgets import trame
+from trame.widgets import trame as trame_widgets
 
 from .assets import icon_manager, local_dataset_manager
 from .server import get_trame_server
@@ -73,8 +73,10 @@ ui_standard_layout = ui_layout(
     server=static_server, template_name="main", drawer_width=300
 )
 with ui_standard_layout as layout:
-    # Let the server know the browser pixel ratio
-    trame.ClientTriggers(mounted="pixel_ratio = window.devicePixelRatio")
+    # Let the server know the browser pixel ratio and the default theme
+    trame_widgets.ClientTriggers(
+        mounted="pixel_ratio = window.devicePixelRatio, $vuetify.theme.dark = true"
+    )
 
     # -----------------------------------------------------------------------------
     # ToolBar
