@@ -85,12 +85,12 @@ def toolbar_widgets(
         icon="mdi-file-document-outline",
         tooltip="Select directory",
     )
-    # Whether to save the image
+    # Whether to download the screenshot
     button(
         # Must use single-quote string for JS here
-        click=f"utils.download('spateo_viewer_screenshot.png', trigger('{viewer.SCREENSHOT}'), 'image/png')",
+        click=f"utils.download('spateo_static_viewer_screenshot.png', trigger('{viewer.SCREENSHOT}'), 'image/png')",
         icon="mdi-file-png-box",
-        tooltip="Save screenshot",
+        tooltip="Download screenshot",
     )
     # Whether to show the main model
     checkbox(

@@ -38,7 +38,6 @@ def ui_standard_container(
         server: The trame server.
         layout: The layout object.
         plotter: The PyVista plotter to connect with the UI.
-        kwargs: Additional parameters that will be passed to ``pyvista.trame.app.PyVistaXXXXView`` function.
     """
 
     state, ctrl = server.state, server.controller
@@ -51,8 +50,9 @@ def ui_standard_container(
             ):
                 with vuetify.VCardText():
                     html.Pre("{{ tooltip }}")
+            render = plotter.render()
             with vtk_widgets.VtkView(
-                ref="view",
+                ref="render",
                 background=("[0, 0, 0]",),
                 picking_modes=("[pickingMode]",),
                 interactor_settings=("interactorSettings", VIEW_INTERACT),
@@ -60,7 +60,7 @@ def ui_standard_container(
                 hover="pickData = $event",
                 select="selectData = $event",
             ) as view:
-                view.reset_camera()
+                ctrl.view_reset_camera = view.reset_camera
                 with vtk_widgets.VtkGeometryRepresentation(
                     id="activeModel",
                     actor=("{ visibility: activeModelVisible }",),

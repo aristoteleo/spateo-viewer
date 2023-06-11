@@ -55,23 +55,43 @@ def ui_title(
 
 def toolbar_widgets(
     server,
-    plotter,
+    plotter: BasePlotter,
 ):
     """
     Generate standard widgets for ToolBar.
 
     Args:
         server: The trame server.
+        plotter: The PyVista plotter to connect with the UI.
     """
     viewer = Viewer(server=server, plotter=plotter)
 
+    vuetify.VSpacer()
+    # Upload file
+    vuetify.VFileInput(
+        v_model=(viewer.UPLOAD_FILE, None),
+        label="Select Samples",
+        show_size=True,
+        small_chips=True,
+        truncate_length=25,
+        dense=True,
+        outlined=True,
+        hide_details=True,
+        classes="ml-8",
+        style="max-width: 300px;",
+        rounded=True,
+    )
+
+    vuetify.VSpacer()
     # Change the selection mode
     with vuetify.VBtnToggle(v_model=(viewer.PICKING_MODE, "hover"), dense=True):
         with vuetify.VBtn(value=("item.value",), v_for="item, idx in modes"):
             vuetify.VIcon("{{item.icon}}")
     # Whether to reload the main model
     button(
-        click=viewer.reload_main_model, icon="mdi-restore", tooltip="Reload main model"
+        click=viewer.on_reload_main_model,
+        icon="mdi-restore",
+        tooltip="Reload main model",
     )
 
     vuetify.VDivider(vertical=True, classes="mx-1")

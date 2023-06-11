@@ -62,6 +62,7 @@ state.update(
     {
         "init_dataset": True,
         "sample_adata_path": init_anndata_path,
+        "upload_file_path": None,
         "mainModel": None,
         "activeModel": None,
         # Fields available

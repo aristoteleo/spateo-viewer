@@ -1,9 +1,11 @@
 import io
 import os
+import tempfile
 
 import matplotlib.colors as mc
 import numpy as np
 import pyvista as pv
+from trame.app.file_upload import ClientFile
 from vtkmodules.vtkFiltersCore import vtkThreshold
 from vtkmodules.vtkFiltersGeneral import vtkExtractSelectedFrustum
 from vtkmodules.web.utils import mesh as vtk_mesh
@@ -51,14 +53,15 @@ class Viewer:
         # State variable names
         self.PICKING_MODE = f"pickingMode"
         self.SELECTION = f"selectData"
+        self.UPLOAD_FILE = f"upload_file_path"
 
         # controller
-        # Listen to state changes
-        self._state.change(self.PICKING_MODE)(self.update_picking_mode)
-        self._state.change(self.SELECTION)(self.update_selection)
+        self._state.change(self.PICKING_MODE)(self.on_update_picking_mode)
+        self._state.change(self.SELECTION)(self.on_update_selection)
+        self._state.change(self.UPLOAD_FILE)(self.on_upload_file)
 
     @vuwrap
-    def update_picking_mode(self, **kwargs):
+    def on_update_picking_mode(self, **kwargs):
         mode = self._state[self.PICKING_MODE]
         if mode is None:
             self._state.update(
@@ -82,7 +85,7 @@ class Viewer:
             )
 
     @vuwrap
-    def update_selection(self, **kwargs):
+    def on_update_selection(self, **kwargs):
         active_model = self._plotter.actors["activeModel"].mapper.dataset
         selectData = self._state[self.SELECTION]
         if selectData is None:
@@ -119,8 +122,22 @@ class Viewer:
         self._state.pickingMode = None
 
     @vuwrap
-    def reload_main_model(self, **kwargs):
+    def on_reload_main_model(self, **kwargs):
         """Reload the main model to replace the artificially adjusted active model"""
         main_model = self._plotter.actors["mainModel"].mapper.dataset.copy()
         self._state.activeModel = vtk_mesh(main_model)
         self._plotter.add_mesh(main_model, name="activeModel")
+
+    @vuwrap
+    def on_upload_file(self, **kwargs):
+        """Upload file to update the main model"""
+        file = ClientFile(self._state[self.UPLOAD_FILE])
+        if file.content:
+            with tempfile.NamedTemporaryFile(suffix=file.name) as path:
+                with open(path.name, "wb") as f:
+                    f.write(file.content)
+
+                self._plotter.add_mesh(pv.read(path.name), name="mainModel")
+                main_model = self._plotter.actors["mainModel"].mapper.dataset.copy()
+                self._plotter.add_mesh(main_model, name="activeModel")
+                self._state.activeModel = vtk_mesh(main_model)
