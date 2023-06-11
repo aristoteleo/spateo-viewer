@@ -10,7 +10,8 @@ from tkinter import Tk, filedialog
 import pyvista as pv
 from trame.app import get_server
 from trame.ui.vuetify import SinglePageLayout
-from trame.widgets import html, trame
+from trame.widgets import html
+from trame.widgets import trame as trame_widgets
 from trame.widgets import vtk as vtk_widgets
 from trame.widgets import vuetify
 from vtkmodules.vtkFiltersCore import vtkThreshold
@@ -48,8 +49,12 @@ init_anndata_path = os.path.join(
 
 plotter = create_plotter()
 main_model = pv.read(filename=init_model_path)
-main_actor = add_single_model(
-    plotter=plotter, model=main_model, model_style="points", model_size=8
+active_model = main_model.copy()
+_ = add_single_model(
+    plotter=plotter, model=main_model, model_style="points", model_name="mainModel"
+)
+_ = add_single_model(
+    plotter=plotter, model=active_model, model_style="points", model_name="activeModel"
 )
 
 # Init parameters
@@ -57,7 +62,8 @@ state.update(
     {
         "init_dataset": True,
         "sample_adata_path": init_anndata_path,
-        "MM": None,
+        "mainModel": None,
+        "activeModel": None,
         # Fields available
         # "fieldParameters": fieldParameters,
         # picking controls
@@ -69,31 +75,26 @@ state.update(
         # Picking feedback
         "pickData": None,
         "selectData": None,
+        "resetModel": False,
         "tooltip": "",
         "coneVisibility": False,
-        "pixel_ratio": 2,
         # Main model
-        "MMVisible": True,
+        "activeModelVisible": True,
+        # Render
+        "background_color": "[0, 0, 0]",
+        "pixel_ratio": 5,
     }
 )
-
-# Frustrum extraction
-extract = vtkExtractSelectedFrustum()
-extract.SetInputData(main_model)
-
-threshold = vtkThreshold()
-threshold.SetInputConnection(extract.GetOutputPort())
-threshold.SetLowerThreshold(0)
-threshold.SetInputArrayToProcess(0, 0, 0, 1, "vtkInsidedness")
-
 
 # GUI
 ui_standard_layout = ui_layout(
     server=interactive_server, template_name="main", drawer_width=300
 )
 with ui_standard_layout as layout:
-    # Let the server know the browser pixel ratio
-    trame.ClientTriggers(mounted="pixel_ratio = window.devicePixelRatio")
+    # Let the server know the browser pixel ratio and the default theme
+    trame_widgets.ClientTriggers(
+        mounted="pixel_ratio = window.devicePixelRatio, $vuetify.theme.dark = true"
+    )
 
     # -----------------------------------------------------------------------------
     # ToolBar
@@ -107,7 +108,7 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Main Content
     # -----------------------------------------------------------------------------
-    ui_standard_container(layout=layout, plotter=plotter)
+    ui_standard_container(server=interactive_server, layout=layout, plotter=plotter)
 
     # -----------------------------------------------------------------------------
     # Footer

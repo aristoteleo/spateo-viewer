@@ -43,6 +43,7 @@ def add_single_model(
     opacity: float = 1.0,
     model_style: Literal["points", "surface", "wireframe"] = "surface",
     model_size: float = 3.0,
+    model_name: Optional[str] = None,
 ):
     """
     Add model(s) to the plotter.
@@ -66,6 +67,7 @@ def add_single_model(
                      * ``model_style = 'points'``.
         model_size: If ``model_style = 'points'``, point size of any nodes in the dataset plotted.
                     If ``model_style = 'wireframe'``, thickness of lines.
+        model_name: Name to assign to the model. Defaults to the memory address.
     """
 
     if model_style == "points":
@@ -87,6 +89,7 @@ def add_single_model(
         show_scalar_bar=False,
         cmap=cmap,
         color=color,
+        name=model_name,
     )
     actor = plotter.add_mesh(model, **mesh_kwargs)
     return actor
