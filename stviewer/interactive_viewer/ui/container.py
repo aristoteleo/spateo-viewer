@@ -51,7 +51,7 @@ def ui_standard_container(
 
             with vtk_widgets.VtkView(
                 ref="render",
-                background=("[0, 0, 0]",),
+                background=(state.background_color,),
                 picking_modes=("[pickingMode]",),
                 interactor_settings=("interactorSettings", VIEW_INTERACT),
                 click="pickData = $event",
@@ -69,6 +69,13 @@ def ui_standard_container(
                         "{ colorByArrayName: scalar, scalarMode: scalarParameters[scalar].scalarMode,"
                         " interpolateScalarsBeforeMapping: true, scalarVisibility: scalar !== 'Default' }",
                     ),
-                    property=("{ pointSize: 10, Opacity: 1.0, Ambient: 0.3, }"),
+                    property=(
+                        {
+                            "pointSize": state.pixel_ratio,
+                            "representation": 1,
+                            "opacity": 1,
+                            "ambient": 0.3,
+                        },
+                    ),
                 ):
                     vtk_widgets.VtkMesh("activeModel", state=("activeModel",))

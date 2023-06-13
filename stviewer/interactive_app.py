@@ -40,7 +40,7 @@ model_path = os.path.join(
 main_model, active_model, scalar, scalarParameters = init_models(
     plotter=plotter, model_path=model_path
 )
-print(scalar, scalarParameters)
+
 state.update(
     {
         "upload_file_path": None,
@@ -69,7 +69,7 @@ state.update(
         "activeModelVisible": True,
         # Render
         "background_color": "[0, 0, 0]",
-        "pixel_ratio": 5,
+        "pixel_ratio": 3,
     }
 )
 

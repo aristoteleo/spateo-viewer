@@ -67,7 +67,7 @@ def toolbar_widgets(server, plotter: BasePlotter):
     # Upload file
     vuetify.VFileInput(
         v_model=(viewer.UPLOAD_FILE, None),
-        label="Select Samples",
+        label="Select Sample",
         show_size=True,
         small_chips=True,
         truncate_length=25,
@@ -80,21 +80,29 @@ def toolbar_widgets(server, plotter: BasePlotter):
         accept=".vtk",
         __properties=["accept"],
     )
+    #
     vuetify.VSelect(
         v_model=("scalar", "Default"),
         items=("Object.values(scalarParameters)",),
-        classes="ml-8",
+        show_size=True,
+        truncate_length=25,
         dense=True,
         hide_details=True,
+        classes="ml-8",
         style="max-width: 150px",
+        label="Scalar",
     )
+    #
     vuetify.VSelect(
         v_model=("colorMap", "erdc_rainbow_bright"),
         items=("trame.utils.vtk.vtkColorPresetItems('')",),
-        classes="ml-8",
+        show_size=True,
+        truncate_length=25,
         dense=True,
         hide_details=True,
+        classes="ml-8",
         style="max-width: 150px",
+        label="ColorMap",
     )
 
     vuetify.VSpacer()
