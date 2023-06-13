@@ -1,28 +1,21 @@
 import os
 
+import numpy as np
+
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
 
-from tkinter import Tk, filedialog
-
 import pyvista as pv
-from trame.app import get_server
-from trame.ui.vuetify import SinglePageLayout
-from trame.widgets import html
 from trame.widgets import trame as trame_widgets
-from trame.widgets import vtk as vtk_widgets
-from trame.widgets import vuetify
-from vtkmodules.vtkFiltersCore import vtkThreshold
-from vtkmodules.vtkFiltersGeneral import vtkExtractSelectedFrustum
-from vtkmodules.vtkIOXML import vtkXMLPolyDataReader
 from vtkmodules.web.utils import mesh as vtk_mesh
 
-from .assets import abstract_anndata, icon_manager, local_dataset_manager
+from .assets import icon_manager, local_dataset_manager
 from .interactive_viewer import (
     add_single_model,
     create_plotter,
+    init_models,
     ui_layout,
     ui_standard_container,
     ui_standard_toolbar,
@@ -38,35 +31,28 @@ state.trame__title = "SPATEO VIEWER"
 state.trame__favicon = icon_manager.spateo_logo
 state.setdefault("active_ui", None)
 
-# Generate inite model
-init_model_path = os.path.join(
+# Generate inite models
+plotter = create_plotter()
+model_path = os.path.join(
     local_dataset_manager.drosophila_E7_8h,
     "pc_models/0_Embryo_E7_8h_aligned_pc_model.vtk",
 )
-init_anndata_path = os.path.join(
-    local_dataset_manager.drosophila_E7_8h, "h5ad/E7_8h_cellbin_v3.h5ad"
+main_model, active_model, scalar, scalarParameters = init_models(
+    plotter=plotter, model_path=model_path
 )
-
-plotter = create_plotter()
-main_model = pv.read(filename=init_model_path)
-active_model = main_model.copy()
-_ = add_single_model(
-    plotter=plotter, model=main_model, model_style="points", model_name="mainModel"
-)
-_ = add_single_model(
-    plotter=plotter, model=active_model, model_style="points", model_name="activeModel"
-)
-
-# Init parameters
+print(scalar, scalarParameters)
 state.update(
     {
-        "init_dataset": True,
-        "sample_adata_path": init_anndata_path,
         "upload_file_path": None,
-        "mainModel": None,
-        "activeModel": None,
+        "mainModel": vtk_mesh(
+            main_model, point_arrays=[key for key in scalarParameters.keys()]
+        ),
+        "activeModel": vtk_mesh(
+            active_model, point_arrays=[key for key in scalarParameters.keys()]
+        ),
         # Fields available
-        # "fieldParameters": fieldParameters,
+        "scalar": scalar,
+        "scalarParameters": scalarParameters,
         # picking controls
         "modes": [
             {"value": "hover", "icon": "mdi-magnify"},
@@ -101,7 +87,7 @@ with ui_standard_layout as layout:
     # ToolBar
     # -----------------------------------------------------------------------------
     ui_standard_toolbar(server=interactive_server, layout=layout, plotter=plotter)
-
+    trame_widgets.ClientStateChange(name="activeModel", change=ctrl.view_reset_camera)
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
@@ -109,7 +95,7 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Main Content
     # -----------------------------------------------------------------------------
-    ui_standard_container(server=interactive_server, layout=layout, plotter=plotter)
+    ui_standard_container(server=interactive_server, layout=layout)
 
     # -----------------------------------------------------------------------------
     # Footer

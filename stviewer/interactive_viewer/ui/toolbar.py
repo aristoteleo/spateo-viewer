@@ -53,10 +53,7 @@ def ui_title(
 # -----------------------------------------------------------------------------
 
 
-def toolbar_widgets(
-    server,
-    plotter: BasePlotter,
-):
+def toolbar_widgets(server, plotter: BasePlotter):
     """
     Generate standard widgets for ToolBar.
 
@@ -80,6 +77,24 @@ def toolbar_widgets(
         classes="ml-8",
         style="max-width: 300px;",
         rounded=True,
+        accept=".vtk",
+        __properties=["accept"],
+    )
+    vuetify.VSelect(
+        v_model=("scalar", "Default"),
+        items=("Object.values(scalarParameters)",),
+        classes="ml-8",
+        dense=True,
+        hide_details=True,
+        style="max-width: 150px",
+    )
+    vuetify.VSelect(
+        v_model=("colorMap", "erdc_rainbow_bright"),
+        items=("trame.utils.vtk.vtkColorPresetItems('')",),
+        classes="ml-8",
+        dense=True,
+        hide_details=True,
+        style="max-width: 150px",
     )
 
     vuetify.VSpacer()

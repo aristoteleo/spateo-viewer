@@ -29,7 +29,6 @@ VIEW_SELECT = [{"button": 1, "action": "Select"}]
 def ui_standard_container(
     server,
     layout,
-    plotter: BasePlotter,
 ):
     """
     Generate standard VContainer for Spateo UI.
@@ -37,7 +36,6 @@ def ui_standard_container(
     Args:
         server: The trame server.
         layout: The layout object.
-        plotter: The PyVista plotter to connect with the UI.
     """
 
     state, ctrl = server.state, server.controller
@@ -50,7 +48,7 @@ def ui_standard_container(
             ):
                 with vuetify.VCardText():
                     html.Pre("{{ tooltip }}")
-            render = plotter.render()
+
             with vtk_widgets.VtkView(
                 ref="render",
                 background=("[0, 0, 0]",),
@@ -63,20 +61,14 @@ def ui_standard_container(
                 ctrl.view_reset_camera = view.reset_camera
                 with vtk_widgets.VtkGeometryRepresentation(
                     id="activeModel",
+                    v_if="activeModel",
                     actor=("{ visibility: activeModelVisible }",),
-                    property=(
-                        {
-                            "color": [0.99, 0.13, 0.37],
-                            "pointSize": state.pixel_ratio,
-                            "Opacity": 1.0,
-                            "Ambient": 0.2,
-                            "representation": 0,
-                            "RepresentationToPoints": "TRUE",
-                            "RenderPointsAsSpheres": "TRUE",
-                        },
+                    color_map_preset=("colorMap",),
+                    color_data_range=("scalarParameters[scalar].range",),
+                    mapper=(
+                        "{ colorByArrayName: scalar, scalarMode: scalarParameters[scalar].scalarMode,"
+                        " interpolateScalarsBeforeMapping: true, scalarVisibility: scalar !== 'Default' }",
                     ),
+                    property=("{ pointSize: 10, Opacity: 1.0, Ambient: 0.3, }"),
                 ):
-                    vtk_widgets.VtkMesh(
-                        "activeModel",
-                        dataset=plotter.actors["activeModel"].mapper.dataset,
-                    )
+                    vtk_widgets.VtkMesh("activeModel", state=("activeModel",))
