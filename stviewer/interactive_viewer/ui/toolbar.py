@@ -80,7 +80,7 @@ def toolbar_widgets(server, plotter: BasePlotter):
         accept=".vtk",
         __properties=["accept"],
     )
-    #
+    # Toggle scalars
     vuetify.VSelect(
         v_model=("scalar", "Default"),
         items=("Object.values(scalarParameters)",),
@@ -92,7 +92,7 @@ def toolbar_widgets(server, plotter: BasePlotter):
         style="max-width: 150px",
         label="Scalar",
     )
-    #
+    # Toggle colormap
     vuetify.VSelect(
         v_model=("colorMap", "erdc_rainbow_bright"),
         items=("trame.utils.vtk.vtkColorPresetItems('')",),
@@ -177,6 +177,7 @@ def ui_standard_toolbar(
     # ToolBar
     # -----------------------------------------------------------------------------
     with layout.toolbar as tb:
+        tb.height = 55
         tb.dense = True
         tb.clipped_right = True
         toolbar_widgets(server=server, plotter=plotter)

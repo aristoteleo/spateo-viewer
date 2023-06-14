@@ -144,14 +144,18 @@ class Viewer:
 
                 from .pv_models import init_models
 
-                main_model, active_model, scalar, scalarParameters = init_models(
+                main_model, active_model, init_scalar, pdd, cdd = init_models(
                     plotter=self._plotter, model_path=path.name
                 )
-                self._state.scalar = scalar
-                self._state.scalarParameters = scalarParameters
+                self._state.scalar = init_scalar
+                self._state.scalarParameters = {**pdd, **cdd}
                 self._state.mainModel = vtk_mesh(
-                    main_model, point_arrays=[key for key in scalarParameters.keys()]
+                    main_model,
+                    point_arrays=[key for key in pdd.keys()],
+                    cell_arrays=[key for key in cdd.keys()],
                 )
                 self._state.activeModel = vtk_mesh(
-                    main_model, point_arrays=[key for key in scalarParameters.keys()]
+                    main_model,
+                    point_arrays=[key for key in pdd.keys()],
+                    cell_arrays=[key for key in cdd.keys()],
                 )

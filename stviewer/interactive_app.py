@@ -37,7 +37,7 @@ model_path = os.path.join(
     local_dataset_manager.drosophila_E7_8h,
     "pc_models/0_Embryo_E7_8h_aligned_pc_model.vtk",
 )
-main_model, active_model, scalar, scalarParameters = init_models(
+main_model, active_model, init_scalar, pdd, cdd = init_models(
     plotter=plotter, model_path=model_path
 )
 
@@ -45,14 +45,18 @@ state.update(
     {
         "upload_file_path": None,
         "mainModel": vtk_mesh(
-            main_model, point_arrays=[key for key in scalarParameters.keys()]
+            main_model,
+            point_arrays=[key for key in pdd.keys()],
+            cell_arrays=[key for key in cdd.keys()],
         ),
         "activeModel": vtk_mesh(
-            active_model, point_arrays=[key for key in scalarParameters.keys()]
+            active_model,
+            point_arrays=[key for key in pdd.keys()],
+            cell_arrays=[key for key in cdd.keys()],
         ),
         # Fields available
-        "scalar": scalar,
-        "scalarParameters": scalarParameters,
+        "scalar": init_scalar,
+        "scalarParameters": {**pdd, **cdd},
         # picking controls
         "modes": [
             {"value": "hover", "icon": "mdi-magnify"},

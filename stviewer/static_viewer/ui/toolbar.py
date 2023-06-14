@@ -222,6 +222,7 @@ def ui_standard_toolbar(
     # ToolBar
     # -----------------------------------------------------------------------------
     with layout.toolbar as tb:
+        tb.height = 55
         tb.dense = True
         tb.clipped_right = True
 
