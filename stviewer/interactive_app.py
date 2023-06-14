@@ -73,7 +73,7 @@ state.update(
         "activeModelVisible": True,
         # Render
         "background_color": "[0, 0, 0]",
-        "pixel_ratio": 3,
+        "pixel_ratio": 5,
     }
 )
 
