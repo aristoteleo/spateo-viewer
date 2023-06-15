@@ -1,19 +1,15 @@
 import os
 
-import numpy as np
-
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
 
-import pyvista as pv
 from trame.widgets import trame as trame_widgets
 from vtkmodules.web.utils import mesh as vtk_mesh
 
 from .assets import icon_manager, local_dataset_manager
 from .interactive_viewer import (
-    add_single_model,
     create_plotter,
     init_models,
     ui_layout,

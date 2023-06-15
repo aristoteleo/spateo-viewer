@@ -3,7 +3,6 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-from pyvista import BasePlotter
 from trame.widgets import html
 from trame.widgets import vtk as vtk_widgets
 from trame.widgets import vuetify
