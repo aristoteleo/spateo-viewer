@@ -10,7 +10,7 @@ downstream analysis results. Currently, [**Spateo-Viewer**](https://github.com/a
 web applications, **static-viewer** and **interactive-viewer**, which are respectively dedicated to the visualization of 3D 
 spatial transcriptomics analysis results and the region clipping of spatial transcriptomics.
 
-![Spateo-viewer](https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/image/spateo-viewer.pdf)
+![SpateoViewer](https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/image/spateoviewer.png)
 
 ## Highlights
 
