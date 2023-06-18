@@ -116,14 +116,14 @@ def toolbar_widgets(server, plotter: BasePlotter):
         icon="mdi-restore",
         tooltip="Reload main model",
     )
+
+    vuetify.VDivider(vertical=True, classes="mx-1")
     # Download the clipped model
     button(
         click=viewer.on_download_active_model,
         icon="mdi-download-multiple",
         tooltip="Download the clipped model",
     )
-
-    vuetify.VDivider(vertical=True, classes="mx-1")
     # Whether to show the main model
     with vuetify.VTooltip(bottom=True):
         with vuetify.Template(v_slot_activator="{ on, attrs }"):
@@ -136,18 +136,20 @@ def toolbar_widgets(server, plotter: BasePlotter):
                 vuetify.VIcon("mdi-eye-outline", v_if="activeModelVisible")
                 vuetify.VIcon("mdi-eye-off-outline", v_if="!activeModelVisible")
         html.Span(f"Toggle visibility of active model")
-    # Whether to toggle the theme between light and dark
-    checkbox(
-        model="$vuetify.theme.dark",
-        icons=("mdi-lightbulb-off-outline", "mdi-lightbulb-outline"),
-        tooltip=f"Toggle theme",
-    )
     # Reset camera
     button(
-        click="$refs.view.resetCamera()",
+        click="$refs.render.resetCamera()",
         icon="mdi-crop-free",
         tooltip="Reset camera",
     )
+    """
+    # Whether to toggle the theme between light and dark 
+    checkbox(
+            model="$vuetify.theme.dark",
+            icons=("mdi-lightbulb-off-outline", "mdi-lightbulb-outline"),
+            tooltip=f"Toggle theme",
+    )
+    """
 
     vuetify.VProgressLinear(
         indeterminate=True, absolute=True, bottom=True, active=("trame__busy",)

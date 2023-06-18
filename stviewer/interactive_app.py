@@ -75,7 +75,8 @@ state.update(
 
 # GUI
 ui_standard_layout = ui_layout(
-    server=interactive_server, template_name="main", drawer_width=300
+    server=interactive_server,
+    template_name="main",
 )
 with ui_standard_layout as layout:
     # Let the server know the browser pixel ratio and the default theme
