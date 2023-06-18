@@ -10,6 +10,8 @@ downstream analysis results. Currently, [**Spateo-Viewer**](https://github.com/a
 web applications, **static-viewer** and **interactive-viewer**, which are respectively dedicated to the visualization of 3D 
 spatial transcriptomics analysis results and the region clipping of spatial transcriptomics.
 
+![Spateo-viewer](https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/image/spateo-viewer.pdf)
+
 ## Highlights
 
 * In static-viewer, users can not only visualize all genes, but also change the gene expression profile by changing the matrix. Additionally, users can also visualize all the information contained in ``anndata.obs``, such as cell size, cell type, tissue type, etc.
@@ -50,4 +52,3 @@ Gu2, 4,7, Douglas A. Lauffenburger3, Xun Xu2, 4, 13, Longqi Liu2, 4, 14, 15\*, J
 Liu2, 4, 14, 15, 16\*, Yinqi Bai2, 4\*  $Co-first authors; *:Corresponding authors
  
 [Spateo: multidimensional spatiotemporal modeling of single-cell spatial transcriptomics](https://www.biorxiv.org/content/10.1101/2022.12.07.519417v1)
-
