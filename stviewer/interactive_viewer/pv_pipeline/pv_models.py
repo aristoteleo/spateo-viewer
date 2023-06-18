@@ -17,6 +17,7 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
             if len(array.shape) == 1 and name not in [
                 "vtkOriginalPointIds",
                 "SelectedPoints",
+                "vtkInsidedness",
             ]:
                 if not np.issubdtype(array.dtype, np.number):
                     od = {o: i for i, o in enumerate(np.unique(array).tolist())}
@@ -40,6 +41,7 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
                 if len(array.shape) == 1 and name not in [
                     "vtkOriginalCellIds",
                     "orig_extract_id",
+                    "vtkInsidedness",
                 ]:
                     if not np.issubdtype(array.dtype, np.number):
                         od = {o: i for i, o in enumerate(np.unique(array).tolist())}

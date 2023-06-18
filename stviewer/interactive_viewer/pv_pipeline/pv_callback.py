@@ -1,4 +1,5 @@
 import tempfile
+from pathlib import Path
 
 from trame.app.file_upload import ClientFile
 from vtkmodules.vtkFiltersCore import vtkThreshold
@@ -147,15 +148,25 @@ class Viewer:
                 main_model, active_model, init_scalar, pdd, cdd = init_models(
                     plotter=self._plotter, model_path=path.name
                 )
+
                 self._state.scalar = init_scalar
                 self._state.scalarParameters = {**pdd, **cdd}
                 self._state.mainModel = vtk_mesh(
                     main_model,
-                    point_arrays=[key for key in pdd.keys()],
-                    cell_arrays=[key for key in cdd.keys()],
+                    point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
+                    cell_arrays=None if len(cdd) == 0 else [key for key in cdd.keys()],
                 )
                 self._state.activeModel = vtk_mesh(
                     main_model,
-                    point_arrays=[key for key in pdd.keys()],
-                    cell_arrays=[key for key in cdd.keys()],
+                    point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
+                    cell_arrays=None if len(cdd) == 0 else [key for key in cdd.keys()],
                 )
+
+    @vuwrap
+    def on_download_active_model(self, **kwargs):
+        """Reload the main model to replace the artificially adjusted active model"""
+        Path("stv_model").mkdir(parents=True, exist_ok=True)
+        active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+        active_model.save(
+            filename="stv_model/active_model.vtk", binary=True, texture=None
+        )

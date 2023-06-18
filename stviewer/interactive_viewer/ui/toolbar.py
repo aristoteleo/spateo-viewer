@@ -116,6 +116,12 @@ def toolbar_widgets(server, plotter: BasePlotter):
         icon="mdi-restore",
         tooltip="Reload main model",
     )
+    # Download the clipped model
+    button(
+        click=viewer.on_download_active_model,
+        icon="mdi-download-multiple",
+        tooltip="Download the clipped model",
+    )
 
     vuetify.VDivider(vertical=True, classes="mx-1")
     # Whether to show the main model
@@ -130,8 +136,6 @@ def toolbar_widgets(server, plotter: BasePlotter):
                 vuetify.VIcon("mdi-eye-outline", v_if="activeModelVisible")
                 vuetify.VIcon("mdi-eye-off-outline", v_if="!activeModelVisible")
         html.Span(f"Toggle visibility of active model")
-
-    vuetify.VDivider(vertical=True, classes="mx-1")
     # Whether to toggle the theme between light and dark
     checkbox(
         model="$vuetify.theme.dark",
