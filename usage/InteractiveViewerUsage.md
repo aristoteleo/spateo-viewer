@@ -18,7 +18,7 @@ You can clone the [**Spateo-Viewer**](https://github.com/aristoteleo/spateo-view
 
     python stv_interactive_app.py --port 1234
 
-### how to generate the model to upload
+###  How to generate the model to upload
 
 ```
 import spateo as st
