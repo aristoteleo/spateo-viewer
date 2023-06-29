@@ -16,7 +16,9 @@ spatial transcriptomics analysis results and the region clipping of spatial tran
 
 * In static-viewer, users can not only visualize all genes, but also change the gene expression profile by changing the matrix. Additionally, users can also visualize all the information contained in ``anndata.obs``, such as cell size, cell type, tissue type, etc.
 * In static-viewer, users can not only visualize the point cloud model and mesh model of the complete spatial transcriptomics data, but also visualize the point cloud model and mesh model of each tissue type at the same time, and even visualize the vector field model and trajectory model of cell migration fate in some tissues.
-* In interactive-viewer, users can freely clip and save the clipped spatial transcriptomics model.
+* In interactive-viewer, spatial transcriptomics model (including points cloud model and mesh model) can be constructed by uploading anndata object.
+* In interactive-viewer, spatial transcriptomics model can be freely clipped and saved.
+* Spateo-viewer can not only run on the local computer, but also run freely on the remote server.
 * Users can upload custom files in the web application, or add the absolute path of the custom files in assets to open the custom models in Spateo-Viewer.(See [**StaticViewerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/StaticViewerUsage.md) or [**InteractiveViewerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/InteractiveViewerUsage.md))
 
 ## Installation
