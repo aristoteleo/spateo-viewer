@@ -49,11 +49,11 @@ You can refer to the folder structure of the data we include by default in the [
 2. Upload folder via the ``stv_static_app.py``:
 
    ```
-        from stviewer.static_app import static_server, state
+   from stviewer.static_app import static_server, state
 
-        if __name__ == "__main__":
-            state.selected_dir = None
-            static_server.start()
+   if __name__ == "__main__":
+       state.selected_dir = None
+       static_server.start()
    ```
    
    Change None in ``state.selected_dir = None`` to the absolute path of the folder you want to upload.(Please give priority to this method when used in remote servers)

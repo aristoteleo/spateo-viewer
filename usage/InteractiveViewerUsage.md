@@ -46,11 +46,11 @@ You can refer to the data structure we include by default in the [**dataset**](h
 2. Upload folder via the ``stv_interactive_app.py``:
 
     ```
-        from stviewer.interactive_app import interactive_server, state
+   from stviewer.interactive_app import interactive_server, state
 
-        if __name__ == "__main__":
-            **state.upload_anndata = None**
-            interactive_server.start()
+   if __name__ == "__main__":
+      **state.upload_anndata = None**
+      interactive_server.start()
     ```
    
     Change None in ``state.upload_anndata = None`` to the absolute path of the file you want to upload.(Please give priority to this method when used in remote servers)
