@@ -72,15 +72,15 @@ class LocalFileManager:
             key: The name for that content which can then be accessed by the [] or . notation
             file_path: A file path
         """
-        if file_path is None:
-            file_path, key = key, file_path
+        # if file_path is None:
+        #    file_path, key = key, file_path
 
-        data = to_url(self._to_path(file_path))
+        # data = to_url(self._to_path(file_path))
 
         if key is not None:
-            self._assests[key] = data
+            self._assests[key] = file_path
 
-        return data
+        return file_path
 
     def dir_url(self, key: str, dir_path: str):
         """
@@ -121,10 +121,19 @@ local_dataset_manager = LocalFileManager(__file__)
 local_dataset_manager.dir_url("drosophila_E7_8h", r"./dataset/drosophila_E7_8h")
 local_dataset_manager.dir_url("drosophila_E8_9h", r"./dataset/drosophila_E8_9h")
 local_dataset_manager.dir_url("drosophila_E12_13h", r"./dataset/drosophila_E12_13h")
-# local_dataset_manager.dir_url("drosophila_E13_14h", r"./dataset/drosophila_E13_14h")
-# local_dataset_manager.dir_url("drosophila_E15_16h", r"./dataset/drosophila_E15_16h")
-# local_dataset_manager.dir_url("drosophila_E16_17h", r"./dataset/drosophila_E16_17h")
-# local_dataset_manager.dir_url("drosophila_E17_18h", r"./dataset/drosophila_E17_18h")
+
+local_dataset_manager.file_url(
+    "drosophila_E7_8h_anndata",
+    r"./stviewer/assets/dataset/drosophila_E7_8h/h5ad/E7_8h_cellbin_v3.h5ad",
+)
+local_dataset_manager.file_url(
+    "drosophila_E8_9h_anndata",
+    r"./stviewer/assets/dataset/drosophila_E8_9h/h5ad/E8_9h_cellbin_v3.h5ad",
+)
+local_dataset_manager.file_url(
+    "drosophila_E12_13h_anndata",
+    r"./stviewer/assets/dataset/drosophila_E12_13h/h5ad/E12_13h_cellbin_v3.h5ad",
+)
 """
 # -----------------------------------------------------------------------------
 # Data file information
