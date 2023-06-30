@@ -168,7 +168,11 @@ def toolbar_switch_model(
     server,
     plotter: BasePlotter,
 ):
-    avaliable_samples = [key for key in local_dataset_manager.get_assets().keys()]
+    avaliable_samples = [
+        key
+        for key in local_dataset_manager.get_assets().keys()
+        if not str(key).endswith("anndata")
+    ]
     avaliable_samples.append("uploaded_sample")
 
     vuetify.VSpacer()

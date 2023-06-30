@@ -40,3 +40,19 @@ You can clone the [**Spateo-Viewer**](https://github.com/aristoteleo/spateo-view
 
 You can refer to the folder structure of the data we include by default in the [**dataset**](https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/dataset).
 
+### How to upload data
+
+1. Upload folder via the tools included in the toolbar in the web application:
+
+![UploadFolder](https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/image/upload_folder.png)
+
+2. Upload folder via the ``stv_static_app.py``:
+
+        from stviewer.static_app import static_server, state
+3. 
+        if __name__ == "__main__":
+            state.selected_dir = None
+            static_server.start()
+
+    Change None in ``state.selected_dir = None`` to the absolute path of the folder you want to upload.
+
