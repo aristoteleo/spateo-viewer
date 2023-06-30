@@ -1,6 +1,7 @@
 anndata>=0.8.0
 numpy>=1.18.1
 matplotlib<=3.5.3
+PyMCubes>=0.1.4
 pyvista>=0.37.0
 trame>=2.2.5
 trame-server>=2.7.0
