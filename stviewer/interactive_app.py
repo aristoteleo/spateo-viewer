@@ -1,5 +1,3 @@
-import os
-
 try:
     from typing import Literal
 except ImportError:
@@ -14,6 +12,7 @@ from .interactive_viewer import (
     init_models,
     ui_layout,
     ui_standard_container,
+    ui_standard_drawer,
     ui_standard_toolbar,
 )
 from .server import get_trame_server
@@ -38,16 +37,28 @@ state.update(
     {
         "init_anndata": init_anndata_path,
         "upload_anndata": None,
+        # main model
         "mainModel": vtk_mesh(
             main_model,
             point_arrays=[key for key in pdd.keys()],
             cell_arrays=[key for key in cdd.keys()],
         ),
+        # active model
         "activeModel": vtk_mesh(
             active_model,
             point_arrays=[key for key in pdd.keys()],
             cell_arrays=[key for key in cdd.keys()],
         ),
+        "activeModelVisible": True,
+        # reconstructed mesh model
+        "meshModel": None,
+        "meshModelVisible": True,
+        "reconstruct_mesh": False,
+        "mc_factor": 1.0,
+        "mesh_voronoi": 20000,
+        "mesh_smooth_factor": 2000,
+        "mesh_scale_factor": 1.0,
+        "clip_pc_with_mesh": False,
         # Fields available
         "scalar": init_scalar,
         "scalarParameters": {**pdd, **cdd},
@@ -62,8 +73,6 @@ state.update(
         "selectData": None,
         "resetModel": False,
         "tooltip": "",
-        # Main model
-        "activeModelVisible": True,
         # Render
         "background_color": "[0, 0, 0]",
         "pixel_ratio": 5,
@@ -72,8 +81,7 @@ state.update(
 
 # GUI
 ui_standard_layout = ui_layout(
-    server=interactive_server,
-    template_name="main",
+    server=interactive_server, template_name="main", drawer_width=300
 )
 with ui_standard_layout as layout:
     # Let the server know the browser pixel ratio and the default theme
@@ -89,6 +97,7 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
+    ui_standard_drawer(layout=layout)
 
     # -----------------------------------------------------------------------------
     # Main Content

@@ -348,7 +348,7 @@ def ui_standard_drawer(
         with vuetify.VCard():
             vuetify.VCardTitle(
                 "{{ active_ui }}",
-                classes="grey lighten-1 py-1 grey--text text--darken-3",
+                classes="white lighten-1 py-1 grey--text text--darken-3",
                 style="user-select: none; cursor: pointer",
                 hide_details=True,
                 dense=True,

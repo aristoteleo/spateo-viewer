@@ -377,24 +377,18 @@ def uniform_mesh(
 
 def construct_surface(
     pc: PolyData,
-    key_added: str = "groups",
-    label: str = "surface",
     levelset: Union[int, float] = 0,
     mc_scale_factor: Union[int, float] = 1.0,
     nsub: Optional[int] = 3,
     nclus: int = 20000,
     smooth: Optional[int] = 1000,
     scale_factor: Union[float, int, list, tuple] = None,
-) -> Tuple[Union[PolyData, UnstructuredGrid, None], PolyData]:
+) -> Union[PolyData, UnstructuredGrid, None]:
     """
     Surface mesh reconstruction based on 3D point cloud model.
 
     Args:
         pc: A point cloud model.
-        key_added: The key under which to add the labels.
-        label: The label of reconstructed surface mesh model.
-        color: Color to use for plotting mesh. The default ``color`` is ``'gainsboro'``.
-        alpha: The opacity of the color to use for plotting mesh. The default ``alpha`` is ``0.8``.
         levelset: The levelset of iso-surface. It is recommended to set levelset to 0 or 0.5.
         mc_scale_factor: The scale of the model. The scaled model is used to construct the mesh model.
         nsub: Number of subdivisions. Each subdivision creates 4 new triangles, so the number of resulting triangles is
@@ -409,11 +403,6 @@ def construct_surface(
         uniform_surf: A reconstructed surface mesh, which contains the following properties:
             ``uniform_surf.cell_data[key_added]``, the ``label`` array;
             ``uniform_surf.cell_data[f'{key_added}_rgba']``, the rgba colors of the ``label`` array.
-        inside_pc: A point cloud, which contains the following properties:
-            ``inside_pc.point_data['obs_index']``, the obs_index of each coordinate in the original adata.
-            ``inside_pc.point_data[key_added]``, the ``groupby`` information.
-            ``inside_pc.point_data[f'{key_added}_rgba']``, the rgba colors of the ``groupby`` information.
-        plot_cmap: Recommended colormap parameter values for plotting.
     """
     # Reconstruct surface mesh.
     surf = marching_cube_mesh(pc=pc, levelset=levelset, mc_scale_factor=mc_scale_factor)
@@ -438,17 +427,4 @@ def construct_surface(
 
     # Scale the surface mesh.
     uniform_surf = scale_model(model=uniform_surf, scale_factor=scale_factor)
-
-    # Add labels and the colormap of the surface mesh.
-    labels = np.asarray([label] * uniform_surf.n_cells, dtype=str)
-    uniform_surf.cell_data[key_added] = labels
-
-    # Clip the original pc using the reconstructed surface and reconstruct new point cloud.
-    select_pc = pc.select_enclosed_points(surface=uniform_surf, check_surface=False)
-    select_pc1 = select_pc.threshold(0.5, scalars="SelectedPoints").extract_surface()
-    select_pc2 = select_pc.threshold(
-        0.5, scalars="SelectedPoints", invert=True
-    ).extract_surface()
-    inside_pc = select_pc1 if select_pc1.n_points > select_pc2.n_points else select_pc2
-
-    return uniform_surf, inside_pc
+    return uniform_surf

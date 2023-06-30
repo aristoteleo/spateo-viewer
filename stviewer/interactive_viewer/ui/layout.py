@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 
-def ui_layout(server, template_name: str = "main", **kwargs):
+def ui_layout(server, template_name: str = "main", drawer_width: int = 300, **kwargs):
     """
     Define the user interface (UI) layout.
     Reference: https://trame.readthedocs.io/en/latest/trame.ui.vuetify.html#trame.ui.vuetify.SinglePageWithDrawerLayout
@@ -16,6 +16,8 @@ def ui_layout(server, template_name: str = "main", **kwargs):
     Returns:
         The SinglePageWithDrawerLayout layout object.
     """
-    from trame.ui.vuetify import SinglePageLayout
+    from trame.ui.vuetify import SinglePageWithDrawerLayout
 
-    return SinglePageLayout(server, template_name=template_name, **kwargs)
+    return SinglePageWithDrawerLayout(
+        server, template_name=template_name, width=drawer_width, **kwargs
+    )

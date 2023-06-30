@@ -78,3 +78,16 @@ def ui_standard_container(
                     ),
                 ):
                     vtk_widgets.VtkMesh("activeModel", state=("activeModel",))
+                with vtk_widgets.VtkGeometryRepresentation(
+                    id="meshModel",
+                    v_if="meshModel",
+                    actor=("{ visibility: meshModelVisible }",),
+                    property=(
+                        {
+                            "representation": 1,
+                            "opacity": 0.6,
+                            "ambient": 0.1,
+                        },
+                    ),
+                ):
+                    vtk_widgets.VtkMesh("meshModel", state=("meshModel",))

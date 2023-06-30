@@ -80,61 +80,17 @@ def toolbar_widgets(server, plotter: BasePlotter):
         accept=".vtk",
         __properties=["accept"],
     )
-    # Toggle scalars
-    vuetify.VSelect(
-        v_model=("scalar", "Default"),
-        items=("Object.values(scalarParameters)",),
-        show_size=True,
-        truncate_length=25,
-        dense=True,
-        hide_details=True,
-        classes="ml-8",
-        style="max-width: 150px",
-        label="Scalar",
-    )
-    # Toggle colormap
-    vuetify.VSelect(
-        v_model=("colorMap", "erdc_rainbow_bright"),
-        items=("trame.utils.vtk.vtkColorPresetItems('')",),
-        show_size=True,
-        truncate_length=25,
-        dense=True,
-        hide_details=True,
-        classes="ml-8",
-        style="max-width: 150px",
-        label="ColorMap",
-    )
 
     vuetify.VSpacer()
     # Change the selection mode
     with vuetify.VBtnToggle(v_model=(viewer.PICKING_MODE, "hover"), dense=True):
         with vuetify.VBtn(value=("item.value",), v_for="item, idx in modes"):
             vuetify.VIcon("{{item.icon}}")
-
-    vuetify.VDivider(vertical=True, classes="mx-1")
     # Whether to reload the main model
     button(
         click=viewer.on_reload_main_model,
         icon="mdi-restore",
         tooltip="Reload main model",
-    )
-    # Whether to show the main model
-    with vuetify.VTooltip(bottom=True):
-        with vuetify.Template(v_slot_activator="{ on, attrs }"):
-            with vuetify.VBtn(
-                icon=True,
-                v_bind="attrs",
-                v_on="on",
-                click="activeModelVisible = !activeModelVisible",
-            ):
-                vuetify.VIcon("mdi-eye-outline", v_if="activeModelVisible")
-                vuetify.VIcon("mdi-eye-off-outline", v_if="!activeModelVisible")
-        html.Span(f"Toggle visibility of active model")
-    # Reset camera
-    button(
-        click="$refs.render.resetCamera()",
-        icon="mdi-crop-free",
-        tooltip="Reset camera",
     )
 
     vuetify.VDivider(vertical=True, classes="mx-1")
