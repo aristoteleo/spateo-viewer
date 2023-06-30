@@ -314,32 +314,44 @@ class PVCB:
                     _obs_index = _active_actor.mapper.dataset.point_data["obs_index"]
                     _adata = _raw_adata[_obs_index, :].copy()
                     if self._state[self.SCALARS] in set(_adata.obs_keys()):
-                        array = np.asarray(
-                            _adata.obs[self._state[self.SCALARS]].values
-                        ).flatten()
+                        array = _adata.obs[self._state[self.SCALARS]].values
+                        if array.dtype == "category":
+                            array = np.asarray(array, dtype=str)
+                        if np.issubdtype(array.dtype, np.number):
+                            array = np.asarray(array, dtype=float)
+                        else:
+                            od = {o: i for i, o in enumerate(np.unique(array))}
+                            array = np.asarray(
+                                list(map(lambda x: od[x], array)), dtype=float
+                            )
+                        array = array.reshape(-1, 1)
                     elif self._state[self.SCALARS] in set(_adata.var_names.tolist()):
                         matrix_id = self._state[self.MATRIX]
                         if matrix_id == "X_counts":
                             array = np.asarray(
-                                _adata[:, self._state[self.SCALARS]].X.sum(axis=1)
+                                _adata[:, self._state[self.SCALARS]].X.sum(axis=1),
+                                dtype=float,
                             )
                         else:
                             array = np.asarray(
                                 _adata[:, self._state[self.SCALARS]]
                                 .layers[matrix_id]
-                                .sum(axis=1)
+                                .sum(axis=1),
+                                dtype=float,
                             )
                     else:
-                        array = np.ones(shape=(len(_obs_index), 1))
-                    if i == 0:
-                        value_range_min, value_range_max = np.min(array), np.max(array)
+                        array = np.ones(shape=(len(_obs_index), 1), dtype=float)
+
                     _active_actor.mapper.dataset.point_data[
                         self._state[self.SCALARS]
                     ] = array
-                    _active_actor.mapper.SelectColorArray(self._state[self.SCALARS])
-                    _active_actor.mapper.lookup_table.SetRange(
-                        value_range_min, value_range_max
+                    _active_actor.mapper.scalar_range = (
+                        _active_actor.mapper.dataset.get_data_range(
+                            self._state[self.SCALARS]
+                        )
                     )
+
+                    _active_actor.mapper.SelectColorArray(self._state[self.SCALARS])
                     _active_actor.mapper.lookup_table.cmap = self._state[self.COLORMAP]
                     _active_actor.mapper.SetScalarModeToUsePointFieldData()
                     _active_actor.mapper.scalar_visibility = True
