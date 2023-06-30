@@ -2,6 +2,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+import anndata as ad
 import numpy as np
 import pyvista as pv
 
@@ -33,37 +34,56 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
                     "scalarMode": 3,
                 }
 
-        # obtain the data of cells
-        cdd = {}
-        if cell_data:
-            for name, array in model.cell_data.items():
-                array = np.asarray(array)
-                if len(array.shape) == 1 and name not in [
-                    "vtkOriginalCellIds",
-                    "orig_extract_id",
-                    "vtkInsidedness",
-                ]:
-                    if not np.issubdtype(array.dtype, np.number):
-                        od = {o: i for i, o in enumerate(np.unique(array).tolist())}
-                        model.cell_data[name] = np.asarray(
-                            list(map(lambda x: od[x], array)), dtype=float
-                        )
-                        array = np.asarray(model.cell_data[name])
-                    cdd[name] = {
-                        "name": name,
-                        "range": [array.min(), array.max()],
-                        "value": name,
-                        "text": name,
-                        "scalarMode": 3,
-                    }
+    # obtain the data of cells
+    cdd = {}
+    if cell_data:
+        for name, array in model.cell_data.items():
+            array = np.asarray(array)
+            if len(array.shape) == 1 and name not in [
+                "vtkOriginalCellIds",
+                "orig_extract_id",
+                "vtkInsidedness",
+            ]:
+                if not np.issubdtype(array.dtype, np.number):
+                    od = {o: i for i, o in enumerate(np.unique(array).tolist())}
+                    model.cell_data[name] = np.asarray(
+                        list(map(lambda x: od[x], array)), dtype=float
+                    )
+                    array = np.asarray(model.cell_data[name])
+                cdd[name] = {
+                    "name": name,
+                    "range": [array.min(), array.max()],
+                    "value": name,
+                    "text": name,
+                    "scalarMode": 3,
+                }
 
     return model, pdd, cdd
 
 
-def init_models(plotter, model_path):
-    # Generate main model
-    main_model = pv.read(model_path)
-    main_model.point_data["Default"] = np.ones(shape=(main_model.n_points, 1))
+def init_models(plotter, anndata_path):
+    # Generate init anndata object
+    init_adata = ad.read_h5ad(anndata_path)
+    init_adata.obs["Default"] = np.ones(shape=(init_adata.shape[0], 1))
+    init_adata.obsm["spatial"] = (
+        np.c_[init_adata.obsm["spatial"], np.ones(shape=(init_adata.shape[0], 1))]
+        if init_adata.obsm["spatial"].shape[1] == 2
+        else init_adata.obsm["spatial"]
+    )
+    for key in init_adata.obs_keys():
+        if init_adata.obs[key].dtype == "category":
+            init_adata.obs[key] = np.asarray(init_adata.obs[key], dtype=str)
+        if np.issubdtype(init_adata.obs[key].dtype, np.number):
+            init_adata.obs[key] = np.asarray(init_adata.obs[key], dtype=float)
+
+    # Construct init pc model
+    from .pv_tdr import construct_pc
+
+    main_model = construct_pc(adata=init_adata, spatial_key="spatial")
+    _obs_index = main_model.point_data["obs_index"]
+    for key in init_adata.obs_keys():
+        main_model.point_data[key] = init_adata.obs.loc[_obs_index, key]
+
     main_model, pdd, cdd = check_model_data(
         model=main_model, point_data=True, cell_data=True
     )

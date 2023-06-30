@@ -66,7 +66,7 @@ def toolbar_widgets(server, plotter: BasePlotter):
     vuetify.VSpacer()
     # Upload file
     vuetify.VFileInput(
-        v_model=(viewer.UPLOAD_FILE, None),
+        v_model=(viewer.UPLOAD_ANNDATA, None),
         label="Select Sample",
         show_size=True,
         small_chips=True,
@@ -110,19 +110,13 @@ def toolbar_widgets(server, plotter: BasePlotter):
     with vuetify.VBtnToggle(v_model=(viewer.PICKING_MODE, "hover"), dense=True):
         with vuetify.VBtn(value=("item.value",), v_for="item, idx in modes"):
             vuetify.VIcon("{{item.icon}}")
+
+    vuetify.VDivider(vertical=True, classes="mx-1")
     # Whether to reload the main model
     button(
         click=viewer.on_reload_main_model,
         icon="mdi-restore",
         tooltip="Reload main model",
-    )
-
-    vuetify.VDivider(vertical=True, classes="mx-1")
-    # Download the clipped model
-    button(
-        click=viewer.on_download_active_model,
-        icon="mdi-download-multiple",
-        tooltip="Download the clipped model",
     )
     # Whether to show the main model
     with vuetify.VTooltip(bottom=True):
@@ -142,14 +136,26 @@ def toolbar_widgets(server, plotter: BasePlotter):
         icon="mdi-crop-free",
         tooltip="Reset camera",
     )
-    """
-    # Whether to toggle the theme between light and dark 
-    checkbox(
-            model="$vuetify.theme.dark",
-            icons=("mdi-lightbulb-off-outline", "mdi-lightbulb-outline"),
-            tooltip=f"Toggle theme",
+
+    vuetify.VDivider(vertical=True, classes="mx-1")
+    # Download the clipped point cloud model
+    button(
+        click=viewer.on_download_active_model,
+        icon="mdi-download-box-outline",
+        tooltip="Download the point cloud model",
     )
-    """
+    # Download the reconstructed mesh model
+    button(
+        click=viewer.on_download_mesh_model,
+        icon="mdi-download-circle-outline",
+        tooltip="Download the mesh model",
+    )
+    # Download the anndata object of clipped model
+    button(
+        click=viewer.on_download_anndata,
+        icon="mdi-auto-download",
+        tooltip="Download the anndata of clipped model",
+    )
 
     vuetify.VProgressLinear(
         indeterminate=True, absolute=True, bottom=True, active=("trame__busy",)

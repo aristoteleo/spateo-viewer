@@ -27,19 +27,17 @@ state.trame__title = "SPATEO VIEWER"
 state.trame__favicon = icon_manager.spateo_logo
 state.setdefault("active_ui", None)
 
-# Generate inite models
+# Generate anndata object
 plotter = create_plotter()
-model_path = os.path.join(
-    local_dataset_manager.drosophila_E7_8h,
-    "pc_models/0_Embryo_E7_8h_aligned_pc_model.vtk",
-)
+init_anndata_path = local_dataset_manager.drosophila_E7_8h_anndata
 main_model, active_model, init_scalar, pdd, cdd = init_models(
-    plotter=plotter, model_path=model_path
+    plotter=plotter, anndata_path=init_anndata_path
 )
 
 state.update(
     {
-        "upload_file_path": None,
+        "init_anndata": init_anndata_path,
+        "upload_anndata": None,
         "mainModel": vtk_mesh(
             main_model,
             point_arrays=[key for key in pdd.keys()],
@@ -64,7 +62,6 @@ state.update(
         "selectData": None,
         "resetModel": False,
         "tooltip": "",
-        "coneVisibility": False,
         # Main model
         "activeModelVisible": True,
         # Render
