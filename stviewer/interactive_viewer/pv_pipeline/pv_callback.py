@@ -145,7 +145,7 @@ class Viewer:
             active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
 
             raw_labels = self._state.scalarParameters[self._state.scalar]["raw_labels"]
-            if raw_labels is None:
+            if "None" is raw_labels.keys():
                 if self._state[self.PICKING_GROUP] in np.unique(
                     active_model.point_data[self._state.scalar]
                 ):

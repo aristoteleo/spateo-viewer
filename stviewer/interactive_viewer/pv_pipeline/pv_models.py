@@ -20,7 +20,7 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
                 "SelectedPoints",
                 "vtkInsidedness",
             ]:
-                od = None
+                od = {"None": "None"}
                 if not np.issubdtype(array.dtype, np.number):
                     od = {o: i for i, o in enumerate(np.unique(array).tolist())}
                     model.point_data[name] = np.asarray(
@@ -46,7 +46,7 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
                 "orig_extract_id",
                 "vtkInsidedness",
             ]:
-                od = None
+                od = {"None": "None"}
                 if not np.issubdtype(array.dtype, np.number):
                     od = {o: i for i, o in enumerate(np.unique(array).tolist())}
                     model.cell_data[name] = np.asarray(

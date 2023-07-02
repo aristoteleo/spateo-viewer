@@ -41,14 +41,19 @@ def widgets_card():
                 label="Scalar of active model",
             )
         with vuetify.VCol(cols="6"):
-            vuetify.VTextField(
+            vuetify.VSelect(
                 v_model=("picking_group", None),
-                label="Picking group",
-                hide_details=True,
+                items=("Object.keys(scalarParameters[scalar].raw_labels)",),
+                show_size=True,
+                # truncate_length=25,
                 dense=True,
                 outlined=True,
+                hide_details=True,
                 classes="pt-1",
+                # style="max-width: 150px",
+                label="Picking group",
             )
+
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="12"):
             vuetify.VSelect(
