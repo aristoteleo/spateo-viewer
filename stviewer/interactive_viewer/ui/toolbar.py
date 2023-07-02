@@ -93,26 +93,6 @@ def toolbar_widgets(server, plotter: BasePlotter):
         tooltip="Reload main model",
     )
 
-    vuetify.VDivider(vertical=True, classes="mx-1")
-    # Download the clipped point cloud model
-    button(
-        click=viewer.on_download_active_model,
-        icon="mdi-download-box-outline",
-        tooltip="Download the point cloud model",
-    )
-    # Download the reconstructed mesh model
-    button(
-        click=viewer.on_download_mesh_model,
-        icon="mdi-download-circle-outline",
-        tooltip="Download the mesh model",
-    )
-    # Download the anndata object of clipped model
-    button(
-        click=viewer.on_download_anndata,
-        icon="mdi-auto-download",
-        tooltip="Download the anndata of clipped model",
-    )
-
     vuetify.VProgressLinear(
         indeterminate=True, absolute=True, bottom=True, active=("trame__busy",)
     )

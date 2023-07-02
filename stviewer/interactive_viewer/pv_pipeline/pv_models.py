@@ -20,6 +20,7 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
                 "SelectedPoints",
                 "vtkInsidedness",
             ]:
+                od = None
                 if not np.issubdtype(array.dtype, np.number):
                     od = {o: i for i, o in enumerate(np.unique(array).tolist())}
                     model.point_data[name] = np.asarray(
@@ -32,6 +33,7 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
                     "value": name,
                     "text": name,
                     "scalarMode": 3,
+                    "raw_labels": od,
                 }
 
     # obtain the data of cells
@@ -44,6 +46,7 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
                 "orig_extract_id",
                 "vtkInsidedness",
             ]:
+                od = None
                 if not np.issubdtype(array.dtype, np.number):
                     od = {o: i for i, o in enumerate(np.unique(array).tolist())}
                     model.cell_data[name] = np.asarray(
@@ -56,6 +59,7 @@ def check_model_data(model, point_data: bool = True, cell_data: bool = True):
                     "value": name,
                     "text": name,
                     "scalarMode": 3,
+                    "raw_labels": od,
                 }
 
     return model, pdd, cdd

@@ -27,17 +27,27 @@ def widgets_card():
         dense=True,
     )
     with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="12"):
+        with vuetify.VCol(cols="6"):
             vuetify.VSelect(
                 v_model=("scalar", "Default"),
                 items=("Object.values(scalarParameters)",),
                 show_size=True,
                 # truncate_length=25,
-                # dense=True,
+                dense=True,
+                outlined=True,
                 hide_details=True,
                 classes="pt-1",
                 # style="max-width: 150px",
                 label="Scalar of active model",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                v_model=("picking_group", None),
+                label="Picking group",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
             )
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="12"):
@@ -46,11 +56,32 @@ def widgets_card():
                 items=("trame.utils.vtk.vtkColorPresetItems('')",),
                 show_size=True,
                 # truncate_length=25,
-                # dense=True,
+                dense=True,
+                outlined=True,
                 hide_details=True,
                 classes="pt-1",
                 # style="max-width: 150px",
                 label="Colormap of active model",
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VTextField(
+                v_model=("activeModel_output", None),
+                label="Active model output",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VTextField(
+                v_model=("anndata_output", None),
+                label="Anndata output",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
             )
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="12"):
@@ -133,7 +164,17 @@ def widgets_card():
                 classes="pt-1",
             )
 
-    # Toggle visibility
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VTextField(
+                v_model=("mesh_output", None),
+                label="Reconstructed mesh output",
+                show_size=True,
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="12"):
             vuetify.VCheckbox(

@@ -59,9 +59,14 @@ state.update(
         "mesh_smooth_factor": 2000,
         "mesh_scale_factor": 1.0,
         "clip_pc_with_mesh": False,
+        # output path
+        "activeModel_output": None,
+        "mesh_output": None,
+        "anndata_output": None,
         # Fields available
         "scalar": init_scalar,
         "scalarParameters": {**pdd, **cdd},
+        "picking_group": None,
         # picking controls
         "modes": [
             {"value": "hover", "icon": "mdi-magnify"},

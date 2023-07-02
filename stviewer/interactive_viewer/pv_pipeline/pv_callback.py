@@ -1,6 +1,7 @@
 import tempfile
 from pathlib import Path
 
+import anndata as ad
 import numpy as np
 from trame.app.file_upload import ClientFile
 from vtkmodules.vtkFiltersCore import vtkThreshold
@@ -52,6 +53,10 @@ class Viewer:
         self.SELECTION = f"selectData"
         self.UPLOAD_ANNDATA = f"upload_anndata"
         self.RECONSTRUCT_MESH = f"reconstruct_mesh"
+        self.PICKING_GROUP = f"picking_group"
+        self.OUTPUT_PATH_AM = f"activeModel_output"
+        self.OUTPUT_PATH_MESH = f"mesh_output"
+        self.OUTPUT_PATH_ADATA = f"anndata_output"
 
         # controller
         self._state.change(self.PICKING_MODE)(self.on_update_picking_mode)
@@ -63,6 +68,10 @@ class Viewer:
         self._state.change("mesh_smooth_factor")(self.on_reconstruct_mesh)
         self._state.change("mesh_scale_factor")(self.on_reconstruct_mesh)
         self._state.change("clip_pc_with_mesh")(self.on_clip_pc_model)
+        self._state.change(self.PICKING_GROUP)(self.on_picking_pc_model)
+        self._state.change(self.OUTPUT_PATH_AM)(self.on_download_active_model)
+        self._state.change(self.OUTPUT_PATH_MESH)(self.on_download_mesh_model)
+        self._state.change(self.OUTPUT_PATH_ADATA)(self.on_download_anndata)
 
     @vuwrap
     def on_update_picking_mode(self, **kwargs):
@@ -128,6 +137,35 @@ class Viewer:
         self._state.scalar = self._state.scalar
         self._state.selectData = None
         self._state.pickingMode = None
+
+    @vuwrap
+    def on_picking_pc_model(self, **kwargs):
+        """Picking the part of active model based on the scalar"""
+        if not (self._state[self.PICKING_GROUP] in ["none", "None", None]):
+            active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+
+            raw_labels = self._state.scalarParameters[self._state.scalar]["raw_labels"]
+            if raw_labels is None:
+                if self._state[self.PICKING_GROUP] in np.unique(
+                    active_model.point_data[self._state.scalar]
+                ):
+                    custom_picking_group = self._state[self.PICKING_GROUP]
+                    active_model = active_model.extract_points(
+                        active_model.point_data[self._state.scalar]
+                        == float(custom_picking_group)
+                    )
+            else:
+                if self._state[self.PICKING_GROUP] in raw_labels.keys():
+                    custom_picking_group = raw_labels[self._state[self.PICKING_GROUP]]
+                    active_model = active_model.extract_points(
+                        active_model.point_data[self._state.scalar]
+                        == float(custom_picking_group)
+                    )
+            self._plotter.add_mesh(active_model, name="activeModel")
+            self._state.activeModel = vtk_mesh(
+                active_model,
+                point_arrays=[key for key in self._state.scalarParameters.keys()],
+            )
 
     @vuwrap
     def on_reload_main_model(self, **kwargs):
@@ -233,49 +271,58 @@ class Viewer:
     @vuwrap
     def on_download_active_model(self, **kwargs):
         """Download the active model."""
-        Path("stv_model").mkdir(parents=True, exist_ok=True)
-        active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
-        active_model.save(
-            filename="stv_model/active_point_cloud_model.vtk", binary=True, texture=None
-        )
+        if not (self._state[self.OUTPUT_PATH_AM] in ["none", "None", None]):
+            if str(self._state[self.OUTPUT_PATH_AM]).endswith("vtk"):
+                Path("stv_model").mkdir(parents=True, exist_ok=True)
+                active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+                active_model.save(
+                    filename=f"stv_model/{self._state[self.OUTPUT_PATH_AM]}",
+                    binary=True,
+                    texture=None,
+                )
 
     @vuwrap
     def on_download_mesh_model(self, **kwargs):
         """Download the reconstructed mesh model."""
-        if not (self._state.meshModel is None):
-            Path("stv_model").mkdir(parents=True, exist_ok=True)
-            reconstructed_mesh_model = self._plotter.actors[
-                "meshModel"
-            ].mapper.dataset.copy()
-            reconstructed_mesh_model.save(
-                filename="stv_model/reconstructed_mesh_model.vtk",
-                binary=True,
-                texture=None,
-            )
+        if not (self._state[self.OUTPUT_PATH_MESH] in ["none", "None", None]):
+            if str(self._state[self.OUTPUT_PATH_MESH]).endswith("vtk"):
+                if not (self._state.meshModel is None):
+                    Path("stv_model").mkdir(parents=True, exist_ok=True)
+                    reconstructed_mesh_model = self._plotter.actors[
+                        "meshModel"
+                    ].mapper.dataset.copy()
+                    reconstructed_mesh_model.save(
+                        filename=f"stv_model/{self._state[self.OUTPUT_PATH_MESH]}",
+                        binary=True,
+                        texture=None,
+                    )
 
     @vuwrap
     def on_download_anndata(self, **kwargs):
         """Download the anndata object of active model"""
-        Path("stv_model").mkdir(parents=True, exist_ok=True)
+        if not (self._state[self.OUTPUT_PATH_ADATA] in ["none", "None", None]):
+            if str(self._state[self.OUTPUT_PATH_ADATA]).endswith("h5ad"):
+                Path("stv_model").mkdir(parents=True, exist_ok=True)
 
-        import anndata as ad
+                if self._state[self.UPLOAD_ANNDATA] is None:
+                    download_anndata_path = self._state.init_anndata
+                    download_adata_object = ad.read_h5ad(download_anndata_path)
+                else:
+                    if type(self._state[self.UPLOAD_ANNDATA]) is dict:
+                        file = ClientFile(self._state[self.UPLOAD_ANNDATA])
+                        with tempfile.NamedTemporaryFile(suffix=file.name) as path:
+                            with open(path.name, "wb") as f:
+                                f.write(file.content)
+                            download_adata_object = ad.read_h5ad(path.name)
+                    else:
+                        download_adata_object = ad.read_h5ad(
+                            self._state[self.UPLOAD_ANNDATA]
+                        )
 
-        if self._state[self.UPLOAD_ANNDATA] is None:
-            download_anndata_path = self._state.init_anndata
-            download_adata_object = ad.read_h5ad(download_anndata_path)
-        else:
-            if type(self._state[self.UPLOAD_ANNDATA]) is dict:
-                file = ClientFile(self._state[self.UPLOAD_ANNDATA])
-                with tempfile.NamedTemporaryFile(suffix=file.name) as path:
-                    with open(path.name, "wb") as f:
-                        f.write(file.content)
-                    download_adata_object = ad.read_h5ad(path.name)
-            else:
-                download_adata_object = ad.read_h5ad(self._state[self.UPLOAD_ANNDATA])
-
-        active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
-        _obs_index = active_model.point_data["obs_index"]
-        download_adata_object = download_adata_object[_obs_index, :]
-        download_adata_object.write_h5ad(
-            "stv_model/active_model_anndata.h5ad", compression="gzip"
-        )
+                active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+                _obs_index = active_model.point_data["obs_index"]
+                download_adata_object = download_adata_object[_obs_index, :]
+                download_adata_object.write_h5ad(
+                    f"stv_model/{self._state[self.OUTPUT_PATH_ADATA]}",
+                    compression="gzip",
+                )
