@@ -38,7 +38,7 @@ def widgets_card():
                 hide_details=True,
                 classes="pt-1",
                 # style="max-width: 150px",
-                label="Scalar of active model",
+                label="Scalar of Active Model",
             )
         with vuetify.VCol(cols="6"):
             vuetify.VSelect(
@@ -51,7 +51,7 @@ def widgets_card():
                 hide_details=True,
                 classes="pt-1",
                 # style="max-width: 150px",
-                label="Picking group",
+                label="Picking Group",
             )
 
     with vuetify.VRow(classes="pt-2", dense=True):
@@ -66,13 +66,13 @@ def widgets_card():
                 hide_details=True,
                 classes="pt-1",
                 # style="max-width: 150px",
-                label="Colormap of active model",
+                label="Colormap of Active Model",
             )
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="12"):
             vuetify.VTextField(
                 v_model=("activeModel_output", None),
-                label="Active model output",
+                label="Active Model Output",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -82,7 +82,7 @@ def widgets_card():
         with vuetify.VCol(cols="12"):
             vuetify.VTextField(
                 v_model=("anndata_output", None),
-                label="Anndata output",
+                label="Anndata Output",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -92,7 +92,7 @@ def widgets_card():
         with vuetify.VCol(cols="12"):
             vuetify.VCheckbox(
                 v_model=("activeModelVisible", False),
-                label="Visibility of active model",
+                label="Visibility of Active Model",
                 on_icon="mdi-eye-outline",
                 off_icon="mdi-eye-off-outline",
                 dense=True,
@@ -111,7 +111,7 @@ def widgets_card():
         with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
                 v_model=("reconstruct_mesh", False),
-                label="Reconstruct mesh model",
+                label="Reconstruct Mesh Model",
                 on_icon="mdi-billiards-rack",
                 off_icon="mdi-dots-triangle",
                 dense=True,
@@ -121,7 +121,7 @@ def widgets_card():
         with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
                 v_model=("clip_pc_with_mesh", False),
-                label="Clip with mesh model",
+                label="Clip with Mesh Model",
                 on_icon="mdi-box-cutter",
                 off_icon="mdi-box-cutter-off",
                 dense=True,
@@ -133,7 +133,7 @@ def widgets_card():
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 v_model=("mc_factor", 1.0),
-                label="MC factor",
+                label="MC Factor",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -142,7 +142,7 @@ def widgets_card():
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 v_model=("mesh_voronoi", 20000),
-                label="Voronoi clustering",
+                label="Voronoi Clustering",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -153,7 +153,7 @@ def widgets_card():
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 v_model=("mesh_smooth_factor", 1000),
-                label="Smooth factor",
+                label="Smooth Factor",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -162,7 +162,7 @@ def widgets_card():
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 v_model=("mesh_scale_factor", 1.0),
-                label="Scale factor",
+                label="Scale Factor",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -173,7 +173,7 @@ def widgets_card():
         with vuetify.VCol(cols="12"):
             vuetify.VTextField(
                 v_model=("mesh_output", None),
-                label="Reconstructed mesh output",
+                label="Reconstructed Mesh Output",
                 show_size=True,
                 hide_details=True,
                 dense=True,
@@ -184,7 +184,7 @@ def widgets_card():
         with vuetify.VCol(cols="12"):
             vuetify.VCheckbox(
                 v_model=("meshModelVisible", False),
-                label="Visibility of mesh model",
+                label="Visibility of Mesh Model",
                 on_icon="mdi-eye-outline",
                 off_icon="mdi-eye-off-outline",
                 dense=True,

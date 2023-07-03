@@ -48,6 +48,10 @@ state.update(
         "vis_ids": [
             i for i, actor in enumerate(plotter.actors.values()) if actor.visibility
         ],
+        "screenshot_path": None,
+        "animation_path": None,
+        "animation_npoints": 50,
+        "animation_framerate": 10,
     }
 )
 

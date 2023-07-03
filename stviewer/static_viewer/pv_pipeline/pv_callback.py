@@ -1,5 +1,6 @@
 import io
 import os
+from pathlib import Path
 
 import matplotlib.colors as mc
 import numpy as np
@@ -60,8 +61,6 @@ class Viewer:
         self._state.change(self.EDGES)(self.on_edge_visiblity_change)
         self._state.change(self.AXIS)(self.on_axis_visiblity_change)
         self._state.change(self.SERVER_RENDERING)(self.on_rendering_mode_change)
-        # Listen to events
-        self._ctrl.trigger(self.SCREENSHOT)(self.screenshot)
 
     @vuwrap
     def on_show_main_model_change(self, **kwargs):
@@ -159,15 +158,6 @@ class Viewer:
     def actors(self):
         """Get dataset actors."""
         return {k: v for k, v in self.plotter.actors.items() if isinstance(v, pv.Actor)}
-
-    @vuwrap
-    def screenshot(self):
-        """Take screenshot and add attachament."""
-        self.plotter.render()
-        buffer = io.BytesIO()
-        self.plotter.screenshot(filename=buffer)
-        buffer.seek(0)
-        return self._server.protocol.addAttachment(memoryview(buffer.read()))
 
 
 class SwitchModels:
@@ -270,6 +260,8 @@ class PVCB:
         self.SHOW_TRAJECTORY = f"show_trajectory"
         self.MM_COLOR = f"mm_actor_color_value"
         self.MM_COLORMAP = f"mm_actor_colormap_value"
+        self.PLOTTER_SCREENSHOT = "screenshot_path"
+        self.PLOTTER_ANIMATION = "animation_path"
 
         # Listen to state changes
         self._state.change(self.SCALARS)(self.on_scalars_change)
@@ -288,6 +280,47 @@ class PVCB:
         self._state.change(self.SHOW_TRAJECTORY)(self.on_show_trajectory_change)
         self._state.change(self.MM_COLOR)(self.on_mm_color_change)
         self._state.change(self.MM_COLORMAP)(self.on_mm_colormap_change)
+        self._state.change(self.PLOTTER_SCREENSHOT)(self.on_plotter_screenshot)
+        self._state.change(self.PLOTTER_ANIMATION)(self.on_plotter_animation)
+
+    @vuwrap
+    def on_plotter_screenshot(self, **kwargs):
+        """Take screenshot."""
+        if not (self._state[self.PLOTTER_SCREENSHOT] in ["none", "None", None]):
+            _filename = f"stv_image/{self._state[self.PLOTTER_SCREENSHOT]}"
+            Path("stv_image").mkdir(parents=True, exist_ok=True)
+            if str(_filename).endswith("png"):
+                self._plotter.screenshot(filename=_filename)
+            elif str(_filename).endswith("pdf"):
+                self._plotter.save_graphic(
+                    filename=_filename,
+                    title="PyVista Export",
+                    raster=True,
+                    painter=True,
+                )
+
+    @vuwrap
+    def on_plotter_animation(self, **kwargs):
+        """Take animation."""
+        if not (self._state[self.PLOTTER_ANIMATION] in ["none", "None", None]):
+            _filename = f"stv_image/{self._state[self.PLOTTER_ANIMATION]}"
+            Path("stv_image").mkdir(parents=True, exist_ok=True)
+            if str(_filename).endswith("mp4"):
+                viewup = self._plotter.camera.GetViewUp()
+                view_x, view_y, view_z = self._plotter.camera.GetViewPlaneNormal()
+                path = self._plotter.generate_orbital_path(
+                    factor=2.0,
+                    shift=0,
+                    viewup=None,
+                    n_points=int(self._state.animation_npoints),
+                )
+                self._plotter.open_movie(
+                    _filename, framerate=int(self._state.animation_framerate), quality=5
+                )
+                self._plotter.orbit_on_path(
+                    path, write_frames=True, step=0.1
+                )  # viewup=(0, 0, 1)
+                # self._plotter.close()
 
     @vuwrap
     def on_scalars_change(self, **kwargs):

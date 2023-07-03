@@ -77,30 +77,8 @@ def toolbar_widgets(
 
     viewer = Viewer(plotter=plotter, server=server, suppress_rendering=mode == "client")
 
-    # Select local directory
     vuetify.VSpacer()
-    button(
-        # Must use single-quote string for JS here
-        click=server.controller.open_directory,
-        icon="mdi-file-document-outline",
-        tooltip="Select directory",
-    )
-    # Whether to download the screenshot
-    button(
-        # Must use single-quote string for JS here
-        click=f"utils.download('spateo_static_viewer_screenshot.png', trigger('{viewer.SCREENSHOT}'), 'image/png')",
-        icon="mdi-file-png-box",
-        tooltip="Download screenshot",
-    )
-    # Whether to show the main model
-    checkbox(
-        model=(viewer.SHOW_MAIN_MODEL, True),
-        icons=("mdi-eye-outline", "mdi-eye-off-outline"),
-        tooltip=f"Toggle main model visibility ({{{{ {viewer.SHOW_MAIN_MODEL} ? 'True' : 'False' }}}})",
-    )
-
     # Whether to toggle the theme between light and dark
-    vuetify.VDivider(vertical=True, classes="mx-1")
     checkbox(
         model="$vuetify.theme.dark",
         icons=("mdi-lightbulb-off-outline", "mdi-lightbulb-outline"),
@@ -120,8 +98,14 @@ def toolbar_widgets(
             tooltip=f"Toggle rendering mode ({{{{ {viewer.SERVER_RENDERING} ? 'remote' : 'local' }}}})",
         )
 
-    # Whether to add outline
     vuetify.VDivider(vertical=True, classes="mx-1")
+    # Whether to show the main model
+    checkbox(
+        model=(viewer.SHOW_MAIN_MODEL, True),
+        icons=("mdi-eye-outline", "mdi-eye-off-outline"),
+        tooltip=f"Toggle main model visibility ({{{{ {viewer.SHOW_MAIN_MODEL} ? 'True' : 'False' }}}})",
+    )
+    # Whether to add outline
     checkbox(
         model=(viewer.OUTLINE, False),
         icons=("mdi-cube", "mdi-cube-off"),
@@ -188,6 +172,13 @@ def toolbar_switch_model(
         prepend_inner_icon="mdi-magnify",
         style="max-width: 300px;",
         rounded=True,
+    )
+    # Select local directory
+    button(
+        # Must use single-quote string for JS here
+        click=server.controller.open_directory,
+        icon="mdi-file-document-outline",
+        tooltip="Select directory",
     )
 
 

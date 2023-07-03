@@ -277,6 +277,61 @@ def standard_mesh_card(default_values: Optional[dict] = None):
             )
 
 
+def standard_output_card(server, plotter):
+    vuetify.VCardTitle(
+        "Screenshot Generation",
+        classes="white--text text--darken-3",
+        hide_details=True,
+        dense=True,
+    )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VTextField(
+                v_model=("screenshot_path", None),
+                label="Screenshot Output (PNG or PDF)",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+    vuetify.VCardTitle(
+        "Animation Generation",
+        classes="white--text text--darken-3",
+        hide_details=True,
+        dense=True,
+    )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                v_model=("animation_npoints", 50),
+                label="Animation N Points",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                v_model=("animation_framerate", 10),
+                label="Animation Framerate",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VTextField(
+                v_model=("animation_path", None),
+                label="Animation Output (MP4)",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+
+
 # -----------------------------------------------------------------------------
 # GitTree
 # -----------------------------------------------------------------------------
@@ -361,3 +416,14 @@ def ui_standard_drawer(
                 classes="py-2", v_show=f"active_model_type === 'Mesh'"
             ):
                 standard_mesh_card()
+
+        with vuetify.VCard():
+            vuetify.VCardTitle(
+                "Output Widgets",
+                classes="white lighten-1 py-1 grey--text text--darken-3",
+                style="user-select: none; cursor: pointer",
+                hide_details=True,
+                dense=True,
+            )
+            with vuetify.VCardText(classes="py-2"):
+                standard_output_card(server=server, plotter=plotter)
