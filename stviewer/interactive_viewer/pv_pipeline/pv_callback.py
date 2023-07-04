@@ -3,6 +3,7 @@ from pathlib import Path
 
 import anndata as ad
 import numpy as np
+import pandas as pd
 from trame.app.file_upload import ClientFile
 from vtkmodules.vtkFiltersCore import vtkThreshold
 from vtkmodules.vtkFiltersGeneral import vtkExtractSelectedFrustum
@@ -52,6 +53,7 @@ class Viewer:
         self.PICKING_MODE = f"pickingMode"
         self.SELECTION = f"selectData"
         self.UPLOAD_ANNDATA = f"upload_anndata"
+        self.SLICES_ALIGNMENT = "slices_alignment"
         self.RECONSTRUCT_MESH = f"reconstruct_mesh"
         self.PICKING_GROUP = f"picking_group"
         self.OUTPUT_PATH_AM = f"activeModel_output"
@@ -62,6 +64,11 @@ class Viewer:
         self._state.change(self.PICKING_MODE)(self.on_update_picking_mode)
         self._state.change(self.SELECTION)(self.on_update_selection)
         self._state.change(self.UPLOAD_ANNDATA)(self.on_upload_anndata)
+        self._state.change(self.SLICES_ALIGNMENT)(self.on_slices_alignment)
+        self._state.change("slices_key")(self.on_slices_alignment)
+        self._state.change("slices_align_method")(self.on_slices_alignment)
+        self._state.change("slices_align_factor")(self.on_slices_alignment)
+        self._state.change("slices_align_max_iter")(self.on_slices_alignment)
         self._state.change(self.RECONSTRUCT_MESH)(self.on_reconstruct_mesh)
         self._state.change("mc_factor")(self.on_reconstruct_mesh)
         self._state.change("mesh_voronoi")(self.on_reconstruct_mesh)
@@ -72,6 +79,10 @@ class Viewer:
         self._state.change(self.OUTPUT_PATH_AM)(self.on_download_active_model)
         self._state.change(self.OUTPUT_PATH_MESH)(self.on_download_mesh_model)
         self._state.change(self.OUTPUT_PATH_ADATA)(self.on_download_anndata)
+
+    ##########################
+    # Selecting active model #
+    ##########################
 
     @vuwrap
     def on_update_picking_mode(self, **kwargs):
@@ -145,7 +156,7 @@ class Viewer:
             active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
 
             raw_labels = self._state.scalarParameters[self._state.scalar]["raw_labels"]
-            if "None" is raw_labels.keys():
+            if "None" in raw_labels.keys():
                 if self._state[self.PICKING_GROUP] in np.unique(
                     active_model.point_data[self._state.scalar]
                 ):
@@ -176,6 +187,107 @@ class Viewer:
             main_model,
             point_arrays=[key for key in self._state.scalarParameters.keys()],
         )
+
+    #############
+    # Alignment #
+    #############
+
+    @vuwrap
+    def on_slices_alignment(self, **kwargs):
+        """Slices alignment based on the anndata of active point cloud model"""
+        if self._state[self.SLICES_ALIGNMENT] is True:
+            from .pv_alignment import paste_align
+
+            if self._state[self.UPLOAD_ANNDATA] is None:
+                download_anndata_path = self._state.init_anndata
+                adata_object = ad.read_h5ad(download_anndata_path)
+            else:
+                if type(self._state[self.UPLOAD_ANNDATA]) is dict:
+                    file = ClientFile(self._state[self.UPLOAD_ANNDATA])
+                    with tempfile.NamedTemporaryFile(suffix=file.name) as path:
+                        with open(path.name, "wb") as f:
+                            f.write(file.content)
+                        adata_object = ad.read_h5ad(path.name)
+                else:
+                    adata_object = ad.read_h5ad(self._state[self.UPLOAD_ANNDATA])
+            if str(self._state.slices_key) in adata_object.obs_keys():
+                obs_index_labels = {
+                    j: i
+                    for i, j in self._state.scalarParameters["obs_index"][
+                        "raw_labels"
+                    ].items()
+                }
+                active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+                _obs_index = [
+                    obs_index_labels[i] for i in active_model.point_data["obs_index"]
+                ]
+
+                slices_names = (
+                    adata_object.obs[self._state.slices_key].unique().tolist()
+                )
+                slices_names.sort()
+                slices_list = []
+                for sn in slices_names:
+                    subadata = adata_object[
+                        adata_object.obs[self._state.slices_key].values == sn, :
+                    ].copy()
+                    subadata = subadata[subadata.obs.index.isin(_obs_index), :]
+                    subadata = subadata[
+                        subadata.X.sum(axis=1) != 0, subadata.X.sum(axis=0) != 0
+                    ]
+                    _spatial = subadata.obsm["spatial"].copy()
+                    del (
+                        subadata.uns,
+                        subadata.var,
+                        subadata.obsp,
+                        subadata.varm,
+                        subadata.layers,
+                        subadata.obsm,
+                    )
+                    subadata.obs = subadata.obs[[self._state.slices_key]]
+                    subadata.obsm["spatial"] = _spatial[:, :2]
+                    subadata.obsm["z_spatial"] = _spatial[:, 2]
+                    slices_list.append(subadata)
+                if self._state.slices_align_method == "paste":
+                    aligned_slice = paste_align(
+                        models=slices_list,
+                        layer="X",
+                        spatial_key="spatial",
+                        key_added="align_spatial",
+                        alpha=float(self._state.slices_align_factor),
+                        numItermax=int(self._state.slices_align_max_iter),
+                        verbose=False,
+                    )
+                else:
+                    aligned_slice = paste_align(
+                        models=slices_list,
+                        layer="X",
+                        spatial_key="spatial",
+                        key_added="align_spatial",
+                        alpha=float(self._state.slices_align_factor),
+                        numItermax=int(self._state.slices_align_max_iter),
+                        verbose=False,
+                    )
+                aligned_spatial = [
+                    pd.DataFrame(
+                        np.c_[slice.obsm["align_spatial"], slice.obsm["z_spatial"]],
+                        index=slice.obs.index,
+                    )
+                    for slice in aligned_slice
+                ]
+                del aligned_slice
+                aligned_spatial = pd.concat(aligned_spatial, axis=0, ignore_index=False)
+                aligned_spatial = aligned_spatial.loc[_obs_index, :].values
+                active_model.points = aligned_spatial
+                self._plotter.add_mesh(active_model, name="activeModel")
+                self._state.activeModel = vtk_mesh(
+                    active_model,
+                    point_arrays=[key for key in self._state.scalarParameters.keys()],
+                )
+
+    ##################
+    # Reconstruction #
+    ##################
 
     @vuwrap
     def on_reconstruct_mesh(self, **kwargs):
@@ -232,6 +344,10 @@ class Viewer:
                     point_arrays=[key for key in self._state.scalarParameters.keys()],
                 )
 
+    #########
+    # INPUT #
+    #########
+
     @vuwrap
     def on_upload_anndata(self, **kwargs):
         """Upload file to update the main model"""
@@ -267,6 +383,10 @@ class Viewer:
             point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
             cell_arrays=None if len(cdd) == 0 else [key for key in cdd.keys()],
         )
+
+    ##########
+    # OUTPUT #
+    ##########
 
     @vuwrap
     def on_download_active_model(self, **kwargs):

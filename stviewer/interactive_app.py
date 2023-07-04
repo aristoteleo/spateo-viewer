@@ -50,9 +50,15 @@ state.update(
             cell_arrays=[key for key in cdd.keys()],
         ),
         "activeModelVisible": True,
+        # slices alignment
+        "slices_alignment": False,
+        "slices_key": "slices",
+        "slices_align_method": "paste",
+        "slices_align_factor": 0.1,
+        "slices_align_max_iter": 200,
         # reconstructed mesh model
         "meshModel": None,
-        "meshModelVisible": True,
+        "meshModelVisible": False,
         "reconstruct_mesh": False,
         "mc_factor": 1.0,
         "mesh_voronoi": 20000,
