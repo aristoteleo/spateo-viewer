@@ -20,10 +20,8 @@ def downsampling(
 ) -> Union[List[AnnData], AnnData]:
     from dynamo.tools.sampling import sample
 
-    models = models if isinstance(models, list) else [models]
-    sampling_models = []
-    for m in models:
-        sampling_model = m.copy()
+    sampling_models = models if isinstance(models, list) else [models]
+    for sampling_model in sampling_models:
         if sampling_model.shape[0] > n_sampling:
             sampling = sample(
                 arr=np.asarray(sampling_model.obs_names),
