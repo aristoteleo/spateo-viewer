@@ -24,13 +24,14 @@ def downsampling(
     sampling_models = []
     for m in models:
         sampling_model = m.copy()
-        sampling = sample(
-            arr=np.asarray(sampling_model.obs_names),
-            n=n_sampling,
-            method=sampling_method,
-            X=sampling_model.obsm[spatial_key],
-        )
-        sampling_model = sampling_model[sampling, :]
+        if sampling_model.shape[0] > n_sampling:
+            sampling = sample(
+                arr=np.asarray(sampling_model.obs_names),
+                n=n_sampling,
+                method=sampling_method,
+                X=sampling_model.obsm[spatial_key],
+            )
+            sampling_model = sampling_model[sampling, :]
         sampling_models.append(sampling_model)
     return sampling_models
 
@@ -174,10 +175,43 @@ def generalized_procrustes_analysis(X, Y, pi):
     return X, Y, mapping_dict
 
 
+def paste_transform(
+    adata: AnnData,
+    adata_ref: AnnData,
+    spatial_key: str = "spatial",
+    key_added: str = "align_spatial",
+    mapping_key: str = "models_align",
+) -> AnnData:
+    """
+    Align the space coordinates of the new model with the transformation matrix obtained from PASTE.
+
+    Args:
+        adata: The anndata object that need to be aligned.
+        adata_ref: The anndata object that have been aligned by PASTE.
+        spatial_key: The key in `.obsm` that corresponds to the raw spatial coordinates.
+        key_added: ``.obsm`` key under which to add the aligned spatial coordinates.
+        mapping_key: The key in `.uns` that corresponds to the alignment info from PASTE.
+
+    Returns:
+        adata: The anndata object that have been to be aligned.
+    """
+
+    assert mapping_key in adata_ref.uns_keys(), "`mapping_key` value is wrong."
+    tX = adata_ref.uns[mapping_key]["tX"]
+    tY = adata_ref.uns[mapping_key]["tY"]
+    R = adata_ref.uns[mapping_key]["R"]
+
+    adata_coords = adata.obsm[spatial_key].copy() - tY
+    adata.obsm[key_added] = R.dot(adata_coords.T).T + tX
+    return adata
+
+
 def paste_align(
     models: List[AnnData],
     spatial_key: str = "spatial",
     key_added: str = "align_spatial",
+    n_sampling: Optional[int] = 5000,
+    sampling_method: str = "random",
     alpha: float = 0.1,
     numItermax: int = 200,
     numItermaxEmd: int = 100000,
@@ -191,10 +225,10 @@ def paste_align(
 
     Args:
         models: List of models (AnnData Object).
-        layer: If ``'X'``, uses ``.X`` to calculate dissimilarity between spots, otherwise uses the representation given by ``.layers[layer]``.
-        genes: Genes used for calculation. If None, use all common genes for calculation.
         spatial_key: The key in ``.obsm`` that corresponds to the raw spatial coordinate.
         key_added: ``.obsm`` key under which to add the aligned spatial coordinates.
+        n_sampling: When ``models_ref`` is None, new data containing n_sampling coordinate points will be automatically generated for alignment.
+        sampling_method: The method to sample data points, can be one of ``["trn", "kmeans", "random"]``.
         alpha: Alignment tuning parameter. Note: 0 <= alpha <= 1.
 
                When ``alpha = 0`` only the gene expression data is taken into account,
@@ -209,14 +243,25 @@ def paste_align(
     Returns:
         align_models: List of models (AnnData Object) after alignment.
     """
-    for m in models:
+    models_sampling = [model.copy() for model in models]
+    if n_sampling > 0:
+        models_ref = downsampling(
+            models=models_sampling,
+            n_sampling=n_sampling,
+            sampling_method=sampling_method,
+            spatial_key=spatial_key,
+        )
+    else:
+        models_ref = models_sampling
+
+    for m in models_ref:
         m.obsm[key_added] = m.obsm[spatial_key]
 
     pis = []
-    align_models = [model.copy() for model in models]
-    for i in range(len(align_models) - 1):
-        modelA = align_models[i]
-        modelB = align_models[i + 1]
+    align_models_ref = [model.copy() for model in models_ref]
+    for i in range(len(align_models_ref) - 1):
+        modelA = align_models_ref[i]
+        modelB = align_models_ref[i + 1]
 
         # Calculate and returns optimal alignment of two models.
         pi, _ = paste_pairwise_align(
@@ -242,6 +287,22 @@ def paste_align(
 
         modelA.obsm[key_added] = modelA_coords
         modelB.obsm[key_added] = modelB_coords
+        modelB.uns["models_align"] = mapping_dict
+
+    align_models = []
+    for i, (align_model_ref, model) in enumerate(zip(align_models_ref, models)):
+        align_model = model.copy()
+        if i == 0:
+            align_model.obsm[key_added] = align_model.obsm[spatial_key]
+        else:
+            align_model = paste_transform(
+                adata=align_model,
+                adata_ref=align_model_ref,
+                spatial_key=spatial_key,
+                key_added=key_added,
+                mapping_key="models_align",
+            )
+        align_models.append(align_model)
 
     return align_models
 
