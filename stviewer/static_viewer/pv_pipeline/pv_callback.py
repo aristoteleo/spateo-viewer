@@ -219,6 +219,8 @@ class SwitchModels:
                 os.path.join(path, "h5ad"),
                 os.listdir(path=os.path.join(path, "h5ad"))[0],
             )
+            print(adata)
+            self._state.matrices_list = ["X"] + [i for i in adata.layers.keys()]
             self._state.actor_ids = actor_ids
             self._state.mm_actor_ids = mm_model_ids
             self._state.pipeline = actor_tree
@@ -306,8 +308,6 @@ class PVCB:
             _filename = f"stv_image/{self._state[self.PLOTTER_ANIMATION]}"
             Path("stv_image").mkdir(parents=True, exist_ok=True)
             if str(_filename).endswith("mp4"):
-                viewup = self._plotter.camera.GetViewUp()
-                view_x, view_y, view_z = self._plotter.camera.GetViewPlaneNormal()
                 path = self._plotter.generate_orbital_path(
                     factor=2.0,
                     shift=0,
@@ -317,10 +317,7 @@ class PVCB:
                 self._plotter.open_movie(
                     _filename, framerate=int(self._state.animation_framerate), quality=5
                 )
-                self._plotter.orbit_on_path(
-                    path, write_frames=True, step=0.1
-                )  # viewup=(0, 0, 1)
-                # self._plotter.close()
+                self._plotter.orbit_on_path(path, write_frames=True, step=0.1)
 
     @vuwrap
     def on_scalars_change(self, **kwargs):
@@ -360,7 +357,7 @@ class PVCB:
                         array = array.reshape(-1, 1)
                     elif self._state[self.SCALARS] in set(_adata.var_names.tolist()):
                         matrix_id = self._state[self.MATRIX]
-                        if matrix_id == "X_counts":
+                        if matrix_id == "X":
                             array = np.asarray(
                                 _adata[:, self._state[self.SCALARS]].X.sum(axis=1),
                                 dtype=float,

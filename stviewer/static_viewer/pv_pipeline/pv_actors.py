@@ -150,4 +150,13 @@ def init_actors(plotter, path):
 
     anndata_dir = os.path.join(path, "h5ad")
     anndata_path = os.path.join(anndata_dir, os.listdir(path=anndata_dir)[0])
-    return anndata_path, actors, actor_ids, tree, mm_actors, mm_model_ids
+    anndata_metrices = ["X"] + [i for i in adata.layers.keys()]
+    return (
+        anndata_path,
+        anndata_metrices,
+        actors,
+        actor_ids,
+        tree,
+        mm_actors,
+        mm_model_ids,
+    )

@@ -30,7 +30,15 @@ state.setdefault("active_ui", None)
 # Generate a new plotter
 plotter = create_plotter()
 # Init model
-anndata_path, actors, actor_ids, actor_tree, mm_actors, mm_actor_ids = init_actors(
+(
+    anndata_path,
+    anndata_metrices,
+    actors,
+    actor_ids,
+    actor_tree,
+    mm_actors,
+    mm_actor_ids,
+) = init_actors(
     plotter=plotter,
     path=local_dataset_manager.drosophila_E7_8h,
 )
@@ -45,6 +53,7 @@ state.update(
         "active_ui": actor_ids[0],
         "active_model_type": str(state.active_ui).split("_")[0],
         "active_mm_id": None,
+        "matrices_list": anndata_metrices,
         "vis_ids": [
             i for i, actor in enumerate(plotter.actors.values()) if actor.visibility
         ],

@@ -33,7 +33,7 @@ def _get_default_cmap():
 def standard_pc_card(default_values: Optional[dict] = None):
     _get_default_cmap()
     _default_values = {
-        "layer": "X_counts",
+        "layer": "X",
         "scalars": "None",
         "point_size": 8,
         "color": "gainsboro",
@@ -61,7 +61,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
             vuetify.VSelect(
                 label="Matrices",
                 v_model=("actor_matrix_value", _default_values["layer"]),
-                items=("matrices", ["X_counts", "X_log1p"]),
+                items=("matrices_list",),
                 hide_details=True,
                 dense=True,
                 outlined=True,
