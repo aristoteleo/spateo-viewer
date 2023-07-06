@@ -243,7 +243,7 @@ def align_preprocess(
     nx, type_as = check_backend(device=device, dtype=dtype)
     # Subset for common genes
     new_samples = [s.copy() for s in samples]
-    all_samples_genes = [s[0].var.index for s in new_samples]
+    all_samples_genes = [s.var.index for s in new_samples]
     common_genes = filter_common_genes(*all_samples_genes, verbose=verbose)
     common_genes = (
         common_genes if genes is None else intersect_lsts(common_genes, genes)

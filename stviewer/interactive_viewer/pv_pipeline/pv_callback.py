@@ -220,21 +220,31 @@ class Viewer:
                 else:
                     adata_object = ad.read_h5ad(self._state[self.UPLOAD_ANNDATA])
             if str(self._state.slices_key) in adata_object.obs_keys():
+                active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
                 obs_index_labels = {
                     j: i
                     for i, j in self._state.scalarParameters["obs_index"][
                         "raw_labels"
                     ].items()
                 }
-                active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
                 _obs_index = [
                     obs_index_labels[i] for i in active_model.point_data["obs_index"]
                 ]
 
-                slices_names = (
-                    adata_object.obs[self._state.slices_key].unique().tolist()
+                slices_labels = {
+                    j: i
+                    for i, j in self._state.scalarParameters[self._state.slices_key][
+                        "raw_labels"
+                    ].items()
+                }
+                slices_names = np.unique(
+                    [
+                        slices_labels[i]
+                        for i in active_model.point_data[self._state.slices_key]
+                    ]
                 )
                 slices_names.sort()
+
                 slices_list = []
                 for sn in slices_names:
                     subadata = adata_object[
@@ -262,6 +272,7 @@ class Viewer:
                 _device = (
                     "0" if _device == "gpu" and torch.cuda.is_available() else "cpu"
                 )
+                print(_device)
                 if str(self._state.slices_align_method) == "Paste":
                     from .pv_alignment import paste_align
 

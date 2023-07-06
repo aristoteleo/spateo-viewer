@@ -208,7 +208,7 @@ def paste_align(
     models: List[AnnData],
     spatial_key: str = "spatial",
     key_added: str = "align_spatial",
-    n_sampling: Optional[int] = 5000,
+    n_sampling: Optional[int] = 2000,
     sampling_method: str = "random",
     alpha: float = 0.1,
     numItermax: int = 200,
@@ -242,7 +242,9 @@ def paste_align(
         align_models: List of models (AnnData Object) after alignment.
     """
     models_sampling = [model.copy() for model in models]
-    if n_sampling > 0:
+    mean_cells = np.mean([model.shape[0] for model in models_sampling])
+    to_sampling = 0 < n_sampling <= mean_cells and n_sampling is not None
+    if to_sampling:
         models_ref = downsampling(
             models=models_sampling,
             n_sampling=n_sampling,
@@ -288,21 +290,25 @@ def paste_align(
         modelB.uns["models_align"] = mapping_dict
 
     align_models = []
-    for i, (align_model_ref, model) in enumerate(zip(align_models_ref, models)):
-        align_model = model.copy()
-        if i == 0:
-            align_model.obsm[key_added] = align_model.obsm[spatial_key]
-        else:
-            align_model = paste_transform(
-                adata=align_model,
-                adata_ref=align_model_ref,
-                spatial_key=spatial_key,
-                key_added=key_added,
-                mapping_key="models_align",
-            )
-        align_models.append(align_model)
+    if to_sampling:
+        for i, (align_model_ref, model) in enumerate(zip(align_models_ref, models)):
+            align_model = model.copy()
+            if i == 0:
+                align_model.obsm[key_added] = align_model.obsm[spatial_key]
+            else:
+                align_model = paste_transform(
+                    adata=align_model,
+                    adata_ref=align_model_ref,
+                    spatial_key=spatial_key,
+                    key_added=key_added,
+                    mapping_key="models_align",
+                )
+            align_models.append(align_model)
+    else:
+        for align_model_ref in align_models_ref:
+            align_models.append(align_model_ref)
 
-    return align_models
+    return align_models_ref
 
 
 #############################
@@ -748,7 +754,9 @@ def morpho_align(
     from concurrent.futures import ProcessPoolExecutor
 
     models_sampling = [model.copy() for model in models]
-    if n_sampling > 0:
+    mean_cells = np.mean([model.shape[0] for model in models_sampling])
+    to_sampling = 0 < n_sampling <= mean_cells and n_sampling is not None
+    if to_sampling:
         models_ref = downsampling(
             models=models_sampling,
             n_sampling=n_sampling,
@@ -757,6 +765,7 @@ def morpho_align(
         )
     else:
         models_ref = models_sampling
+
     models_ref_A = models_ref[:-1]
     models_ref_B = models_ref[1:]
     align_models = [model.copy() for model in models]
