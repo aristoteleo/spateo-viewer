@@ -56,6 +56,7 @@ class Viewer:
         self.SLICES_ALIGNMENT = "slices_alignment"
         self.RECONSTRUCT_MESH = f"reconstruct_mesh"
         self.PICKING_GROUP = f"picking_group"
+        self.OVERWRITE = f"overwrite"
         self.OUTPUT_PATH_AM = f"activeModel_output"
         self.OUTPUT_PATH_MESH = f"mesh_output"
         self.OUTPUT_PATH_ADATA = f"anndata_output"
@@ -66,6 +67,7 @@ class Viewer:
         self._state.change(self.UPLOAD_ANNDATA)(self.on_upload_anndata)
         self._state.change(self.SLICES_ALIGNMENT)(self.on_slices_alignment)
         self._state.change("slices_key")(self.on_slices_alignment)
+        self._state.change("slices_align_device")(self.on_slices_alignment)
         self._state.change("slices_align_method")(self.on_slices_alignment)
         self._state.change("slices_align_factor")(self.on_slices_alignment)
         self._state.change("slices_align_max_iter")(self.on_slices_alignment)
@@ -76,6 +78,8 @@ class Viewer:
         self._state.change("mesh_scale_factor")(self.on_reconstruct_mesh)
         self._state.change("clip_pc_with_mesh")(self.on_clip_pc_model)
         self._state.change(self.PICKING_GROUP)(self.on_picking_pc_model)
+        self._state.change(self.OVERWRITE)(self.on_picking_pc_model)
+
         self._state.change(self.OUTPUT_PATH_AM)(self.on_download_active_model)
         self._state.change(self.OUTPUT_PATH_MESH)(self.on_download_mesh_model)
         self._state.change(self.OUTPUT_PATH_ADATA)(self.on_download_anndata)
@@ -153,25 +157,30 @@ class Viewer:
     def on_picking_pc_model(self, **kwargs):
         """Picking the part of active model based on the scalar"""
         if not (self._state[self.PICKING_GROUP] in ["none", "None", None]):
-            active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+            main_model = self._plotter.actors["mainModel"].mapper.dataset.copy()
 
             raw_labels = self._state.scalarParameters[self._state.scalar]["raw_labels"]
             if "None" in raw_labels.keys():
                 if self._state[self.PICKING_GROUP] in np.unique(
-                    active_model.point_data[self._state.scalar]
+                    main_model.point_data[self._state.scalar]
                 ):
                     custom_picking_group = self._state[self.PICKING_GROUP]
-                    active_model = active_model.extract_points(
-                        active_model.point_data[self._state.scalar]
+                    added_active_model = main_model.extract_points(
+                        main_model.point_data[self._state.scalar]
                         == float(custom_picking_group)
                     )
             else:
                 if self._state[self.PICKING_GROUP] in raw_labels.keys():
                     custom_picking_group = raw_labels[self._state[self.PICKING_GROUP]]
-                    active_model = active_model.extract_points(
-                        active_model.point_data[self._state.scalar]
+                    added_active_model = main_model.extract_points(
+                        main_model.point_data[self._state.scalar]
                         == float(custom_picking_group)
                     )
+            if self._state[self.OVERWRITE] is True:
+                active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+                active_model = active_model.merge(added_active_model)
+            else:
+                active_model = added_active_model
             self._plotter.add_mesh(active_model, name="activeModel")
             self._state.activeModel = vtk_mesh(
                 active_model,
@@ -195,9 +204,9 @@ class Viewer:
     @vuwrap
     def on_slices_alignment(self, **kwargs):
         """Slices alignment based on the anndata of active point cloud model"""
-        if self._state[self.SLICES_ALIGNMENT] is True:
-            from .pv_alignment import paste_align
+        import torch
 
+        if self._state[self.SLICES_ALIGNMENT] is True:
             if self._state[self.UPLOAD_ANNDATA] is None:
                 download_anndata_path = self._state.init_anndata
                 adata_object = ad.read_h5ad(download_anndata_path)
@@ -248,25 +257,32 @@ class Viewer:
                     subadata.obsm["spatial"] = _spatial[:, :2]
                     subadata.obsm["z_spatial"] = _spatial[:, 2]
                     slices_list.append(subadata)
-                if self._state.slices_align_method == "paste":
+
+                _device = str(self._state.slices_align_device).lower()
+                _device = (
+                    "0" if _device == "gpu" and torch.cuda.is_available() else "cpu"
+                )
+                if str(self._state.slices_align_method) == "Paste":
+                    from .pv_alignment import paste_align
+
                     aligned_slice = paste_align(
                         models=slices_list,
-                        layer="X",
                         spatial_key="spatial",
                         key_added="align_spatial",
                         alpha=float(self._state.slices_align_factor),
                         numItermax=int(self._state.slices_align_max_iter),
-                        verbose=False,
+                        device=_device,
                     )
                 else:
-                    aligned_slice = paste_align(
+                    from .pv_alignment import morpho_align
+
+                    aligned_slice = morpho_align(
                         models=slices_list,
-                        layer="X",
                         spatial_key="spatial",
                         key_added="align_spatial",
-                        alpha=float(self._state.slices_align_factor),
-                        numItermax=int(self._state.slices_align_max_iter),
-                        verbose=False,
+                        max_outlier_variance=int(self._state.slices_align_factor),
+                        max_iter=int(self._state.slices_align_max_iter),
+                        device=_device,
                     )
                 aligned_spatial = [
                     pd.DataFrame(

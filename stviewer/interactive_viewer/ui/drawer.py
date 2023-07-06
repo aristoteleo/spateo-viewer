@@ -27,31 +27,38 @@ def widgets_card():
         dense=True,
     ):
         with vuetify.VRow(classes="pt-2", dense=True):
-            with vuetify.VCol(cols="6"):
+            with vuetify.VCol(cols="12"):
                 vuetify.VSelect(
                     v_model=("scalar", "Default"),
                     items=("Object.values(scalarParameters)",),
                     show_size=True,
-                    # truncate_length=25,
                     dense=True,
                     outlined=True,
                     hide_details=True,
                     classes="pt-1",
-                    # style="max-width: 150px",
                     label="Scalar of Active Model",
                 )
+        with vuetify.VRow(classes="pt-2", dense=True):
             with vuetify.VCol(cols="6"):
                 vuetify.VSelect(
                     v_model=("picking_group", None),
                     items=("Object.keys(scalarParameters[scalar].raw_labels)",),
                     show_size=True,
-                    # truncate_length=25,
                     dense=True,
                     outlined=True,
                     hide_details=True,
                     classes="pt-1",
-                    # style="max-width: 150px",
                     label="Picking Group",
+                )
+            with vuetify.VCol(cols="6"):
+                vuetify.VCheckbox(
+                    v_model=("overwrite", False),
+                    label="Overwrite Model",
+                    on_icon="mdi-plus-thick",
+                    off_icon="mdi-close-thick",
+                    dense=True,
+                    hide_details=True,
+                    classes="pt-1",
                 )
 
         with vuetify.VRow(classes="pt-2", dense=True):
@@ -108,30 +115,28 @@ def widgets_card():
         dense=True,
     ):
         with vuetify.VRow(classes="pt-2", dense=True):
-            with vuetify.VCol(cols="12"):
+            with vuetify.VCol(cols="6"):
                 vuetify.VCheckbox(
                     v_model=("slices_alignment", False),
-                    label="Series Slices Alignment",
+                    label="Align slices",
                     on_icon="mdi-layers-outline",
                     off_icon="mdi-layers-off-outline",
                     dense=True,
                     hide_details=True,
                     classes="pt-1",
                 )
-        with vuetify.VRow(classes="pt-2", dense=True):
             with vuetify.VCol(cols="6"):
                 vuetify.VSelect(
-                    v_model=("slices_align_method", "paste"),
-                    items=(["paste", "morpho"],),
+                    v_model=("slices_align_method", "Paste"),
+                    items=(["Paste", "Morpho"],),
                     show_size=True,
-                    # truncate_length=25,
                     dense=True,
                     outlined=True,
                     hide_details=True,
                     classes="pt-1",
-                    # style="max-width: 150px",
                     label="Method of Alignment",
                 )
+        with vuetify.VRow(classes="pt-2", dense=True):
             with vuetify.VCol(cols="6"):
                 vuetify.VTextField(
                     v_model=("slices_key", "slices"),
@@ -141,7 +146,6 @@ def widgets_card():
                     outlined=True,
                     classes="pt-1",
                 )
-        with vuetify.VRow(classes="pt-2", dense=True):
             with vuetify.VCol(cols="6"):
                 vuetify.VTextField(
                     v_model=("slices_align_factor", 0.1),
@@ -151,6 +155,7 @@ def widgets_card():
                     outlined=True,
                     classes="pt-1",
                 )
+        with vuetify.VRow(classes="pt-2", dense=True):
             with vuetify.VCol(cols="6"):
                 vuetify.VTextField(
                     v_model=("slices_align_max_iter", 200),
@@ -159,6 +164,17 @@ def widgets_card():
                     dense=True,
                     outlined=True,
                     classes="pt-1",
+                )
+            with vuetify.VCol(cols="6"):
+                vuetify.VSelect(
+                    v_model=("slices_align_device", "CPU"),
+                    items=(["CPU", "GPU"],),
+                    show_size=True,
+                    dense=True,
+                    outlined=True,
+                    hide_details=True,
+                    classes="pt-1",
+                    label="Device",
                 )
 
     # Mesh model reconstruction

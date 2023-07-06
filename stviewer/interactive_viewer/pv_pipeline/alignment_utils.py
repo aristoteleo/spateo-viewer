@@ -214,7 +214,6 @@ def align_preprocess(
     dtype: str = "float64",
     device: str = "cpu",
     verbose: bool = True,
-    **kwargs,
 ) -> Tuple[
     ot.backend.TorchBackend or ot.backend.NumpyBackend,
     torch.Tensor or np.ndarray,
@@ -380,6 +379,335 @@ def _dist(
             - _dot(nx)(mat2, nx.log(mat1).T).T
         ) / 2
     return distMat
+
+
+def cal_dist(
+    X_A: Union[np.ndarray, torch.Tensor],
+    X_B: Union[np.ndarray, torch.Tensor],
+    use_gpu: bool = True,
+    chunk_num: int = 1,
+    return_gpu: bool = True,
+) -> Union[np.ndarray, torch.Tensor]:
+    """Calculate the distance between two vectors
+
+    Args:
+        X_A (Union[np.ndarray, torch.Tensor]): The first input vector with shape n x d
+        X_B (Union[np.ndarray, torch.Tensor]): The second input vector with shape m x d
+        use_gpu (bool, optional): Whether to use GPU for chunk. Defaults to True.
+        chunk_num (int, optional): The number of chunks. The larger the number, the smaller the GPU memory usage, but the slower the calculation speed. Defaults to 1.
+
+    Returns:
+        Union[np.ndarray, torch.Tensor]: Distance matrix of two vectors with shape n x m.
+    """
+    nx = ot.backend.get_backend(X_A, X_B)
+    data_on_gpu = False
+    if nx_torch(nx):
+        if X_A.is_cuda:
+            data_on_gpu = True
+    type_as = X_A[0, 0].cpu() if nx_torch(nx) else X_A[0, 0]
+    use_gpu = True if use_gpu and nx_torch(nx) and torch.cuda.is_available() else False
+    chunk_flag = False
+    while True:
+        try:
+            if chunk_num == 1:
+                DistMat = _dist(X_A, X_B, "euc")
+                break
+            else:
+                # convert to numpy to save the GPU memory
+                if chunk_flag == False:
+                    X_A, X_B = nx.to_numpy(X_A), nx.to_numpy(X_B)
+                chunk_flag = True
+                # chunk
+                X_As = np.array_split(X_A, chunk_num, axis=0)
+                X_Bs = np.array_split(X_B, chunk_num, axis=0)
+                arr = []  # array for temporary storage of results
+                for x_As in X_As:
+                    arr2 = []  # array for temporary storage of results
+                    for x_Bs in X_Bs:
+                        if use_gpu:
+                            arr2.append(
+                                ot.dist(
+                                    nx.from_numpy(x_As, type_as=type_as).cuda(),
+                                    nx.from_numpy(x_Bs, type_as=type_as).cuda(),
+                                ).cpu()
+                            )
+                        else:
+                            arr2.append(
+                                ot.dist(
+                                    nx.from_numpy(x_As, type_as=type_as),
+                                    nx.from_numpy(x_Bs, type_as=type_as),
+                                )
+                            )
+                    arr.append(nx.concatenate(arr2, axis=1))
+                DistMat = nx.concatenate(arr, axis=0)  # not convert to GPU
+                break
+        except:
+            chunk_num = chunk_num * 2
+            print("dist chunk more")
+    if data_on_gpu and chunk_num != 1 and return_gpu:
+        DistMat = DistMat.cuda()
+    return DistMat
+
+
+def voxel_data(
+    coords: Union[np.ndarray, torch.Tensor],
+    gene_exp: Union[np.ndarray, torch.Tensor],
+    voxel_size: Optional[float] = None,
+    voxel_num: Optional[int] = 10000,
+):
+    """
+    Voxelization of the data.
+    Parameters
+    ----------
+    coords: np.ndarray or torch.Tensor
+        The coordinates of the data points.
+    gene_exp: np.ndarray or torch.Tensor
+        The gene expression of the data points.
+    voxel_size: float
+        The size of the voxel.
+    voxel_num: int
+        The number of voxels.
+    Returns
+    -------
+    voxel_coords: np.ndarray or torch.Tensor
+        The coordinates of the voxels.
+    voxel_gene_exp: np.ndarray or torch.Tensor
+        The gene expression of the voxels.
+    """
+    nx = ot.backend.get_backend(coords, gene_exp)
+    N, D = coords.shape[0], coords.shape[1]
+    coords = nx.to_numpy(coords)
+    gene_exp = nx.to_numpy(gene_exp)
+
+    # create the voxel grid
+    min_coords = np.min(coords, axis=0)
+    max_coords = np.max(coords, axis=0)
+    if voxel_size is None:
+        voxel_size = np.sqrt(np.prod(max_coords - min_coords)) / (np.sqrt(N) / 5)
+        # print(voxel_size)
+    voxel_steps = (max_coords - min_coords) / int(np.sqrt(voxel_num))
+    voxel_coords = [
+        np.arange(min_coord, max_coord, voxel_step)
+        for min_coord, max_coord, voxel_step in zip(min_coords, max_coords, voxel_steps)
+    ]
+    voxel_coords = np.stack(np.meshgrid(*voxel_coords), axis=-1).reshape(-1, D)
+    voxel_gene_exps = np.zeros((voxel_coords.shape[0], gene_exp.shape[1]))
+    is_voxels = np.zeros((voxel_coords.shape[0],))
+    # assign the data points to the voxels
+    for i, voxel_coord in enumerate(voxel_coords):
+        dists = np.sqrt(np.sum((coords - voxel_coord) ** 2, axis=1))
+        mask = dists < voxel_size / 2
+        if np.any(mask):
+            voxel_gene_exps[i] = np.mean(gene_exp[mask], axis=0)
+            is_voxels[i] = 1
+    voxel_coords = voxel_coords[is_voxels == 1, :]
+    voxel_gene_exps = voxel_gene_exps[is_voxels == 1, :]
+    return voxel_coords, voxel_gene_exps
+
+
+def inlier_from_NN(
+    train_x,
+    train_y,
+    distance,
+):
+    N, D = train_x.shape[0], train_x.shape[1]
+    alpha = 1
+    distance = np.maximum(0, distance)
+    normalize = np.max(distance) / (np.log(10) * 2)
+    distance = distance / (normalize)
+    R = np.eye(D)
+    t = np.ones((D, 1))
+    y_hat = train_x
+    sigma2 = np.sum((y_hat - train_y) ** 2) / (D * N)
+    weight = np.exp(-distance * alpha)
+    init_weight = weight
+    P = np.multiply(np.ones((N, 1)), weight)
+    max_iter = 100
+    alpha_end = 0.1
+    alpha_decrease = np.power(alpha_end / alpha, 1 / (max_iter - 20))
+    gamma = 0.5
+    a = np.maximum(
+        np.prod(np.max(train_x, axis=0) - np.min(train_x, axis=0)),
+        np.prod(np.max(train_y, axis=0) - np.min(train_y, axis=0)),
+    )
+    Sp = np.sum(P)
+    for iter in range(max_iter):
+        # solve rigid transformation
+        mu_x = np.sum(np.multiply(train_x, P), 0) / (Sp)
+        mu_y = np.sum(np.multiply(train_y, P), 0) / (Sp)
+
+        X_mu, Y_mu = train_x - mu_x, train_y - mu_y
+        A = np.dot(Y_mu.T, np.multiply(X_mu, P))
+        svdU, svdS, svdV = np.linalg.svd(A)
+        C = np.eye(D)
+        C[-1, -1] = np.linalg.det(np.dot(svdU, svdV))
+        R = np.dot(np.dot(svdU, C), svdV)
+        t = mu_y - np.dot(mu_x, R.T)
+        y_hat = np.dot(train_x, R.T) + t
+        # get P
+        term1 = np.multiply(
+            np.exp(-(np.sum((train_y - y_hat) ** 2, 1, keepdims=True)) / (2 * sigma2)),
+            weight,
+        )
+        outlier_part = (
+            np.max(weight)
+            * (1 - gamma)
+            * np.power((2 * np.pi * sigma2), D / 2)
+            / (gamma * a)
+        )
+        P = term1 / (term1 + outlier_part)
+        Sp = np.sum(P)
+        gamma = np.minimum(np.maximum(Sp / N, 0.01), 0.99)
+        P = np.maximum(P, 1e-6)
+
+        # update sigma2
+        sigma2 = np.sum(np.multiply((y_hat - train_y) ** 2, P)) / (D * Sp)
+        if iter > 20:
+            alpha = alpha * alpha_decrease
+            weight = np.exp(-distance * alpha)
+            weight = weight / np.max(weight)
+
+    fix_sigma2 = 1e-2
+    fix_gamma = 0.1
+    term1 = np.multiply(
+        np.exp(-(np.sum((train_y - y_hat) ** 2, 1, keepdims=True)) / (2 * fix_sigma2)),
+        weight,
+    )
+    outlier_part = (
+        np.max(weight)
+        * (1 - fix_gamma)
+        * np.power((2 * np.pi * fix_sigma2), D / 2)
+        / (fix_gamma * a)
+    )
+    P = term1 / (term1 + outlier_part)
+    Sp = np.sum(P)
+    gamma = np.minimum(np.maximum(Sp / N, 0.01), 0.99)
+    return P, R, t, init_weight, sigma2, gamma
+
+
+def coarse_rigid_alignment(
+    coordsA: Union[np.ndarray, torch.Tensor],
+    coordsB: Union[np.ndarray, torch.Tensor],
+    X_A: Union[np.ndarray, torch.Tensor],
+    X_B: Union[np.ndarray, torch.Tensor],
+    dissimilarity: str = "kl",
+    top_K: int = 10,
+    transformed_points: Optional[Union[np.ndarray, torch.Tensor]] = None,
+):
+    nx = ot.backend.get_backend(coordsA, coordsB)
+    if transformed_points is None:
+        transformed_points = coordsA
+    N, M, D = coordsA.shape[0], coordsB.shape[0], coordsA.shape[1]
+
+    coordsA, X_A = voxel_data(
+        coords=coordsA,
+        gene_exp=X_A,
+        voxel_num=max(min(int(N / 20), 1000), 100),
+    )
+    coordsB, X_B = voxel_data(
+        coords=coordsB,
+        gene_exp=X_B,
+        voxel_num=max(min(int(M / 20), 1000), 100),
+    )
+
+    DistMat = calc_exp_dissimilarity(X_A=X_A, X_B=X_B, dissimilarity=dissimilarity)
+
+    transformed_points = nx.to_numpy(transformed_points)
+    sub_coordsA = coordsA
+
+    item2 = np.argpartition(DistMat, top_K, axis=0)[:top_K, :].T
+    item1 = np.repeat(np.arange(DistMat.shape[1])[:, None], top_K, axis=1)
+    NN1 = np.dstack((item1, item2)).reshape((-1, 2))
+    distance1 = DistMat.T[NN1[:, 0], NN1[:, 1]]
+
+    ## construct nearest neighbor set using brute force
+    item1 = np.argpartition(DistMat, top_K, axis=1)[:, :top_K]
+    item2 = np.repeat(np.arange(DistMat.shape[0])[:, None], top_K, axis=1)
+    NN2 = np.dstack((item1, item2)).reshape((-1, 2))
+    distance2 = DistMat.T[NN2[:, 0], NN2[:, 1]]
+
+    NN = np.vstack((NN1, NN2))
+    distance = np.r_[distance1, distance2]
+
+    train_x, train_y = sub_coordsA[NN[:, 1], :], coordsB[NN[:, 0], :]
+
+    # print(train_x)
+    R_flip = np.eye(D)
+    R_flip[-1, -1] = -1
+
+    P, R, t, init_weight, sigma2, gamma = inlier_from_NN(
+        train_x, train_y, distance[:, None]
+    )
+
+    P2, R2, t2, init_weight, sigma2_2, gamma_2 = inlier_from_NN(
+        np.dot(train_x, R_flip), train_y, distance[:, None]
+    )
+
+    if gamma_2 > (1.5 * gamma):
+        P = P2
+        R = R2
+        t = t2
+        sigma2 = sigma2_2
+        R = np.dot(R, R_flip)
+        print("flip")
+    inlier_threshold = min(P[np.argsort(-P[:, 0])[20], 0], 0.5)
+    inlier_set = np.where(P[:, 0] > inlier_threshold)[0]
+    inlier_x, inlier_y = train_x[inlier_set, :], train_y[inlier_set, :]
+    inlier_P = P[inlier_set, :]
+
+    transformed_points = np.dot(transformed_points, R.T) + t
+    inlier_x = np.dot(inlier_x, R.T) + t
+    return transformed_points, inlier_x, inlier_y, inlier_P, R, t
+
+
+def get_optimal_R(
+    coordsA: Union[np.ndarray, torch.Tensor],
+    coordsB: Union[np.ndarray, torch.Tensor],
+    P: Union[np.ndarray, torch.Tensor],
+    R_init: Union[np.ndarray, torch.Tensor],
+):
+    """Get the optimal rotation matrix R
+
+    Args:
+        coordsA (Union[np.ndarray, torch.Tensor]): The first input matrix with shape n x d
+        coordsB (Union[np.ndarray, torch.Tensor]): The second input matrix with shape n x d
+        P (Union[np.ndarray, torch.Tensor]): The optimal transport matrix with shape n x n
+
+    Returns:
+        Union[np.ndarray, torch.Tensor]: The optimal rotation matrix R with shape d x d
+    """
+    nx = ot.backend.get_backend(coordsA, coordsB, P, R_init)
+    NA, NB, D = coordsA.shape[0], coordsB.shape[0], coordsA.shape[1]
+    used_gpu = False
+    if nx_torch(nx) and coordsA.is_cuda:
+        coordsA = coordsA.cpu()
+        coordsB = coordsB.cpu()
+        R_init = R_init.cpu()
+        used_gpu = True
+    if nx_torch(nx) and P.is_cuda:
+        P = P.cpu()
+    Sp = nx.einsum("ij->", P)
+    K_NA = nx.einsum("ij->i", P)
+    K_NB = nx.einsum("ij->j", P)
+    VnA = nx.zeros(coordsA.shape, type_as=coordsA[0, 0])
+    mu_XnA, mu_VnA, mu_XnB = (
+        _dot(nx)(K_NA, coordsA) / Sp,
+        _dot(nx)(K_NA, VnA) / Sp,
+        _dot(nx)(K_NB, coordsB) / Sp,
+    )
+    XnABar, VnABar, XnBBar = coordsA - mu_XnA, VnA - mu_VnA, coordsB - mu_XnB
+    A = -_dot(nx)(nx.einsum("ij,i->ij", VnABar, K_NA).T - _dot(nx)(P, XnBBar).T, XnABar)
+
+    svdU, svdS, svdV = _linalg(nx).svd(A)
+    C = _identity(nx, D, type_as=coordsA[0, 0])
+    C[-1, -1] = _linalg(nx).det(_dot(nx)(svdU, svdV))
+    R = _dot(nx)(_dot(nx)(svdU, C), svdV)
+    t = mu_XnB - mu_VnA - _dot(nx)(mu_XnA, R.T)
+    optimal_RnA = _dot(nx)(coordsA, R.T) + t
+    if used_gpu:
+        return optimal_RnA.cuda(), R.cuda(), t.cuda()
+    else:
+        return optimal_RnA, R, t
 
 
 #################################

@@ -53,7 +53,8 @@ state.update(
         # slices alignment
         "slices_alignment": False,
         "slices_key": "slices",
-        "slices_align_method": "paste",
+        "slices_align_device": "CPU",
+        "slices_align_method": "Paste",
         "slices_align_factor": 0.1,
         "slices_align_max_iter": 200,
         # reconstructed mesh model
@@ -73,6 +74,7 @@ state.update(
         "scalar": init_scalar,
         "scalarParameters": {**pdd, **cdd},
         "picking_group": None,
+        "overwrite": False,
         # picking controls
         "modes": [
             {"value": "hover", "icon": "mdi-magnify"},
