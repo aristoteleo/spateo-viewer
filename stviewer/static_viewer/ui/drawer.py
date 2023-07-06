@@ -230,6 +230,18 @@ def standard_mesh_card(default_values: Optional[dict] = None):
         dense=True,
     )
     with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VCheckbox(
+                v_model=("actor_morphology", False),
+                label="Model Morphological Metrics",
+                on_icon="mdi-pencil-ruler",
+                off_icon="mdi-ruler",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
         # Whether to show vectorfield model
         with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(

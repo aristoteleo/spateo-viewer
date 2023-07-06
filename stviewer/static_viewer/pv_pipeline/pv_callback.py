@@ -173,9 +173,11 @@ class SwitchModels:
 
         # State variable names
         self.SELECT_SAMPLES = "select_samples"
+        self.MATRICES_LIST = f"matrices_list"
 
         # Listen to state changes
         self._state.change(self.SELECT_SAMPLES)(self.on_dataset_change)
+        self._state.change(self.MATRICES_LIST)(self.on_dataset_change)
 
     @vuwrap
     def on_dataset_change(self, **kwargs):
@@ -220,7 +222,7 @@ class SwitchModels:
                 os.listdir(path=os.path.join(path, "h5ad"))[0],
             )
             print(adata)
-            self._state.matrices_list = ["X"] + [i for i in adata.layers.keys()]
+            self._state[self.MATRICES_LIST] = ["X"] + [i for i in adata.layers.keys()]
             self._state.actor_ids = actor_ids
             self._state.mm_actor_ids = mm_model_ids
             self._state.pipeline = actor_tree
@@ -257,6 +259,7 @@ class PVCB:
         self.LINEWIDTH = f"actor_line_width_value"
         self.ASSPHERES = f"actor_as_spheres_value"
         self.ASTUBES = f"actor_as_tubes_value"
+        self.MORPHOLOGY = f"actor_morphology"
         self.SHOW_VECTORPC = f"show_vectorpc"
         self.SHOW_VECTORMESH = f"show_vectormesh"
         self.SHOW_TRAJECTORY = f"show_trajectory"
@@ -277,6 +280,7 @@ class PVCB:
         self._state.change(self.LINEWIDTH)(self.on_line_width_change)
         self._state.change(self.ASSPHERES)(self.on_as_spheres_change)
         self._state.change(self.ASTUBES)(self.on_as_tubes_change)
+        self._state.change(self.MORPHOLOGY)(self.on_morphology_change)
         self._state.change(self.SHOW_VECTORPC)(self.on_show_vectorpc_change)
         self._state.change(self.SHOW_VECTORMESH)(self.on_show_vectormesh_change)
         self._state.change(self.SHOW_TRAJECTORY)(self.on_show_trajectory_change)
@@ -449,6 +453,40 @@ class PVCB:
         ]
         active_actor.prop.render_lines_as_tubes = self._state[self.ASTUBES]
         self._ctrl.view_update()
+
+    def on_morphology_change(self, **kwargs):
+        if self._state[self.MORPHOLOGY]:
+            active_model = [value for value in self._plotter.actors.values()][
+                int(self._state.active_id) - 1
+            ].mapper.dataset.copy()
+
+            # Length, width and height of model
+            model_bounds = np.asarray(active_model.bounds)
+            model_x = round(abs(model_bounds[1] - model_bounds[0]), 5)
+            model_y = round(abs(model_bounds[3] - model_bounds[2]), 5)
+            model_z = round(abs(model_bounds[5] - model_bounds[4]), 5)
+
+            # Surface area and Volume of model
+            model_sa = round(active_model.area, 5)
+            model_v = round(active_model.volume, 5)
+
+            if "model_morphology" in self._plotter.actors.keys():
+                self._plotter.remove_actor(self._plotter.actors["model_morphology"])
+            self._plotter.add_text(
+                text=f"Length (x) of model: {model_x}\n"
+                f"Width (y) of model: {model_y}\n"
+                f"Height (z) of model: {model_z}\n"
+                f"Surface area of model: {model_sa}\n"
+                f"Volume of model: {model_v}\n",
+                font="arial",
+                color="white",
+                font_size=15,
+                position="upper_left",
+                name="model_morphology",
+            )
+        else:
+            if "model_morphology" in self._plotter.actors.keys():
+                self._plotter.remove_actor(self._plotter.actors["model_morphology"])
 
     def on_show_vectorpc_change(self, **kwargs):
         if not (self._state.mm_actor_ids is None):
