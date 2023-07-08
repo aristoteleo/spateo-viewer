@@ -71,7 +71,7 @@ state.update(
         "mesh_output": None,
         "anndata_output": None,
         # Fields available
-        "scalar": init_scalar,
+        "scalar": "area",
         "scalarParameters": {**pdd, **cdd},
         "picking_group": None,
         "overwrite": False,

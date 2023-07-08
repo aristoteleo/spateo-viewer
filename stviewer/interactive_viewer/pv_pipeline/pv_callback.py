@@ -398,17 +398,60 @@ class Viewer:
                 plotter=self._plotter, anndata_path=anndata_path
             )
 
-        self._state.scalar = init_scalar
-        self._state.scalarParameters = {**pdd, **cdd}
-        self._state.mainModel = vtk_mesh(
-            main_model,
-            point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
-            cell_arrays=None if len(cdd) == 0 else [key for key in cdd.keys()],
-        )
-        self._state.activeModel = vtk_mesh(
-            main_model,
-            point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
-            cell_arrays=None if len(cdd) == 0 else [key for key in cdd.keys()],
+        self._state.update(
+            {
+                "mainModel": vtk_mesh(
+                    main_model,
+                    point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
+                    cell_arrays=None if len(cdd) == 0 else [key for key in cdd.keys()],
+                ),
+                # active model
+                "activeModel": vtk_mesh(
+                    main_model,
+                    point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
+                    cell_arrays=None if len(cdd) == 0 else [key for key in cdd.keys()],
+                ),
+                "activeModelVisible": True,
+                # slices alignment
+                "slices_alignment": False,
+                "slices_key": "slices",
+                "slices_align_device": "CPU",
+                "slices_align_method": "Paste",
+                "slices_align_factor": 0.1,
+                "slices_align_max_iter": 200,
+                # reconstructed mesh model
+                "meshModel": None,
+                "meshModelVisible": False,
+                "reconstruct_mesh": False,
+                "mc_factor": 1.0,
+                "mesh_voronoi": 20000,
+                "mesh_smooth_factor": 2000,
+                "mesh_scale_factor": 1.0,
+                "clip_pc_with_mesh": False,
+                # output path
+                "activeModel_output": None,
+                "mesh_output": None,
+                "anndata_output": None,
+                # Fields available
+                "scalar": init_scalar,
+                "scalarParameters": {**pdd, **cdd},
+                "picking_group": None,
+                "overwrite": False,
+                # picking controls
+                "modes": [
+                    {"value": "hover", "icon": "mdi-magnify"},
+                    {"value": "click", "icon": "mdi-cursor-default-click-outline"},
+                    {"value": "select", "icon": "mdi-select-drag"},
+                ],
+                # Picking feedback
+                "pickData": None,
+                "selectData": None,
+                "resetModel": False,
+                "tooltip": "",
+                # Render
+                "background_color": "[0, 0, 0]",
+                "pixel_ratio": 5,
+            }
         )
 
     ##########

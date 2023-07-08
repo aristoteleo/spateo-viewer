@@ -33,7 +33,7 @@ def _get_default_cmap():
 def standard_pc_card():
     _get_default_cmap()
     with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="12"):
+        with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 label="Scalars",
                 v_model=("pc_scalars_value", "None"),
@@ -42,6 +42,16 @@ def standard_pc_card():
                 dense=True,
                 outlined=True,
                 classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("pc_add_legend", True),
+                label="Add Legend",
+                on_icon="mdi-plus-thick",
+                off_icon="mdi-close-thick",
+                dense=True,
+                hide_details=True,
+                classes="pt-2",
             )
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
@@ -69,7 +79,7 @@ def standard_pc_card():
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 label="Color",
-                v_model=("pc_color_value", "gainsboro"),
+                v_model=("pc_color_value", "None"),
                 type="str",
                 hide_details=True,
                 dense=True,

@@ -218,7 +218,10 @@ class SwitchModels:
                 os.listdir(path=os.path.join(path, "h5ad"))[0],
             )
             self._state["init_dataset"] = False
+            self._state["active_id"] = 1
             self._state["actor_ids"] = actor_names
+            self._state["active_ui"] = actor_names[0]
+            self._state["active_model_type"] = actor_names[0].split("_")[0]
             self._state["pipeline"] = actor_tree
             self._state["matrices_list"] = ["X"] + [i for i in adata.layers.keys()]
             self._state["pc_scalars_value"] = "None"
@@ -264,6 +267,7 @@ class PVCB:
         self.pcCOLOR = f"pc_color_value"
         self.pcCOLORMAP = f"pc_colormap_value"
         self.pcPOINTSIZE = f"pc_point_size_value"
+        self.pcLEGEND = "pc_add_legend"
 
         self.meshOPACITY = f"mesh_opacity_value"
         self.meshAMBIENT = f"mesh_ambient_value"
@@ -276,6 +280,7 @@ class PVCB:
 
         # Listen to state changes
         self._state.change(self.pcSCALARS)(self.on_scalars_change)
+        self._state.change(self.pcSCALARS)(self.on_legend_change)
         self._state.change(self.pcMATRIX)(self.on_scalars_change)
         self._state.change(self.pcCOORDS)(self.on_coords_change)
         self._state.change(self.pcOPACITY)(self.on_opacity_change)
@@ -283,6 +288,7 @@ class PVCB:
         self._state.change(self.pcCOLOR)(self.on_color_change)
         self._state.change(self.pcCOLORMAP)(self.on_colormap_change)
         self._state.change(self.pcPOINTSIZE)(self.on_point_size_change)
+        self._state.change(self.pcLEGEND)(self.on_legend_change)
 
         self._state.change(self.meshOPACITY)(self.on_opacity_change)
         self._state.change(self.meshAMBIENT)(self.on_ambient_change)
@@ -329,7 +335,10 @@ class PVCB:
 
     @vuwrap
     def on_scalars_change(self, **kwargs):
-        active_name = self._state.actor_ids[int(self._state.active_id) - 1]
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
 
         if self._state[self.pcSCALARS] in ["none", "None", None]:
@@ -343,12 +352,15 @@ class PVCB:
                     array = np.asarray(array, dtype=str)
                 if np.issubdtype(array.dtype, np.number):
                     array = np.asarray(array, dtype=float)
+                    self._state.pc_scalars_raw = "None"
                 else:
                     od = {o: i for i, o in enumerate(np.unique(array))}
                     array = np.asarray(list(map(lambda x: od[x], array)), dtype=float)
+                    self._state.pc_scalars_raw = {o: i for i, o in od.items()}
                 array = array.reshape(-1, 1)
             elif self._state[self.pcSCALARS] in set(_adata.var_names.tolist()):
                 matrix_id = self._state[self.pcMATRIX]
+                self._state.pc_scalars_raw = "None"
                 if matrix_id == "X":
                     array = np.asarray(
                         _adata[:, self._state[self.pcSCALARS]].X.sum(axis=1),
@@ -363,6 +375,7 @@ class PVCB:
                     )
             else:
                 array = np.ones(shape=(len(_obs_index), 1), dtype=float)
+                self._state.pc_scalars_raw = "None"
 
             active_actor.mapper.dataset.point_data[self._state[self.pcSCALARS]] = array
             active_actor.mapper.scalar_range = (
@@ -373,43 +386,106 @@ class PVCB:
             active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
             active_actor.mapper.SetScalarModeToUsePointFieldData()
             active_actor.mapper.scalar_visibility = True
+            # active_actor.mapper.SetScalarVisibility(True)
+            # active_actor.mapper.SetUseLookupTableScalarRange(True)
+            active_actor.mapper.Update()
+        self._plotter.actors[active_name] = active_actor
+        self._ctrl.view_update()
+
+    @vuwrap
+    def on_legend_change(self, **kwargs):
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
+        active_actor = self._plotter.actors[active_name]
+
+        if self._state[self.pcLEGEND]:
+            if not self._state[self.pcSCALARS] in ["none", "None", None]:
+                if len(self._plotter.scalar_bars.keys()) != 0:
+                    self._plotter.remove_scalar_bar()
+                if self._plotter.legend:
+                    self._plotter.remove_legend()
+                if self._state.pc_scalars_raw == "None":
+                    self._plotter.add_scalar_bar(
+                        self._state[self.pcSCALARS],
+                        mapper=active_actor.mapper,
+                        bold=True,
+                        interactive=False,
+                        vertical=True,
+                        title_font_size=30,
+                        label_font_size=25,
+                        outline=False,
+                        fmt="%10.2f",
+                    )
+                    # print(self._plotter.scalar_bars)
+                else:
+                    import matplotlib as mpl
+
+                    legend_labels = [i for i in self._state.pc_scalars_raw.values()]
+
+                    lscmap = mpl.cm.get_cmap(self._state[self.pcCOLORMAP])
+                    legend_hex = [
+                        mpl.colors.to_hex(lscmap(i))
+                        for i in np.linspace(0, 1, len(legend_labels))
+                    ]
+
+                    legend_entries = [
+                        [label, hex] for label, hex in zip(legend_labels, legend_hex)
+                    ]
+                    self._plotter.add_legend(
+                        legend_entries,
+                        face="circle",
+                        bcolor=None,
+                        loc="lower right",
+                    )
+        else:
+            if len(self._plotter.scalar_bars.keys()) != 0:
+                self._plotter.remove_scalar_bar()
+            if self._plotter.legend:
+                self._plotter.remove_legend()
         self._ctrl.view_update()
 
     @vuwrap
     def on_coords_change(self, **kwargs):
-        if int(self._state.active_id) != 0:
-            active_name = self._state.actor_ids[int(self._state.active_id) - 1]
-            active_actor = self._plotter.actors[active_name]
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
+        active_actor = self._plotter.actors[active_name]
 
-            _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
-            _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
-            if str(self._state[self.pcCOORDS]).lower() == "spatial":
-                coords = np.asarray(_adata.obsm["spatial"])
-                coords = (
-                    np.c_[coords, np.ones(shape=(coords.shape[0], 1))]
-                    if coords.shape[1] == 2
-                    else coords
-                )
-                active_actor.mapper.dataset.points = np.asarray(coords)
-            elif str(self._state[self.pcCOORDS]).lower() == "umap":
-                coords = np.asarray(_adata.obsm["X_umap"])
-                coords = (
-                    np.c_[coords, np.ones(shape=(coords.shape[0], 1))]
-                    if coords.shape[1] == 2
-                    else coords
-                )
-                active_actor.mapper.dataset.points = np.asarray(coords)
-            else:
-                pass
+        _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
+        _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
+        if str(self._state[self.pcCOORDS]).lower() == "spatial":
+            coords = np.asarray(_adata.obsm["spatial"])
+            coords = (
+                np.c_[coords, np.ones(shape=(coords.shape[0], 1))]
+                if coords.shape[1] == 2
+                else coords
+            )
+            active_actor.mapper.dataset.points = np.asarray(coords)
+        elif str(self._state[self.pcCOORDS]).lower() == "umap":
+            coords = np.asarray(_adata.obsm["X_umap"])
+            coords = (
+                np.c_[coords, np.ones(shape=(coords.shape[0], 1))]
+                if coords.shape[1] == 2
+                else coords
+            )
+            active_actor.mapper.dataset.points = np.asarray(coords)
+        else:
+            pass
 
-            self._plotter.actors[active_name] = active_actor
-            self._plotter.view_isometric()
-            self._ctrl.view_push_camera(force=True)
-            self._ctrl.view_update()
+        self._plotter.actors[active_name] = active_actor
+        self._plotter.view_isometric()
+        self._ctrl.view_push_camera(force=True)
+        self._ctrl.view_update()
 
     @vuwrap
     def on_opacity_change(self, **kwargs):
-        active_name = self._state.actor_ids[int(self._state.active_id) - 1]
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
             active_actor.prop.opacity = float(self._state[self.pcOPACITY])
@@ -419,7 +495,10 @@ class PVCB:
 
     @vuwrap
     def on_ambient_change(self, **kwargs):
-        active_name = self._state.actor_ids[int(self._state.active_id) - 1]
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
             active_actor.prop.ambient = float(self._state[self.pcAMBIENT])
@@ -429,17 +508,24 @@ class PVCB:
 
     @vuwrap
     def on_color_change(self, **kwargs):
-        active_name = self._state.actor_ids[int(self._state.active_id) - 1]
-        active_actor = self._plotter.actors[active_name]
-        if str(active_name).startswith("PC"):
-            active_actor.prop.color = self._state[self.pcCOLOR]
-        else:
-            active_actor.prop.color = self._state[self.meshCOLOR]
-        self._ctrl.view_update()
+        if not self._state[self.pcCOLOR] in ["none", "None", None]:
+            _active_id = (
+                1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+            )
+            active_name = self._state.actor_ids[_active_id]
+            active_actor = self._plotter.actors[active_name]
+            if str(active_name).startswith("PC"):
+                active_actor.prop.color = self._state[self.pcCOLOR]
+            else:
+                active_actor.prop.color = self._state[self.meshCOLOR]
+            self._ctrl.view_update()
 
     @vuwrap
     def on_colormap_change(self, **kwargs):
-        active_name = self._state.actor_ids[int(self._state.active_id) - 1]
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
             active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
@@ -447,7 +533,10 @@ class PVCB:
 
     @vuwrap
     def on_style_change(self, **kwargs):
-        active_name = self._state.actor_ids[int(self._state.active_id) - 1]
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("Mesh"):
             active_actor.prop.style = self._state[self.meshSTYLE]
@@ -455,7 +544,10 @@ class PVCB:
 
     @vuwrap
     def on_point_size_change(self, **kwargs):
-        active_name = self._state.actor_ids[int(self._state.active_id) - 1]
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
             active_actor.prop.point_size = float(self._state[self.pcPOINTSIZE])
@@ -464,7 +556,10 @@ class PVCB:
     @vuwrap
     def on_morphology_change(self, **kwargs):
         if self._state[self.meshMORPHOLOGY]:
-            active_name = self._state.actor_ids[int(self._state.active_id) - 1]
+            _active_id = (
+                1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+            )
+            active_name = self._state.actor_ids[_active_id]
             active_model = self._plotter.actors[active_name].mapper.dataset
 
             # Length, width and height of model

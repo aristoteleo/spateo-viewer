@@ -40,6 +40,7 @@ plotter = create_plotter()
     plotter=plotter,
     path=local_dataset_manager.drosophila_E7_8h,
 )
+
 # Init parameters
 state.update(
     {
@@ -47,7 +48,7 @@ state.update(
         "anndata_path": anndata_path,
         "actor_ids": actor_names,
         "pipeline": actor_tree,
-        "active_id": 0,
+        "active_id": 1,
         "active_ui": actor_names[0],
         "active_model_type": str(state.active_ui).split("_")[0],
         "vis_ids": [
@@ -55,14 +56,16 @@ state.update(
         ],
         # pc model
         "matrices_list": anndata_metrices,
-        "pc_scalars_value": "None",
+        "pc_scalars_value": "anno_tissue",
+        "pc_scalars_raw": "None",
         "pc_matrix_value": "X",
         "pc_coords_value": "spatial",
         "pc_opacity_value": 1.0,
         "pc_ambient_value": 0.2,
-        "pc_color_value": "gainsboro",
-        "pc_colormap_value": "default_cmap",
+        "pc_color_value": "None",
+        "pc_colormap_value": "Set3_r",
         "pc_point_size_value": 8,
+        "pc_add_legend": False,
         # mesh model
         "mesh_opacity_value": 0.6,
         "mesh_ambient_value": 0.2,
