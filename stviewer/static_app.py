@@ -56,7 +56,7 @@ state.update(
         ],
         # pc model
         "matrices_list": anndata_metrices,
-        "pc_scalars_value": "anno_tissue",
+        "pc_scalars_value": "None",
         "pc_scalars_raw": {"None": "None"},
         "pc_matrix_value": "X",
         "pc_coords_value": "spatial",

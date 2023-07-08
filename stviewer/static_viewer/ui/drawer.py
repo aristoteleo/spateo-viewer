@@ -59,8 +59,8 @@ def standard_pc_card():
             vuetify.VCheckbox(
                 v_model=("pc_add_legend", True),
                 label="Add Legend",
-                on_icon="mdi-plus-thick",
-                off_icon="mdi-close-thick",
+                on_icon="mdi-view-grid-plus",
+                off_icon="mdi-view-grid",
                 dense=True,
                 hide_details=True,
                 classes="pt-1",

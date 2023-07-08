@@ -231,7 +231,7 @@ class SwitchModels:
             self._state["pc_opacity_value"] = 1.0
             self._state["pc_ambient_value"] = 0.2
             self._state["pc_color_value"] = "gainsboro"
-            self._state["pc_colormap_value"] = "default_cmap"
+            self._state["pc_colormap_value"] = "Set3_r"
             self._state["pc_point_size_value"] = 8
             self._state["pc_add_legend"] = False
             self._state["pc_picking_group"] = "None"
