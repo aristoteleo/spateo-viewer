@@ -34,10 +34,8 @@ plotter = create_plotter()
     anndata_path,
     anndata_metrices,
     actors,
-    actor_ids,
+    actor_names,
     actor_tree,
-    mm_actors,
-    mm_actor_ids,
 ) = init_actors(
     plotter=plotter,
     path=local_dataset_manager.drosophila_E7_8h,
@@ -46,17 +44,33 @@ plotter = create_plotter()
 state.update(
     {
         "init_dataset": True,
-        "sample_adata_path": anndata_path,
-        "actor_ids": actor_ids,
+        "anndata_path": anndata_path,
+        "actor_ids": actor_names,
         "pipeline": actor_tree,
         "active_id": 0,
-        "active_ui": actor_ids[0],
+        "active_ui": actor_names[0],
         "active_model_type": str(state.active_ui).split("_")[0],
-        "active_mm_id": None,
-        "matrices_list": anndata_metrices,
         "vis_ids": [
             i for i, actor in enumerate(plotter.actors.values()) if actor.visibility
         ],
+        # pc model
+        "matrices_list": anndata_metrices,
+        "pc_scalars_value": "None",
+        "pc_matrix_value": "X",
+        "pc_coords_value": "spatial",
+        "pc_opacity_value": 1.0,
+        "pc_ambient_value": 0.2,
+        "pc_color_value": "gainsboro",
+        "pc_colormap_value": "default_cmap",
+        "pc_point_size_value": 8,
+        # mesh model
+        "mesh_opacity_value": 0.6,
+        "mesh_ambient_value": 0.2,
+        "mesh_color_value": "gainsboro",
+        "mesh_style_value": "surface",
+        "mesh_morphology": False,
+        # morphogenesis
+        # output
         "screenshot_path": None,
         "animation_path": None,
         "animation_npoints": 50,

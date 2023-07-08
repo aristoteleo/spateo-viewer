@@ -76,34 +76,10 @@ def sample_dataset(
     else:
         mesh_models, mesh_model_ids = None, None
 
-    # Generate morphometric models
-    mm_models_path = os.path.join(path, "morphometric_models")
-    if os.path.exists(mm_models_path):
-        mm_model_folders = os.listdir(path=mm_models_path)
-        mm_model_folders.sort()
-
-        mm_models, mm_model_ids = [], []
-        for mm_model_folder in mm_model_folders:
-            sub_mm_models_path = os.path.join(mm_models_path, mm_model_folder)
-            sub_mm_model_files = os.listdir(path=sub_mm_models_path)
-            sub_mm_model_files.sort()
-            sub_mm_model_ids = [
-                f"{mm_model_folder}_{str(i).split('_')[1]}" for i in sub_mm_model_files
-            ]
-            sub_mm_models, sub_mm_model_ids = abstract_models(
-                path=sub_mm_models_path, model_ids=sub_mm_model_ids
-            )
-            mm_models.extend(sub_mm_models)
-            mm_model_ids.extend(sub_mm_model_ids)
-    else:
-        mm_models, mm_model_ids = None, None
-
     return (
         adata,
         pc_models,
         pc_model_ids,
         mesh_models,
         mesh_model_ids,
-        mm_models,
-        mm_model_ids,
     )

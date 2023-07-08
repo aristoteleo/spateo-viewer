@@ -30,28 +30,25 @@ def _get_default_cmap():
     return "default_cmap"
 
 
-def standard_pc_card(default_values: Optional[dict] = None):
+def standard_pc_card():
     _get_default_cmap()
-    _default_values = {
-        "layer": "X",
-        "scalars": "None",
-        "point_size": 8,
-        "color": "gainsboro",
-        "cmap": _get_default_cmap(),
-        "opacity": 1,
-        "ambient": 0.2,
-        "mm_color": "gainsboro",
-        "mm_cmap": _get_default_cmap(),
-    }
-    if not (default_values is None):
-        _default_values.update(default_values)
-
     with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="6"):
+        with vuetify.VCol(cols="12"):
             vuetify.VTextField(
                 label="Scalars",
-                v_model=("actor_scalars_value", _default_values["scalars"]),
+                v_model=("pc_scalars_value", "None"),
                 type="str",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
+            vuetify.VSelect(
+                label="Coords",
+                v_model=("pc_coords_value", "spatial"),
+                items=(["spatial", "umap"],),
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -60,7 +57,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
         with vuetify.VCol(cols="6"):
             vuetify.VSelect(
                 label="Matrices",
-                v_model=("actor_matrix_value", _default_values["layer"]),
+                v_model=("pc_matrix_value", "X"),
                 items=("matrices_list",),
                 hide_details=True,
                 dense=True,
@@ -72,7 +69,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 label="Color",
-                v_model=("actor_color_value", _default_values["color"]),
+                v_model=("pc_color_value", "gainsboro"),
                 type="str",
                 hide_details=True,
                 dense=True,
@@ -83,7 +80,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
         with vuetify.VCol(cols="6"):
             vuetify.VSelect(
                 label="Colormap",
-                v_model=("actor_colormap_value", _default_values["cmap"]),
+                v_model=("pc_colormap_value", "default_cmap"),
                 items=("colormaps", ["default_cmap"] + plt.colormaps()),
                 hide_details=True,
                 dense=True,
@@ -92,7 +89,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
             )
     # Opacity
     vuetify.VSlider(
-        v_model=("actor_opacity_value", _default_values["opacity"]),
+        v_model=("pc_opacity_value", 1.0),
         min=0,
         max=1,
         step=0.01,
@@ -103,7 +100,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
     )
     # Ambient
     vuetify.VSlider(
-        v_model=("actor_ambient_value", _default_values["ambient"]),
+        v_model=("pc_ambient_value", 0.2),
         min=0,
         max=1,
         step=0.01,
@@ -114,7 +111,7 @@ def standard_pc_card(default_values: Optional[dict] = None):
     )
     # Point size
     vuetify.VSlider(
-        v_model=("actor_point_size_value", _default_values["point_size"]),
+        v_model=("pc_point_size_value", 8),
         min=0,
         max=20,
         step=1,
@@ -123,84 +120,25 @@ def standard_pc_card(default_values: Optional[dict] = None):
         hide_details=True,
         dense=True,
     )
-    with vuetify.VRow(classes="pt-2", dense=True):
-        # Whether to show vectorfield model
-        with vuetify.VCol(cols="6"):
-            vuetify.VCheckbox(
-                v_model=("show_vectorpc", False),
-                on_icon="mdi-pyramid",
-                off_icon="mdi-pyramid-off",
-                dense=True,
-                hide_details=True,
-                label="VectorField",
-                classes="pt-1",
-            )
-        # Whether to show trajectory model
-        with vuetify.VCol(cols="6"):
-            vuetify.VCheckbox(
-                v_model=("show_trajectory", False),
-                on_icon="mdi-octahedron",
-                off_icon="mdi-octahedron-off",
-                dense=True,
-                hide_details=True,
-                label="Trajectory",
-                classes="pt-1",
-            )
-    with vuetify.VRow(classes="pt-2", dense=True):
-        # MM Color
-        with vuetify.VCol(cols="6"):
-            vuetify.VTextField(
-                label="MM Color",
-                v_model=("mm_actor_color_value", _default_values["mm_color"]),
-                type="str",
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
-        # MM Colormap
-        with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
-                label="MM Colormap",
-                v_model=("mm_actor_colormap_value", _default_values["mm_cmap"]),
-                items=("mm_colormaps", ["default_cmap"] + plt.colormaps()),
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
 
 
-def standard_mesh_card(default_values: Optional[dict] = None):
+def standard_mesh_card():
     _get_default_cmap()
-    _default_values = {
-        "style": "surface",
-        "color": "gainsboro",
-        "opacity": 0.5,
-        "ambient": 0.2,
-        "mm_color": "gainsboro",
-        "mm_cmap": None,
-    }
-    if not (default_values is None):
-        _default_values.update(default_values)
-
     with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="12"):
+        with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 label="Color",
-                v_model=("actor_color_value", _default_values["color"]),
+                v_model=("mesh_color_value", "gainsboro"),
                 type="str",
                 hide_details=True,
                 dense=True,
                 outlined=True,
                 classes="pt-1",
             )
-    with vuetify.VRow(classes="pt-2", dense=True):
-        # Style
-        with vuetify.VCol(cols="12"):
+        with vuetify.VCol(cols="6"):
             vuetify.VSelect(
                 label="Style",
-                v_model=("actor_style_value", _default_values["style"]),
+                v_model=("mesh_style_value", "surface"),
                 items=(f"styles", ["surface", "points", "wireframe"]),
                 hide_details=True,
                 dense=True,
@@ -209,7 +147,7 @@ def standard_mesh_card(default_values: Optional[dict] = None):
             )
     # Opacity
     vuetify.VSlider(
-        v_model=("actor_opacity_value", _default_values["opacity"]),
+        v_model=("mesh_opacity_value", 0.6),
         min=0,
         max=1,
         step=0.01,
@@ -220,7 +158,7 @@ def standard_mesh_card(default_values: Optional[dict] = None):
     )
     # Ambient
     vuetify.VSlider(
-        v_model=("actor_ambient_value", _default_values["ambient"]),
+        v_model=("mesh_ambient_value", 0.2),
         min=0,
         max=1,
         step=0.01,
@@ -229,119 +167,71 @@ def standard_mesh_card(default_values: Optional[dict] = None):
         hide_details=True,
         dense=True,
     )
-    with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="12"):
-            vuetify.VCheckbox(
-                v_model=("actor_morphology", False),
-                label="Model Morphological Metrics",
-                on_icon="mdi-pencil-ruler",
-                off_icon="mdi-ruler",
-                dense=True,
-                hide_details=True,
-                classes="pt-1",
-            )
-
-    with vuetify.VRow(classes="pt-2", dense=True):
-        # Whether to show vectorfield model
-        with vuetify.VCol(cols="6"):
-            vuetify.VCheckbox(
-                v_model=("show_vectormesh", False),
-                on_icon="mdi-pyramid",
-                off_icon="mdi-pyramid-off",
-                dense=True,
-                hide_details=True,
-                label="Vetorfield",
-                classes="pt-1",
-            )
-        # Whether to show trajectory model
-        with vuetify.VCol(cols="6"):
-            vuetify.VCheckbox(
-                v_model=("show_trajectory", False),
-                on_icon="mdi-octahedron",
-                off_icon="mdi-octahedron-off",
-                dense=True,
-                hide_details=True,
-                label="Trajectory",
-                classes="pt-1",
-            )
-    with vuetify.VRow(classes="pt-2", dense=True):
-        # MM Color
-        with vuetify.VCol(cols="6"):
-            vuetify.VTextField(
-                label="MM Color",
-                v_model=("mm_actor_color_value", _default_values["mm_color"]),
-                type="str",
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
-        # MM Colormap
-        with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
-                label="MM Colormap",
-                v_model=("mm_actor_colormap_value", _default_values["mm_cmap"]),
-                items=("mm_colormaps", ["default_cmap"] + plt.colormaps()),
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
+    vuetify.VCheckbox(
+        v_model=("mesh_morphology", False),
+        label="Model Morphological Metrics",
+        on_icon="mdi-pencil-ruler",
+        off_icon="mdi-ruler",
+        dense=True,
+        hide_details=True,
+        classes="mt-1",
+    )
 
 
-def standard_output_card(server, plotter):
-    vuetify.VCardTitle(
+def standard_output_card():
+    with vuetify.VCardTitle(
         "Screenshot Generation",
         classes="white--text text--darken-3",
         hide_details=True,
         dense=True,
-    )
-    with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="12"):
-            vuetify.VTextField(
-                v_model=("screenshot_path", None),
-                label="Screenshot Output (PNG or PDF)",
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
-    vuetify.VCardTitle(
+    ):
+        with vuetify.VRow(classes="pt-2", dense=True):
+            with vuetify.VCol(cols="12"):
+                vuetify.VTextField(
+                    v_model=("screenshot_path", None),
+                    label="Screenshot Output (PNG or PDF)",
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-1",
+                )
+
+    with vuetify.VCardTitle(
         "Animation Generation",
         classes="white--text text--darken-3",
         hide_details=True,
         dense=True,
-    )
-    with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="6"):
-            vuetify.VTextField(
-                v_model=("animation_npoints", 50),
-                label="Animation N Points",
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
-        with vuetify.VCol(cols="6"):
-            vuetify.VTextField(
-                v_model=("animation_framerate", 10),
-                label="Animation Framerate",
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
+    ):
+        with vuetify.VRow(classes="pt-2", dense=True):
+            with vuetify.VCol(cols="6"):
+                vuetify.VTextField(
+                    v_model=("animation_npoints", 50),
+                    label="Animation N Points",
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-1",
+                )
+            with vuetify.VCol(cols="6"):
+                vuetify.VTextField(
+                    v_model=("animation_framerate", 10),
+                    label="Animation Framerate",
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-1",
+                )
 
-    with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="12"):
-            vuetify.VTextField(
-                v_model=("animation_path", None),
-                label="Animation Output (MP4)",
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1",
-            )
+        with vuetify.VRow(classes="pt-2", dense=True):
+            with vuetify.VCol(cols="12"):
+                vuetify.VTextField(
+                    v_model=("animation_path", None),
+                    label="Animation Output (MP4)",
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-1",
+                )
 
 
 # -----------------------------------------------------------------------------
@@ -437,5 +327,4 @@ def ui_standard_drawer(
                 hide_details=True,
                 dense=True,
             )
-            with vuetify.VCardText(classes="py-2"):
-                standard_output_card(server=server, plotter=plotter)
+            standard_output_card()
