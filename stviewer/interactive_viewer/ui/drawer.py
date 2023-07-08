@@ -49,7 +49,7 @@ def widgets_card():
                     hide_details=True,
                     classes="pt-1",
                     # style="max-width: 150px",
-                    label="ColorMap",
+                    label="Colormap",
                 )
         with vuetify.VRow(classes="pt-2", dense=True):
             with vuetify.VCol(cols="6"):

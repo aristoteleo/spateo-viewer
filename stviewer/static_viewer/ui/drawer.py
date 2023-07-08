@@ -44,6 +44,18 @@ def standard_pc_card():
                 classes="pt-1",
             )
         with vuetify.VCol(cols="6"):
+            vuetify.VSelect(
+                v_model=("pc_picking_group", None),
+                items=("Object.keys(pc_scalars_raw)",),
+                show_size=True,
+                dense=True,
+                outlined=True,
+                hide_details=True,
+                classes="pt-1",
+                label="Picking Group",
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="4"):
             vuetify.VCheckbox(
                 v_model=("pc_add_legend", True),
                 label="Add Legend",
@@ -51,8 +63,29 @@ def standard_pc_card():
                 off_icon="mdi-close-thick",
                 dense=True,
                 hide_details=True,
-                classes="pt-2",
+                classes="pt-1",
             )
+        with vuetify.VCol(cols="4"):
+            vuetify.VCheckbox(
+                v_model=("pc_overwrite", False),
+                label="Add Group",
+                on_icon="mdi-plus-thick",
+                off_icon="mdi-close-thick",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="4"):
+            vuetify.VCheckbox(
+                v_model=("pc_reload", False),
+                label="Reload Model",
+                on_icon="mdi-restore",
+                off_icon="mdi-restore",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
             vuetify.VSelect(
@@ -260,6 +293,23 @@ def pipeline(server, plotter):
         state.active_ui = active_actor_id
         state.active_model_type = str(state.active_ui).split("_")[0]
         state.active_id = int(_id)
+
+        if state.active_ui.startswith("PC"):
+            state.pc_scalars_value = None
+            state.pc_matrix_value = "X"
+            state.pc_coords_value = "spatial"
+            state.pc_opacity_value = 1.0
+            state.pc_ambient_value = 0.2
+            state.pc_color_value = "None"
+            state.pc_colormap_value = "Set3_r"
+            state.pc_add_legend = False
+            state.pc_overwrite = False
+        else:
+            state.mesh_opacity_value = 0.6
+            state.mesh_ambient_value = 0.2
+            state.mesh_color_value = "gainsboro"
+            state.mesh_style_value = "surface"
+            state.mesh_morphology = False
         ctrl.view_update()
 
     # Visibility Change

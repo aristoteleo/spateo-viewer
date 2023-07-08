@@ -226,12 +226,18 @@ class SwitchModels:
             self._state["matrices_list"] = ["X"] + [i for i in adata.layers.keys()]
             self._state["pc_scalars_value"] = "None"
             self._state["pc_matrix_value"] = "X"
+            self._state["pc_scalars_raw"] = {"None": "None"}
             self._state["pc_coords_value"] = "spatial"
             self._state["pc_opacity_value"] = 1.0
             self._state["pc_ambient_value"] = 0.2
             self._state["pc_color_value"] = "gainsboro"
             self._state["pc_colormap_value"] = "default_cmap"
             self._state["pc_point_size_value"] = 8
+            self._state["pc_add_legend"] = False
+            self._state["pc_picking_group"] = "None"
+            self._state["pc_overwrite"] = False
+            self._state["pc_reload"] = False
+
             self._state["mesh_opacity_value"] = 0.6
             self._state["mesh_ambient_value"] = 0.2
             self._state["mesh_color_value"] = "gainsboro"
@@ -268,6 +274,9 @@ class PVCB:
         self.pcCOLORMAP = f"pc_colormap_value"
         self.pcPOINTSIZE = f"pc_point_size_value"
         self.pcLEGEND = "pc_add_legend"
+        self.pcPICKINGGROUP = f"pc_picking_group"
+        self.pcOVERWRITE = f"pc_overwrite"
+        self.pcRELOAD = f"pc_reload"
 
         self.meshOPACITY = f"mesh_opacity_value"
         self.meshAMBIENT = f"mesh_ambient_value"
@@ -289,6 +298,9 @@ class PVCB:
         self._state.change(self.pcCOLORMAP)(self.on_colormap_change)
         self._state.change(self.pcPOINTSIZE)(self.on_point_size_change)
         self._state.change(self.pcLEGEND)(self.on_legend_change)
+        self._state.change(self.pcPICKINGGROUP)(self.on_picking_pc_model)
+        self._state.change(self.pcOVERWRITE)(self.on_picking_pc_model)
+        self._state.change(self.pcRELOAD)(self.on_reload_main_model)
 
         self._state.change(self.meshOPACITY)(self.on_opacity_change)
         self._state.change(self.meshAMBIENT)(self.on_ambient_change)
@@ -347,20 +359,22 @@ class PVCB:
             _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
             _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
             if self._state[self.pcSCALARS] in set(_adata.obs_keys()):
+                change_array = True
                 array = _adata.obs[self._state[self.pcSCALARS]].values
                 if array.dtype == "category":
                     array = np.asarray(array, dtype=str)
                 if np.issubdtype(array.dtype, np.number):
                     array = np.asarray(array, dtype=float)
-                    self._state.pc_scalars_raw = "None"
+                    self._state.pc_scalars_raw = {"None": "None"}
                 else:
                     od = {o: i for i, o in enumerate(np.unique(array))}
                     array = np.asarray(list(map(lambda x: od[x], array)), dtype=float)
-                    self._state.pc_scalars_raw = {o: i for i, o in od.items()}
+                    self._state.pc_scalars_raw = od
                 array = array.reshape(-1, 1)
             elif self._state[self.pcSCALARS] in set(_adata.var_names.tolist()):
+                change_array = True
                 matrix_id = self._state[self.pcMATRIX]
-                self._state.pc_scalars_raw = "None"
+                self._state.pc_scalars_raw = {"None": "None"}
                 if matrix_id == "X":
                     array = np.asarray(
                         _adata[:, self._state[self.pcSCALARS]].X.sum(axis=1),
@@ -374,22 +388,26 @@ class PVCB:
                         dtype=float,
                     )
             else:
-                array = np.ones(shape=(len(_obs_index), 1), dtype=float)
-                self._state.pc_scalars_raw = "None"
+                change_array = False
 
-            active_actor.mapper.dataset.point_data[self._state[self.pcSCALARS]] = array
-            active_actor.mapper.scalar_range = (
-                active_actor.mapper.dataset.get_data_range(self._state[self.pcSCALARS])
-            )
+            if change_array is True:
+                active_actor.mapper.dataset.point_data[
+                    self._state[self.pcSCALARS]
+                ] = array
+                active_actor.mapper.scalar_range = (
+                    active_actor.mapper.dataset.get_data_range(
+                        self._state[self.pcSCALARS]
+                    )
+                )
 
-            active_actor.mapper.SelectColorArray(self._state[self.pcSCALARS])
-            active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
-            active_actor.mapper.SetScalarModeToUsePointFieldData()
-            active_actor.mapper.scalar_visibility = True
-            # active_actor.mapper.SetScalarVisibility(True)
-            # active_actor.mapper.SetUseLookupTableScalarRange(True)
-            active_actor.mapper.Update()
-        self._plotter.actors[active_name] = active_actor
+                active_actor.mapper.SelectColorArray(self._state[self.pcSCALARS])
+                active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
+                active_actor.mapper.SetScalarModeToUsePointFieldData()
+                active_actor.mapper.scalar_visibility = True
+                # active_actor.mapper.SetScalarVisibility(True)
+                # active_actor.mapper.SetUseLookupTableScalarRange(True)
+                active_actor.mapper.Update()
+                self._plotter.actors[active_name] = active_actor
         self._ctrl.view_update()
 
     @vuwrap
@@ -406,7 +424,7 @@ class PVCB:
                     self._plotter.remove_scalar_bar()
                 if self._plotter.legend:
                     self._plotter.remove_legend()
-                if self._state.pc_scalars_raw == "None":
+                if "None" in self._state.pc_scalars_raw.keys():
                     self._plotter.add_scalar_bar(
                         self._state[self.pcSCALARS],
                         mapper=active_actor.mapper,
@@ -422,7 +440,7 @@ class PVCB:
                 else:
                     import matplotlib as mpl
 
-                    legend_labels = [i for i in self._state.pc_scalars_raw.values()]
+                    legend_labels = [i for i in self._state.pc_scalars_raw.keys()]
 
                     lscmap = mpl.cm.get_cmap(self._state[self.pcCOLORMAP])
                     legend_hex = [
@@ -444,6 +462,65 @@ class PVCB:
                 self._plotter.remove_scalar_bar()
             if self._plotter.legend:
                 self._plotter.remove_legend()
+        self._ctrl.view_update()
+
+    @vuwrap
+    def on_picking_pc_model(self, **kwargs):
+        """Picking the part of active model based on the scalar"""
+        if not (self._state[self.pcPICKINGGROUP] in ["none", "None", None]):
+            _active_id = (
+                1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+            )
+            active_name = self._state.actor_ids[_active_id]
+            if "pc_raw_model" in self._plotter.actors.keys():
+                active_actor = self._plotter.actors["pc_raw_model"].copy()
+                basis_model = self._plotter.actors[active_name].mapper.dataset.copy()
+            else:
+                active_actor = self._plotter.actors[active_name]
+                self._plotter.actors["pc_raw_model"] = active_actor.copy()
+                basis_model = None
+
+            active_model = active_actor.mapper.dataset.copy()
+            if "None" in self._state.pc_scalars_raw.keys():
+                custom_picking_group = self._state[self.pcPICKINGGROUP]
+                added_active_model = active_model.extract_points(
+                    active_model.point_data[self._state[self.pcSCALARS]]
+                    == float(custom_picking_group)
+                )
+            else:
+                custom_picking_group = self._state.pc_scalars_raw[
+                    self._state[self.pcPICKINGGROUP]
+                ]
+                added_active_model = active_model.extract_points(
+                    active_model.point_data[self._state[self.pcSCALARS]]
+                    == float(custom_picking_group)
+                )
+            if self._state[self.pcOVERWRITE] is True:
+                active_model = (
+                    added_active_model
+                    if basis_model is None
+                    else basis_model.merge(added_active_model)
+                )
+            else:
+                active_model = added_active_model
+            self._plotter.actors[active_name].mapper.dataset = active_model
+            self._ctrl.view_update()
+
+    @vuwrap
+    def on_reload_main_model(self, **kwargs):
+        """Reload the main model to replace the artificially adjusted active model"""
+        # if self._state[self.pcRELOAD]:
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
+        if "pc_raw_model" in self._plotter.actors.keys():
+            self._plotter.actors[active_name].mapper.dataset = self._plotter.actors[
+                "pc_raw_model"
+            ].mapper.dataset.copy()
+            self._plotter.remove_actor(self._plotter.actors["pc_raw_model"])
+            self._state[self.pcPICKINGGROUP] = "None"
+            self._state[self.pcOVERWRITE] = False
         self._ctrl.view_update()
 
     @vuwrap

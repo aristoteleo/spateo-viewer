@@ -57,7 +57,7 @@ state.update(
         # pc model
         "matrices_list": anndata_metrices,
         "pc_scalars_value": "anno_tissue",
-        "pc_scalars_raw": "None",
+        "pc_scalars_raw": {"None": "None"},
         "pc_matrix_value": "X",
         "pc_coords_value": "spatial",
         "pc_opacity_value": 1.0,
@@ -66,6 +66,9 @@ state.update(
         "pc_colormap_value": "Set3_r",
         "pc_point_size_value": 8,
         "pc_add_legend": False,
+        "pc_picking_group": "None",
+        "pc_overwrite": False,
+        "pc_reload": False,
         # mesh model
         "mesh_opacity_value": 0.6,
         "mesh_ambient_value": 0.2,
