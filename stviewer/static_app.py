@@ -76,6 +76,15 @@ state.update(
         "mesh_style_value": "surface",
         "mesh_morphology": False,
         # morphogenesis
+        "cal_morphogenesis": False,
+        "morpho_target_anndata_path": None,
+        "morpho_mapping_factor": 0.001,
+        "morphofield_factor": 3000,
+        "morphopath_t_end": 10000,
+        "morphopath_downsampling": 500,
+        "morpho_animation_path": None,
+        "morphofield_visibile": False,
+        "morphopath_visibile": True,
         # output
         "screenshot_path": None,
         "animation_path": None,

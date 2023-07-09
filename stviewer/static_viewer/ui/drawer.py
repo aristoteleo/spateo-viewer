@@ -221,6 +221,105 @@ def standard_mesh_card():
     )
 
 
+def standard_morphogenesis_card():
+    _get_default_cmap()
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VCheckbox(
+                v_model=("cal_morphogenesis", False),
+                label="Calculate the Morphogenesis",
+                on_icon="mdi-transit-detour",
+                off_icon="mdi-transit-skip",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VFileInput(
+                v_model=("morpho_target_anndata_path", None),
+                label="Target Anndata of Morphogenesis",
+                dense=True,
+                outlined=True,
+                hide_details=True,
+                classes="pt-1",
+                accept=".h5ad",
+                __properties=["accept"],
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                v_model=("morpho_mapping_factor", 0.001),
+                label="Mapping Factor",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                v_model=("morphofield_factor", 3000),
+                label="Morphofield Factor",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                v_model=("morphopath_t_end", 10000),
+                label="Morphopath Time Period",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                v_model=("morphopath_downsampling", 500),
+                label="Morphopath Downsampling",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("morphofield_visibile", False),
+                label="Morphofield Visibility",
+                on_icon="mdi-pyramid",
+                off_icon="mdi-pyramid-off",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("morphopath_visibile", False),
+                label="Morphopath Visibility",
+                on_icon="mdi-octahedron",
+                off_icon="mdi-octahedron-off",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="12"):
+            vuetify.VTextField(
+                v_model=("morpho_animation_path", None),
+                label="Morphogenesis Animation (MP4)",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+
+
 def standard_output_card():
     with vuetify.VCardTitle(
         "Screenshot Generation",
@@ -304,6 +403,16 @@ def pipeline(server, plotter):
             state.pc_colormap_value = "Set3_r"
             state.pc_add_legend = False
             state.pc_overwrite = False
+
+            state.cal_morphogenesis = False
+            state.morpho_target_anndata_path = None
+            state.morpho_mapping_factor = 0.001
+            state.morphofield_factor = 3000
+            state.morphopath_t_end = 10000
+            state.morphopath_downsampling = 500
+            state.morpho_animation_path = None
+            state.morphofield_visibile = False
+            state.morphopath_visibile = True
         else:
             state.mesh_opacity_value = 0.6
             state.mesh_ambient_value = 0.2
@@ -374,6 +483,16 @@ def ui_standard_drawer(
                 classes="py-2", v_show=f"active_model_type === 'PC'"
             ):
                 standard_pc_card()
+
+            with vuetify.VCardTitle(
+                "Morphogenesis",
+                classes="white--text text--darken-3",
+                hide_details=True,
+                dense=True,
+                v_show=f"active_model_type === 'PC'",
+            ):
+                standard_morphogenesis_card()
+
             with vuetify.VCardText(
                 classes="py-2", v_show=f"active_model_type === 'Mesh'"
             ):

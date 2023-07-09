@@ -1,10 +1,12 @@
-import io
 import os
+import tempfile
 from pathlib import Path
 
+import anndata as ad
 import matplotlib.colors as mc
 import numpy as np
 import pyvista as pv
+from trame.app.file_upload import ClientFile
 
 from stviewer.assets import local_dataset_manager
 from stviewer.assets.dataset_acquisition import abstract_anndata, sample_dataset
@@ -265,6 +267,7 @@ class PVCB:
         self._plotter.suppress_rendering = suppress_rendering
 
         # State variable names
+        # pc model
         self.pcSCALARS = f"pc_scalars_value"
         self.pcMATRIX = f"pc_matrix_value"
         self.pcCOORDS = f"pc_coords_value"
@@ -277,13 +280,24 @@ class PVCB:
         self.pcPICKINGGROUP = f"pc_picking_group"
         self.pcOVERWRITE = f"pc_overwrite"
         self.pcRELOAD = f"pc_reload"
-
+        # mesh model
         self.meshOPACITY = f"mesh_opacity_value"
         self.meshAMBIENT = f"mesh_ambient_value"
         self.meshCOLOR = f"mesh_color_value"
         self.meshSTYLE = f"mesh_style_value"
         self.meshMORPHOLOGY = f"mesh_morphology"
+        # morphogenesis
+        self.morphoCALCULATION = f"cal_morphogenesis"
+        self.morphoANNDATA = f"morpho_target_anndata_path"
+        self.morphoMAPPING = f"morpho_mapping_factor"
+        self.morphoFIELD = f"morphofield_factor"
+        self.morphoTEND = f"morphopath_t_end"
+        self.morphoSAMPLING = f"morphopath_downsampling"
+        self.morphoANIMATION = f"morpho_animation_path"
+        self.morphoSHOWFIELD = f"morphofield_visibile"
+        self.morphoSHOWTRAJECTORY = f"morphopath_visibile"
 
+        # output
         self.PLOTTER_SCREENSHOT = "screenshot_path"
         self.PLOTTER_ANIMATION = "animation_path"
 
@@ -307,6 +321,10 @@ class PVCB:
         self._state.change(self.meshCOLOR)(self.on_color_change)
         self._state.change(self.meshSTYLE)(self.on_style_change)
         self._state.change(self.meshMORPHOLOGY)(self.on_morphology_change)
+
+        self._state.change(self.morphoCALCULATION)(self.on_cal_morphogenesis)
+        self._state.change(self.morphoSHOWFIELD)(self.on_show_morpho_model_change)
+        self._state.change(self.morphoSHOWTRAJECTORY)(self.on_show_morpho_model_change)
 
         self._state.change(self.PLOTTER_SCREENSHOT)(self.on_plotter_screenshot)
         self._state.change(self.PLOTTER_ANIMATION)(self.on_plotter_animation)
@@ -387,6 +405,12 @@ class PVCB:
                         .sum(axis=1),
                         dtype=float,
                     )
+            elif (
+                self._state[self.pcSCALARS]
+                in active_actor.mapper.dataset.point_data.keys()
+            ):
+                array = active_actor.mapper.dataset[self._state[self.pcSCALARS]].copy()
+                change_array = True
             else:
                 change_array = False
 
@@ -404,10 +428,61 @@ class PVCB:
                 active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
                 active_actor.mapper.SetScalarModeToUsePointFieldData()
                 active_actor.mapper.scalar_visibility = True
-                # active_actor.mapper.SetScalarVisibility(True)
-                # active_actor.mapper.SetUseLookupTableScalarRange(True)
                 active_actor.mapper.Update()
                 self._plotter.actors[active_name] = active_actor
+
+                if "MorphoField" in self._plotter.actors.keys():
+                    import pandas as pd
+
+                    morphofield_actor = self._plotter.actors["MorphoField"]
+                    morphofield_index = morphofield_actor.mapper.dataset.point_data[
+                        "obs_index"
+                    ]
+
+                    morphofield_array = np.asarray(
+                        pd.DataFrame(array, index=_obs_index).loc[morphofield_index, 0]
+                    )
+                    morphofield_actor.mapper.dataset.point_data[
+                        self._state[self.pcSCALARS]
+                    ] = morphofield_array
+                    morphofield_actor.mapper.SelectColorArray(
+                        self._state[self.pcSCALARS]
+                    )
+                    morphofield_actor.mapper.lookup_table.cmap = self._state[
+                        self.pcCOLORMAP
+                    ]
+                    morphofield_actor.mapper.SetScalarModeToUsePointFieldData()
+                    morphofield_actor.mapper.scalar_visibility = self._state[
+                        self.morphoSHOWFIELD
+                    ]
+                    morphofield_actor.mapper.Update()
+                    self._plotter.actors["MorphoField"] = morphofield_actor
+                if "MorphoPath" in self._plotter.actors.keys():
+                    import pandas as pd
+
+                    morphopath_actor = self._plotter.actors["MorphoPath"]
+                    morphopath_index = morphopath_actor.mapper.dataset.point_data[
+                        "obs_index"
+                    ]
+
+                    morphopath_array = np.asarray(
+                        pd.DataFrame(array, index=_obs_index).loc[morphopath_index, 0]
+                    )
+                    morphopath_actor.mapper.dataset.point_data[
+                        self._state[self.pcSCALARS]
+                    ] = morphopath_array
+                    morphopath_actor.mapper.SelectColorArray(
+                        self._state[self.pcSCALARS]
+                    )
+                    morphopath_actor.mapper.lookup_table.cmap = self._state[
+                        self.pcCOLORMAP
+                    ]
+                    morphopath_actor.mapper.SetScalarModeToUsePointFieldData()
+                    morphopath_actor.mapper.scalar_visibility = self._state[
+                        self.morphoSHOWFIELD
+                    ]
+                    morphopath_actor.mapper.Update()
+                    self._plotter.actors["MorphoPath"] = morphopath_actor
         self._ctrl.view_update()
 
     @vuwrap
@@ -666,4 +741,80 @@ class PVCB:
         else:
             if "model_morphology" in self._plotter.actors.keys():
                 self._plotter.remove_actor(self._plotter.actors["model_morphology"])
+        self._ctrl.view_update()
+
+    @vuwrap
+    def on_cal_morphogenesis(self, **kwargs):
+        if self._state[self.morphoCALCULATION]:
+            if "MorphoField" in self._plotter.actors.keys():
+                self._plotter.remove_actor(self._plotter.actors["MorphoField"])
+            if "MorphoPath" in self._plotter.actors.keys():
+                self._plotter.remove_actor(self._plotter.actors["MorphoPath"])
+
+            # target anndata
+            if self._state[self.morphoANNDATA] is None:
+                return
+            if type(self._state[self.morphoANNDATA]) is dict:
+                file = ClientFile(self._state[self.morphoANNDATA])
+                if file.content:
+                    with tempfile.NamedTemporaryFile(suffix=file.name) as path:
+                        with open(path.name, "wb") as f:
+                            f.write(file.content)
+                        target_adata = abstract_anndata(path=path.name)
+            else:
+                target_adata = abstract_anndata(path=self._state[self.morphoANNDATA])
+
+            # source anndata
+            _active_id = (
+                1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+            )
+            active_name = self._state.actor_ids[_active_id]
+            active_model = self._plotter.actors[active_name].mapper.dataset.copy()
+            active_model_index = active_model.point_data["obs_index"]
+            source_adata = abstract_anndata(path=self._state.anndata_path)[
+                active_model_index, :
+            ]
+
+            # Calculate morphogenesis
+            from .pv_morphogenesis import morphogenesis
+
+            pc_model, pc_vectors, trajectory_model = morphogenesis(
+                source_adata=source_adata,
+                target_adata=target_adata,
+                source_pc_model=active_model,
+                mapping_factor=float(self._state[self.morphoMAPPING]),
+                morphofield_factor=int(self._state[self.morphoFIELD]),
+                morphopath_t_end=int(self._state[self.morphoTEND]),
+                morphopath_sampling=int(self._state[self.morphoSAMPLING]),
+            )
+
+            self._plotter.actors[active_name].mapper.dataset = pc_model
+            morphofield_actor = self._plotter.add_mesh(
+                pc_vectors,
+                scalars="V_Z",
+                style="surface",
+                show_scalar_bar=False,
+                name="MorphoField",
+            )
+            morphofield_actor.SetVisibility(self._state[self.morphoSHOWFIELD])
+            morphopath_actor = self._plotter.add_mesh(
+                trajectory_model,
+                scalars="V_Z",
+                style="wireframe",
+                line_width=3,
+                show_scalar_bar=False,
+                name="MorphoPath",
+            )
+            morphopath_actor.SetVisibility(self._state[self.morphoSHOWTRAJECTORY])
+        self._ctrl.view_update()
+
+    @vuwrap
+    def on_show_morpho_model_change(self, **kwargs):
+        """Toggle morpho model visibility."""
+        if "MorphoField" in self._plotter.actors.keys():
+            morphofield_actor = self._plotter.actors["MorphoField"]
+            morphofield_actor.SetVisibility(self._state[self.morphoSHOWFIELD])
+        if "MorphoPath" in self._plotter.actors.keys():
+            morphopath_actor = self._plotter.actors["MorphoPath"]
+            morphopath_actor.SetVisibility(self._state[self.morphoSHOWTRAJECTORY])
         self._ctrl.view_update()
