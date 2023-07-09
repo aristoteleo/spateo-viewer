@@ -78,6 +78,7 @@ state.update(
         # morphogenesis
         "cal_morphogenesis": False,
         "morpho_target_anndata_path": None,
+        "morpho_uploaded_target_anndata_path": None,
         "morpho_mapping_factor": 0.001,
         "morphofield_factor": 3000,
         "morphopath_t_end": 10000,

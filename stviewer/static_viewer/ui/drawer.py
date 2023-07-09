@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from pyvista import BasePlotter
 from trame.widgets import trame, vuetify
 
+from stviewer.assets import local_dataset_manager
 from stviewer.static_viewer.pv_pipeline import PVCB
 
 # -----------------------------------------------------------------------------
@@ -238,14 +239,33 @@ def standard_morphogenesis_card():
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="12"):
             vuetify.VFileInput(
+                v_model=("morpho_uploaded_target_anndata_path", None),
+                label="Uploaded Target Anndata",
+                dense=True,
+                classes="pt-1",
+                accept=".h5ad",
+                hide_details=True,
+                show_size=True,
+                small_chips=True,
+                truncate_length=0,
+                outlined=True,
+                __properties=["accept"],
+            )
+    with vuetify.VRow(classes="pt-2", dense=True):
+        avaliable_samples = [
+            "drosophila_E8_9h_CNS_anndata",
+            "drosophila_E8_9h_midgut_anndata",
+            "uploaded_target_anndata",
+        ]
+        with vuetify.VCol(cols="12"):
+            vuetify.VSelect(
+                label="Target Anndata",
                 v_model=("morpho_target_anndata_path", None),
-                label="Target Anndata of Morphogenesis",
+                items=(avaliable_samples,),
                 dense=True,
                 outlined=True,
                 hide_details=True,
                 classes="pt-1",
-                accept=".h5ad",
-                __properties=["accept"],
             )
 
     with vuetify.VRow(classes="pt-2", dense=True):
@@ -406,6 +426,7 @@ def pipeline(server, plotter):
 
             state.cal_morphogenesis = False
             state.morpho_target_anndata_path = None
+            state.morpho_uploaded_target_anndata_path = None
             state.morpho_mapping_factor = 0.001
             state.morphofield_factor = 3000
             state.morphopath_t_end = 10000

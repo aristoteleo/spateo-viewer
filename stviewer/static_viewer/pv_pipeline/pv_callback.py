@@ -290,6 +290,7 @@ class PVCB:
         # morphogenesis
         self.morphoCALCULATION = f"cal_morphogenesis"
         self.morphoANNDATA = f"morpho_target_anndata_path"
+        self.morphoUPLOADEDANNDATA = f"morpho_uploaded_target_anndata_path"
         self.morphoMAPPING = f"morpho_mapping_factor"
         self.morphoFIELD = f"morphofield_factor"
         self.morphoTEND = f"morphopath_t_end"
@@ -710,15 +711,21 @@ class PVCB:
             # target anndata
             if self._state[self.morphoANNDATA] is None:
                 return
-            if type(self._state[self.morphoANNDATA]) is dict:
-                file = ClientFile(self._state[self.morphoANNDATA])
-                if file.content:
-                    with tempfile.NamedTemporaryFile(suffix=file.name) as path:
-                        with open(path.name, "wb") as f:
-                            f.write(file.content)
-                        target_adata = abstract_anndata(path=path.name)
+            if self._state[self.morphoANNDATA] == "uploaded_target_anndata":
+                if type(self._state[self.morphoUPLOADEDANNDATA]) is dict:
+                    file = ClientFile(self._state[self.morphoUPLOADEDANNDATA])
+                    if file.content:
+                        with tempfile.NamedTemporaryFile(suffix=file.name) as path:
+                            with open(path.name, "wb") as f:
+                                f.write(file.content)
+                            target_adata = abstract_anndata(path=path.name)
+                else:
+                    target_adata = abstract_anndata(
+                        path=self._state[self.morphoUPLOADEDANNDATA]
+                    )
             else:
-                target_adata = abstract_anndata(path=self._state[self.morphoANNDATA])
+                path = local_dataset_manager[self._state[self.morphoANNDATA]]
+                target_adata = abstract_anndata(path=path)
 
             # source anndata
             _active_id = (
@@ -765,7 +772,7 @@ class PVCB:
             )
             morphopath_actor.mapper.scalar_visibility = True
             morphopath_actor.SetVisibility(self._state[self.morphoSHOWTRAJECTORY])
-        self._ctrl.view_update()
+            self._ctrl.view_update()
 
     @vuwrap
     def on_show_morpho_model_change(self, **kwargs):
