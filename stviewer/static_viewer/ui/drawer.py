@@ -271,7 +271,7 @@ def standard_morphogenesis_card():
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 v_model=("morphopath_t_end", 10000),
-                label="Morphopath Time Period",
+                label="Morphopath Length",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -280,7 +280,7 @@ def standard_morphogenesis_card():
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 v_model=("morphopath_downsampling", 500),
-                label="Morphopath Downsampling",
+                label="Morphopath Sampling",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -311,8 +311,8 @@ def standard_morphogenesis_card():
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="12"):
             vuetify.VTextField(
-                v_model=("morpho_animation_path", None),
-                label="Morphogenesis Animation (MP4)",
+                v_model=("morphopath_animation_path", None),
+                label="Morphogenesis Animation Output (MP4)",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -410,7 +410,8 @@ def pipeline(server, plotter):
             state.morphofield_factor = 3000
             state.morphopath_t_end = 10000
             state.morphopath_downsampling = 500
-            state.morpho_animation_path = None
+            state.morphopath_animation_path = None
+            state.morphopath_predicted_models = None
             state.morphofield_visibile = False
             state.morphopath_visibile = True
         else:
@@ -473,30 +474,48 @@ def ui_standard_drawer(
         vuetify.VDivider(classes="mb-2")
         with vuetify.VCard():
             vuetify.VCardTitle(
-                "{{ active_ui }}",
+                "Active Model",
                 classes="white lighten-1 py-1 grey--text text--darken-3",
                 style="user-select: none; cursor: pointer",
                 hide_details=True,
                 dense=True,
             )
+            # PC
             with vuetify.VCardText(
                 classes="py-2", v_show=f"active_model_type === 'PC'"
             ):
-                standard_pc_card()
-
-            with vuetify.VCardTitle(
-                "Morphogenesis",
-                classes="white--text text--darken-3",
-                hide_details=True,
-                dense=True,
-                v_show=f"active_model_type === 'PC'",
-            ):
-                standard_morphogenesis_card()
-
+                with vuetify.VTabs(v_model=("pc_active_tab", 0), left=True):
+                    vuetify.VTab(
+                        f"Point Cloud",
+                        style="width: 50%;",
+                    )
+                    vuetify.VTab(
+                        f"Morphogenesis",
+                        style="width: 50%;",
+                    )
+                with vuetify.VTabsItems(
+                    value=("pc_active_tab",),
+                    style="width: 100%; height: 100%;",
+                ):
+                    with vuetify.VTabItem(value=(0,)):
+                        standard_pc_card()
+                    with vuetify.VTabItem(value=(1,)):
+                        standard_morphogenesis_card()
+            # Mesh
             with vuetify.VCardText(
                 classes="py-2", v_show=f"active_model_type === 'Mesh'"
             ):
-                standard_mesh_card()
+                with vuetify.VTabs(v_model=("mesh_active_tab", 0), left=True):
+                    vuetify.VTab(
+                        f"Mesh Model",
+                        style="width: 100%;",
+                    )
+                with vuetify.VTabsItems(
+                    value=("mesh_active_tab",),
+                    style="width: 100%; height: 100%;",
+                ):
+                    with vuetify.VTabItem(value=(0,)):
+                        standard_mesh_card()
 
         with vuetify.VCard():
             vuetify.VCardTitle(

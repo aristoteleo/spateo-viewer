@@ -82,9 +82,10 @@ state.update(
         "morphofield_factor": 3000,
         "morphopath_t_end": 10000,
         "morphopath_downsampling": 500,
-        "morpho_animation_path": None,
         "morphofield_visibile": False,
         "morphopath_visibile": True,
+        "morphopath_predicted_models": None,
+        "morphopath_animation_path": None,
         # output
         "screenshot_path": None,
         "animation_path": None,
@@ -112,7 +113,7 @@ ctrl.open_directory = open_directory
 
 # GUI
 ui_standard_layout = ui_layout(
-    server=static_server, template_name="main", drawer_width=300
+    server=static_server, template_name="main", drawer_width=350
 )
 with ui_standard_layout as layout:
     # Let the server know the browser pixel ratio and the default theme

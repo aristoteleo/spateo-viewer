@@ -2,7 +2,9 @@ from typing import Optional
 
 import numpy as np
 from anndata import AnnData
+from dynamo.vectorfield import SvcVectorField
 from pyvista import PolyData
+from scipy.integrate import odeint
 
 
 def morphogenesis(
@@ -142,13 +144,24 @@ def morphogenesis(
         source_adata[np.asarray(trajectory_index)].obs["torsion"]
     )
 
-    """cells_models, _ = st.tdr.construct_genesis(
-        adata=source_adata,
-        fate_key="fate_morpho",
-        n_steps=100,
-        logspace=True,
-        t_end=morphopath_t_end,
-        label=[source_adata.uns["VecFld_morpho"]["V"][:, 2]] * 100,
-    )
-    """
-    return source_pc_model, pc_vectors, trajectory_model
+    # cell stages of animation
+    t_ind = np.asarray(list(source_adata.uns["fate_morpho"]["t"].keys()), dtype=int)
+    t_sort_ind = np.argsort(t_ind)
+    t = np.asarray(list(source_adata.uns["fate_morpho"]["t"].values()))[t_sort_ind]
+    flats = np.unique([int(item) for sublist in t for item in sublist])
+    flats = np.hstack((0, flats))
+    flats = np.sort(flats) if 3000 is None else np.sort(flats[flats <= 3000])
+    time_vec = np.logspace(0, np.log10(max(flats) + 1), 100) - 1
+    vf = SvcVectorField()
+    vf.from_adata(source_adata, basis="morpho")
+    f = lambda x, _: vf.func(x)
+    displace = lambda x, dt: odeint(f, x, [0, dt])
+
+    init_states = source_adata.uns["fate_morpho"]["init_states"]
+    pts = [i.tolist() for i in init_states]
+    stages_X = [source_adata.obs.index.tolist()]
+    for i in range(100):
+        pts = [displace(cur_pts, time_vec[i])[1].tolist() for cur_pts in pts]
+        stages_X.append(pts)
+
+    return source_pc_model, pc_vectors, trajectory_model, stages_X

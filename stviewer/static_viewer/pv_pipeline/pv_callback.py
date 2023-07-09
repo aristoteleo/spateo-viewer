@@ -5,6 +5,7 @@ from pathlib import Path
 import anndata as ad
 import matplotlib.colors as mc
 import numpy as np
+import pandas as pd
 import pyvista as pv
 from trame.app.file_upload import ClientFile
 
@@ -293,7 +294,8 @@ class PVCB:
         self.morphoFIELD = f"morphofield_factor"
         self.morphoTEND = f"morphopath_t_end"
         self.morphoSAMPLING = f"morphopath_downsampling"
-        self.morphoANIMATION = f"morpho_animation_path"
+        self.morphoANIMATION = f"morphopath_animation_path"
+        self.morphoPREDICTEDMODELS = f"morphopath_predicted_models"
         self.morphoSHOWFIELD = f"morphofield_visibile"
         self.morphoSHOWTRAJECTORY = f"morphopath_visibile"
 
@@ -325,43 +327,10 @@ class PVCB:
         self._state.change(self.morphoCALCULATION)(self.on_cal_morphogenesis)
         self._state.change(self.morphoSHOWFIELD)(self.on_show_morpho_model_change)
         self._state.change(self.morphoSHOWTRAJECTORY)(self.on_show_morpho_model_change)
+        self._state.change(self.morphoANIMATION)(self.on_morphogenesis_animation)
 
         self._state.change(self.PLOTTER_SCREENSHOT)(self.on_plotter_screenshot)
         self._state.change(self.PLOTTER_ANIMATION)(self.on_plotter_animation)
-
-    @vuwrap
-    def on_plotter_screenshot(self, **kwargs):
-        """Take screenshot."""
-        if not (self._state[self.PLOTTER_SCREENSHOT] in ["none", "None", None]):
-            _filename = f"stv_image/{self._state[self.PLOTTER_SCREENSHOT]}"
-            Path("stv_image").mkdir(parents=True, exist_ok=True)
-            if str(_filename).endswith("png"):
-                self._plotter.screenshot(filename=_filename)
-            elif str(_filename).endswith("pdf"):
-                self._plotter.save_graphic(
-                    filename=_filename,
-                    title="PyVista Export",
-                    raster=True,
-                    painter=True,
-                )
-
-    @vuwrap
-    def on_plotter_animation(self, **kwargs):
-        """Take animation."""
-        if not (self._state[self.PLOTTER_ANIMATION] in ["none", "None", None]):
-            _filename = f"stv_image/{self._state[self.PLOTTER_ANIMATION]}"
-            Path("stv_image").mkdir(parents=True, exist_ok=True)
-            if str(_filename).endswith("mp4"):
-                path = self._plotter.generate_orbital_path(
-                    factor=2.0,
-                    shift=0,
-                    viewup=None,
-                    n_points=int(self._state.animation_npoints),
-                )
-                self._plotter.open_movie(
-                    _filename, framerate=int(self._state.animation_framerate), quality=5
-                )
-                self._plotter.orbit_on_path(path, write_frames=True, step=0.1)
 
     @vuwrap
     def on_scalars_change(self, **kwargs):
@@ -373,6 +342,9 @@ class PVCB:
 
         if self._state[self.pcSCALARS] in ["none", "None", None]:
             active_actor.mapper.scalar_visibility = False
+            for morpho_key in ["MorphoField", "MorphoPath"]:
+                if morpho_key in self._plotter.actors.keys():
+                    self._plotter.actors[morpho_key].mapper.scalar_visibility = False
         else:
             _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
             _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
@@ -431,58 +403,32 @@ class PVCB:
                 active_actor.mapper.Update()
                 self._plotter.actors[active_name] = active_actor
 
-                if "MorphoField" in self._plotter.actors.keys():
-                    import pandas as pd
+                for morpho_key in ["MorphoField", "MorphoPath"]:
+                    if morpho_key in self._plotter.actors.keys():
+                        morpho_actor = self._plotter.actors[morpho_key]
+                        morpho_index = morpho_actor.mapper.dataset.point_data[
+                            "obs_index"
+                        ]
 
-                    morphofield_actor = self._plotter.actors["MorphoField"]
-                    morphofield_index = morphofield_actor.mapper.dataset.point_data[
-                        "obs_index"
-                    ]
-
-                    morphofield_array = np.asarray(
-                        pd.DataFrame(array, index=_obs_index).loc[morphofield_index, 0]
-                    )
-                    morphofield_actor.mapper.dataset.point_data[
-                        self._state[self.pcSCALARS]
-                    ] = morphofield_array
-                    morphofield_actor.mapper.SelectColorArray(
-                        self._state[self.pcSCALARS]
-                    )
-                    morphofield_actor.mapper.lookup_table.cmap = self._state[
-                        self.pcCOLORMAP
-                    ]
-                    morphofield_actor.mapper.SetScalarModeToUsePointFieldData()
-                    morphofield_actor.mapper.scalar_visibility = self._state[
-                        self.morphoSHOWFIELD
-                    ]
-                    morphofield_actor.mapper.Update()
-                    self._plotter.actors["MorphoField"] = morphofield_actor
-                if "MorphoPath" in self._plotter.actors.keys():
-                    import pandas as pd
-
-                    morphopath_actor = self._plotter.actors["MorphoPath"]
-                    morphopath_index = morphopath_actor.mapper.dataset.point_data[
-                        "obs_index"
-                    ]
-
-                    morphopath_array = np.asarray(
-                        pd.DataFrame(array, index=_obs_index).loc[morphopath_index, 0]
-                    )
-                    morphopath_actor.mapper.dataset.point_data[
-                        self._state[self.pcSCALARS]
-                    ] = morphopath_array
-                    morphopath_actor.mapper.SelectColorArray(
-                        self._state[self.pcSCALARS]
-                    )
-                    morphopath_actor.mapper.lookup_table.cmap = self._state[
-                        self.pcCOLORMAP
-                    ]
-                    morphopath_actor.mapper.SetScalarModeToUsePointFieldData()
-                    morphopath_actor.mapper.scalar_visibility = self._state[
-                        self.morphoSHOWFIELD
-                    ]
-                    morphopath_actor.mapper.Update()
-                    self._plotter.actors["MorphoPath"] = morphopath_actor
+                        morpho_array = np.asarray(
+                            pd.DataFrame(array, index=_obs_index).loc[morpho_index, 0]
+                        )
+                        morpho_actor.mapper.dataset.point_data[
+                            self._state[self.pcSCALARS]
+                        ] = morpho_array
+                        morpho_actor.mapper.scalar_range = (
+                            active_actor.mapper.scalar_range
+                        )
+                        morpho_actor.mapper.SelectColorArray(
+                            self._state[self.pcSCALARS]
+                        )
+                        morpho_actor.mapper.lookup_table.cmap = self._state[
+                            self.pcCOLORMAP
+                        ]
+                        morpho_actor.mapper.SetScalarModeToUsePointFieldData()
+                        morpho_actor.mapper.scalar_visibility = True
+                        morpho_actor.mapper.Update()
+                        self._plotter.actors[morpho_key] = morpho_actor
         self._ctrl.view_update()
 
     @vuwrap
@@ -668,6 +614,11 @@ class PVCB:
             active_actor = self._plotter.actors[active_name]
             if str(active_name).startswith("PC"):
                 active_actor.prop.color = self._state[self.pcCOLOR]
+                for morpho_key in ["MorphoField", "MorphoPath"]:
+                    if morpho_key in self._plotter.actors.keys():
+                        self._plotter.actors[morpho_key].prop.color = self._state[
+                            self.pcCOLOR
+                        ]
             else:
                 active_actor.prop.color = self._state[self.meshCOLOR]
             self._ctrl.view_update()
@@ -681,6 +632,11 @@ class PVCB:
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
             active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
+        for morpho_key in ["MorphoField", "MorphoPath"]:
+            if morpho_key in self._plotter.actors.keys():
+                self._plotter.actors[morpho_key].mapper.lookup_table.cmap = self._state[
+                    self.pcCOLORMAP
+                ]
         self._ctrl.view_update()
 
     @vuwrap
@@ -778,7 +734,7 @@ class PVCB:
             # Calculate morphogenesis
             from .pv_morphogenesis import morphogenesis
 
-            pc_model, pc_vectors, trajectory_model = morphogenesis(
+            pc_model, pc_vectors, trajectory_model, stages_X = morphogenesis(
                 source_adata=source_adata,
                 target_adata=target_adata,
                 source_pc_model=active_model,
@@ -789,6 +745,7 @@ class PVCB:
             )
 
             self._plotter.actors[active_name].mapper.dataset = pc_model
+            self._state[self.morphoPREDICTEDMODELS] = stages_X
             morphofield_actor = self._plotter.add_mesh(
                 pc_vectors,
                 scalars="V_Z",
@@ -796,6 +753,7 @@ class PVCB:
                 show_scalar_bar=False,
                 name="MorphoField",
             )
+            morphofield_actor.mapper.scalar_visibility = True
             morphofield_actor.SetVisibility(self._state[self.morphoSHOWFIELD])
             morphopath_actor = self._plotter.add_mesh(
                 trajectory_model,
@@ -805,6 +763,7 @@ class PVCB:
                 show_scalar_bar=False,
                 name="MorphoPath",
             )
+            morphopath_actor.mapper.scalar_visibility = True
             morphopath_actor.SetVisibility(self._state[self.morphoSHOWTRAJECTORY])
         self._ctrl.view_update()
 
@@ -818,3 +777,135 @@ class PVCB:
             morphopath_actor = self._plotter.actors["MorphoPath"]
             morphopath_actor.SetVisibility(self._state[self.morphoSHOWTRAJECTORY])
         self._ctrl.view_update()
+
+    @vuwrap
+    def on_morphogenesis_animation(self, **kwargs):
+        """Take morphogenesis animation."""
+        if not (self._state[self.morphoANIMATION] in ["none", "None", None]):
+            _filename = f"stv_image/{self._state[self.morphoANIMATION]}"
+            Path("stv_image").mkdir(parents=True, exist_ok=True)
+            if str(_filename).endswith("mp4"):
+                if self._state[self.morphoPREDICTEDMODELS] is not None:
+                    _active_id = (
+                        1
+                        if int(self._state.active_id) == 0
+                        else int(self._state.active_id) - 1
+                    )
+                    active_name = self._state.actor_ids[_active_id]
+                    active_model = self._plotter.actors[
+                        active_name
+                    ].mapper.dataset.copy()
+                    active_model_index = np.asarray(
+                        active_model.point_data["obs_index"]
+                    )
+
+                    cells_index = np.asarray(self._state[self.morphoPREDICTEDMODELS][0])
+                    cells_points = self._state[self.morphoPREDICTEDMODELS][1:]
+                    if cells_index.shape == active_model_index.shape:
+                        array = active_model.point_data[self._state[self.pcSCALARS]]
+                        array = np.asarray(
+                            pd.DataFrame(array, index=active_model_index).loc[
+                                cells_index, 0
+                            ]
+                        )
+
+                        cells_models = []
+                        for pts in cells_points:
+                            model = pv.PolyData(pts)
+                            model.point_data[self._state[self.pcSCALARS]] = array
+                            cells_models.append(model)
+
+                        # Check models.
+                        blocks = pv.MultiBlock(cells_models)
+                        blocks_name = blocks.keys()
+
+                        # Create another plotting object to save pyvista/vtk model.
+                        pl = pv.Plotter(
+                            window_size=(1024, 1024),
+                            off_screen=True,
+                            lighting="light_kit",
+                        )
+                        pl.background_color = "black"
+
+                        if (
+                            self._state[self.morphoSHOWFIELD] is True
+                            and "MorphoField" in self._plotter.actors.keys()
+                        ):
+                            morphofield_model = self._plotter.actors[
+                                "MorphoField"
+                            ].mapper.dataset.copy()
+                            pl.add_mesh(
+                                morphofield_model,
+                                scalars=self._state[self.pcSCALARS],
+                                style="surface",
+                                ambient=0.2,
+                                opacity=1.0,
+                                cmap=self._state[self.pcCOLORMAP],
+                            )
+                        if (
+                            self._state[self.morphoSHOWTRAJECTORY] is True
+                            and "MorphoPath" in self._plotter.actors.keys()
+                        ):
+                            morphopath_model = self._plotter.actors[
+                                "MorphoPath"
+                            ].mapper.dataset.copy()
+                            pl.add_mesh(
+                                morphopath_model,
+                                scalars=self._state[self.pcSCALARS],
+                                style="wireframe",
+                                line_width=3,
+                                ambient=0.2,
+                                opacity=1.0,
+                                cmap=self._state[self.pcCOLORMAP],
+                            )
+
+                        start_block = blocks[blocks_name[0]].copy()
+                        pl.add_mesh(
+                            start_block,
+                            scalars=self._state[self.pcSCALARS],
+                            style="points",
+                            point_size=5,
+                            render_points_as_spheres=True,
+                            ambient=0.2,
+                            opacity=1.0,
+                            cmap=self._state[self.pcCOLORMAP],
+                        )
+                        pl.open_movie(_filename, framerate=12, quality=5)
+                        for block_name in blocks_name[1:]:
+                            start_block.overwrite(blocks[block_name])
+                            pl.write_frame()
+                        pl.close()
+
+    @vuwrap
+    def on_plotter_screenshot(self, **kwargs):
+        """Take screenshot."""
+        if not (self._state[self.PLOTTER_SCREENSHOT] in ["none", "None", None]):
+            _filename = f"stv_image/{self._state[self.PLOTTER_SCREENSHOT]}"
+            Path("stv_image").mkdir(parents=True, exist_ok=True)
+            if str(_filename).endswith("png"):
+                self._plotter.screenshot(filename=_filename)
+            elif str(_filename).endswith("pdf"):
+                self._plotter.save_graphic(
+                    filename=_filename,
+                    title="PyVista Export",
+                    raster=True,
+                    painter=True,
+                )
+
+    @vuwrap
+    def on_plotter_animation(self, **kwargs):
+        """Take animation."""
+        if not (self._state[self.PLOTTER_ANIMATION] in ["none", "None", None]):
+            _filename = f"stv_image/{self._state[self.PLOTTER_ANIMATION]}"
+            Path("stv_image").mkdir(parents=True, exist_ok=True)
+            if str(_filename).endswith("mp4"):
+                path = self._plotter.generate_orbital_path(
+                    factor=2.0,
+                    shift=0,
+                    viewup=None,
+                    n_points=int(self._state.animation_npoints),
+                )
+                self._plotter.open_movie(
+                    _filename, framerate=int(self._state.animation_framerate), quality=5
+                )
+                self._plotter.orbit_on_path(path, write_frames=True, step=0.1)
