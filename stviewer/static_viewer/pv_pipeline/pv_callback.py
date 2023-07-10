@@ -833,7 +833,7 @@ class PVCB:
                             lighting="light_kit",
                         )
                         pl.background_color = "black"
-
+                        pl.camera_position = self._plotter.camera_position
                         if (
                             self._state[self.morphoSHOWFIELD] is True
                             and "MorphoField" in self._plotter.actors.keys()
