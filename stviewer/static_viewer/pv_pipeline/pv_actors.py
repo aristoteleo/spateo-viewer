@@ -75,7 +75,7 @@ def generate_actors_tree(
     if not (pc_actors is None):
         pc_actors, pc_actor_names, pc_tree = standard_tree(actors=pc_actors, base_id=0)
     else:
-        pc_actors, pc_actor_names, pc_tree = None, None, None
+        pc_actors, pc_actor_names, pc_tree = [], [], []
 
     if not (mesh_actors is None):
         mesh_actors, mesh_actor_names, mesh_tree = standard_tree(
@@ -83,7 +83,7 @@ def generate_actors_tree(
             base_id=0 if pc_actors is None else len(pc_actors),
         )
     else:
-        mesh_actors, mesh_actor_names, mesh_tree = None, None, None
+        mesh_actors, mesh_actor_names, mesh_tree = [], [], []
 
     actors = pc_actors + mesh_actors
     actor_names = pc_actor_names + mesh_actor_names

@@ -246,6 +246,7 @@ class SwitchModels:
             self._state["mesh_color_value"] = "gainsboro"
             self._state["mesh_style_value"] = "surface"
             self._state["mesh_morphology"] = False
+            self._ctrl.view_reset_camera(force=True)
             self._ctrl.view_update()
 
 
@@ -346,6 +347,7 @@ class PVCB:
             for morpho_key in ["MorphoField", "MorphoPath"]:
                 if morpho_key in self._plotter.actors.keys():
                     self._plotter.actors[morpho_key].mapper.scalar_visibility = False
+            self._ctrl.view_update()
         else:
             _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
             _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
@@ -385,7 +387,7 @@ class PVCB:
                 array = active_actor.mapper.dataset[self._state[self.pcSCALARS]].copy()
                 change_array = True
             else:
-                change_array = False
+                return
 
             if change_array is True:
                 active_actor.mapper.dataset.point_data[
@@ -403,6 +405,7 @@ class PVCB:
                 active_actor.mapper.scalar_visibility = True
                 active_actor.mapper.Update()
                 self._plotter.actors[active_name] = active_actor
+                self.on_legend_change()
 
                 for morpho_key in ["MorphoField", "MorphoPath"]:
                     if morpho_key in self._plotter.actors.keys():
@@ -430,7 +433,7 @@ class PVCB:
                         morpho_actor.mapper.scalar_visibility = True
                         morpho_actor.mapper.Update()
                         self._plotter.actors[morpho_key] = morpho_actor
-        self._ctrl.view_update()
+                self._ctrl.view_update()
 
     @vuwrap
     def on_legend_change(self, **kwargs):
@@ -633,6 +636,7 @@ class PVCB:
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
             active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
+            self.on_legend_change()
         for morpho_key in ["MorphoField", "MorphoPath"]:
             if morpho_key in self._plotter.actors.keys():
                 self._plotter.actors[morpho_key].mapper.lookup_table.cmap = self._state[
