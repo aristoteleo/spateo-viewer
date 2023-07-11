@@ -795,7 +795,7 @@ class PVCB:
         if not (self._state[self.morphoANIMATION] in ["none", "None", None]):
             _filename = f"stv_image/{self._state[self.morphoANIMATION]}"
             Path("stv_image").mkdir(parents=True, exist_ok=True)
-            if str(_filename).endswith("mp4"):
+            if str(_filename).endswith(".mp4"):
                 if self._state[self.morphoPREDICTEDMODELS] is not None:
                     _active_id = (
                         1
@@ -893,9 +893,9 @@ class PVCB:
         if not (self._state[self.PLOTTER_SCREENSHOT] in ["none", "None", None]):
             _filename = f"stv_image/{self._state[self.PLOTTER_SCREENSHOT]}"
             Path("stv_image").mkdir(parents=True, exist_ok=True)
-            if str(_filename).endswith("png"):
+            if str(_filename).endswith(".png"):
                 self._plotter.screenshot(filename=_filename)
-            elif str(_filename).endswith("pdf"):
+            elif str(_filename).endswith(".pdf"):
                 self._plotter.save_graphic(
                     filename=_filename,
                     title="PyVista Export",
@@ -909,14 +909,17 @@ class PVCB:
         if not (self._state[self.PLOTTER_ANIMATION] in ["none", "None", None]):
             _filename = f"stv_image/{self._state[self.PLOTTER_ANIMATION]}"
             Path("stv_image").mkdir(parents=True, exist_ok=True)
-            if str(_filename).endswith("mp4"):
+            if str(_filename).endswith(".mp4"):
+                viewup = self._plotter.camera_position[2]
                 path = self._plotter.generate_orbital_path(
                     factor=2.0,
                     shift=0,
-                    viewup=None,
+                    viewup=viewup,
                     n_points=int(self._state.animation_npoints),
                 )
                 self._plotter.open_movie(
                     _filename, framerate=int(self._state.animation_framerate), quality=5
                 )
-                self._plotter.orbit_on_path(path, write_frames=True, step=0.1)
+                self._plotter.orbit_on_path(
+                    path, write_frames=True, viewup=viewup, step=0.1
+                )

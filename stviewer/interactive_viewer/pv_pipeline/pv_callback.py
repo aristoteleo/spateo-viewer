@@ -323,8 +323,21 @@ class Viewer:
             from .pv_tdr import construct_surface
 
             active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+            if active_model.n_points > 100000:
+                np.random.seed(19491001)
+                sampling = np.random.choice(
+                    np.asarray(active_model.point_data["obs_index"]),
+                    size=100000,
+                    replace=False,
+                )
+                pc_model = active_model.extract_points(
+                    np.isin(np.asarray(active_model.point_data["obs_index"]), sampling)
+                )
+            else:
+                pc_model = active_model
+
             reconstructed_mesh_model = construct_surface(
-                active_model,
+                pc_model,
                 mc_scale_factor=float(self._state.mc_factor),
                 nclus=int(self._state.mesh_voronoi),
                 smooth=int(self._state.mesh_smooth_factor),
@@ -453,6 +466,7 @@ class Viewer:
                 "pixel_ratio": 5,
             }
         )
+        self._server.js_call(ref="render", method="resetCamera")
 
     ##########
     # OUTPUT #
@@ -462,7 +476,7 @@ class Viewer:
     def on_download_active_model(self, **kwargs):
         """Download the active model."""
         if not (self._state[self.OUTPUT_PATH_AM] in ["none", "None", None]):
-            if str(self._state[self.OUTPUT_PATH_AM]).endswith("vtk"):
+            if str(self._state[self.OUTPUT_PATH_AM]).endswith(".vtk"):
                 Path("stv_model").mkdir(parents=True, exist_ok=True)
                 active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
                 active_model.save(
@@ -475,7 +489,7 @@ class Viewer:
     def on_download_mesh_model(self, **kwargs):
         """Download the reconstructed mesh model."""
         if not (self._state[self.OUTPUT_PATH_MESH] in ["none", "None", None]):
-            if str(self._state[self.OUTPUT_PATH_MESH]).endswith("vtk"):
+            if str(self._state[self.OUTPUT_PATH_MESH]).endswith(".vtk"):
                 if not (self._state.meshModel is None):
                     Path("stv_model").mkdir(parents=True, exist_ok=True)
                     reconstructed_mesh_model = self._plotter.actors[
@@ -491,7 +505,7 @@ class Viewer:
     def on_download_anndata(self, **kwargs):
         """Download the anndata object of active model"""
         if not (self._state[self.OUTPUT_PATH_ADATA] in ["none", "None", None]):
-            if str(self._state[self.OUTPUT_PATH_ADATA]).endswith("h5ad"):
+            if str(self._state[self.OUTPUT_PATH_ADATA]).endswith(".h5ad"):
                 Path("stv_model").mkdir(parents=True, exist_ok=True)
 
                 if self._state[self.UPLOAD_ANNDATA] is None:
