@@ -11,7 +11,7 @@ visualization of [**Spateo**](https://github.com/aristoteleo/spateo-release) dow
 Spateo-viewer includes two major applications, **interactive-viewer** and **static-viewer**, which are respectively 
 dedicated to the 3D reconstruction of spatial transcriptomics and the visualization of spatial transcriptomics analysis results.
 
-Please view the [**Slides**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/Introduction_to_trame.pdf) to learn more about Spateo-viewer.
+Please view the [**Slides**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/spateo-viewer.pdf) to learn more about Spateo-viewer.
 
 ## Highlights
 
