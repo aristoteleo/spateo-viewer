@@ -24,7 +24,7 @@ You can clone the [**Spateo-Viewer**](https://github.com/aristoteleo/spateo-view
 import spateo as st
 
 # Load the anndata object
-adata = st.read_h5ad("E7_8h_cellbin_v3.h5ad")
+adata = st.read_h5ad("E7_8h_cellbin.h5ad")
 
 # Make sure adata.obsm contains 'spatial' to save the coordinates
 adata.obsm['spatial'] = adata.obsm['3d_align_spatial']
@@ -32,7 +32,8 @@ adata.obsm['spatial'] = adata.obsm['3d_align_spatial']
 # Interactive-viewer will read all info contained in anndata.obs, so please make sure the info you need has been saved in anndata.obs
 
 # Save the anndata object
- adata.write_h5ad("E7_8h_cellbin_v3_new.h5ad", compression="gzip")
+ adata.write_h5ad("E7_8h_cellbin.h5ad", compression="gzip")
+
 ```
 
 You can refer to the data structure we include by default in the [**dataset**](https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/dataset/drosophila_E7_8h/pc_models/0_Embryo_E7_8h_aligned_pc_model.vtk).
