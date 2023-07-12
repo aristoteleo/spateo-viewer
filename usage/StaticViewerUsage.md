@@ -6,6 +6,10 @@ Welcome to static-viewer!
 static-viewer is a web application for visualizing various models created from spatial transcriptomics data in 3D space, 
 including point cloud models, mesh models, trajectory models, vector field models, etc.
 
+<p align="center">
+  <img src="https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/image/static_viewer.png" />
+</p>
+
 ## How to use
 
 ### Installation
@@ -15,7 +19,7 @@ You can clone the [**Spateo-Viewer**](https://github.com/aristoteleo/spateo-view
     cd spateo-viewer
     pip install -r requirements.txt
 
-### Running
+### Running (Users could change the port)
 
     python stv_static_app.py --port 1234
 
@@ -30,7 +34,7 @@ You can clone the [**Spateo-Viewer**](https://github.com/aristoteleo/spateo-view
     │   └── 1_CNS_E7_8h_aligned_mesh_model.vtk      # (Optional) The filename start with an ordinal and end with "_mesh_model.vtk"
     └── pc_models                                   # (Optional) The folder includes point cloud models (.vtk files)
         ├── 0_Embryo_E7_8h_aligned_pc_model.vtk     # (Optional) The filename start with an ordinal and end with "_pc_model.vtk"
-        └── 1_CNS_E7_8h_aligned_pc_model.vtk        # (Optional) The filename start with an ordinal and end with "_pc_model.vtk"
+        └── 1_CNS_E7_8h_aligned_pc_model.vtk        # (Optional) The filename start with an ordinal and end with "_pc_model.vtk"
 ```
 
 You can refer to the folder structure of the data we include by default in the [**dataset**](https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/dataset).

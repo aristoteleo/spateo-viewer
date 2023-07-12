@@ -3,7 +3,11 @@
 
 Welcome to interactive-viewer!
 
-interactive-viewer is a web application for interactively clipping 3D models created from spatial transcriptomics data in 3D space.
+interactive-viewer is a web application for interactively 3D reconstruction of spatial transcriptomics in 3D space.
+
+<p align="center">
+  <img src="https://github.com/aristoteleo/spateo-viewer/blob/main/stviewer/assets/image/interactive_viewer.png" />
+</p>
 
 ## How to use
 
@@ -14,7 +18,7 @@ You can clone the [**Spateo-Viewer**](https://github.com/aristoteleo/spateo-view
     cd spateo-viewer
     pip install -r requirements.txt
 
-### Running
+### Running (Users could change the port)
 
     python stv_interactive_app.py --port 1234
 
