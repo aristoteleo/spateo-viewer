@@ -341,99 +341,107 @@ class PVCB:
         )
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
-
-        if self._state[self.pcSCALARS] in ["none", "None", None]:
-            active_actor.mapper.scalar_visibility = False
-            for morpho_key in ["MorphoField", "MorphoPath"]:
-                if morpho_key in self._plotter.actors.keys():
-                    self._plotter.actors[morpho_key].mapper.scalar_visibility = False
-            self._ctrl.view_update()
-        else:
-            _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
-            _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
-            if self._state[self.pcSCALARS] in set(_adata.obs_keys()):
-                change_array = True
-                array = _adata.obs[self._state[self.pcSCALARS]].values
-                if array.dtype == "category":
-                    array = np.asarray(array, dtype=str)
-                if np.issubdtype(array.dtype, np.number):
-                    array = np.asarray(array, dtype=float)
-                    self._state.pc_scalars_raw = {"None": "None"}
-                else:
-                    od = {o: i for i, o in enumerate(np.unique(array))}
-                    array = np.asarray(list(map(lambda x: od[x], array)), dtype=float)
-                    self._state.pc_scalars_raw = od
-                array = array.reshape(-1, 1)
-            elif self._state[self.pcSCALARS] in set(_adata.var_names.tolist()):
-                change_array = True
-                matrix_id = self._state[self.pcMATRIX]
-                self._state.pc_scalars_raw = {"None": "None"}
-                if matrix_id == "X":
-                    array = np.asarray(
-                        _adata[:, self._state[self.pcSCALARS]].X.sum(axis=1),
-                        dtype=float,
-                    )
-                else:
-                    array = np.asarray(
-                        _adata[:, self._state[self.pcSCALARS]]
-                        .layers[matrix_id]
-                        .sum(axis=1),
-                        dtype=float,
-                    )
-            elif (
-                self._state[self.pcSCALARS]
-                in active_actor.mapper.dataset.point_data.keys()
-            ):
-                array = active_actor.mapper.dataset[self._state[self.pcSCALARS]].copy()
-                change_array = True
-            else:
-                return
-
-            if change_array is True:
-                active_actor.mapper.dataset.point_data[
-                    self._state[self.pcSCALARS]
-                ] = array
-                active_actor.mapper.scalar_range = (
-                    active_actor.mapper.dataset.get_data_range(
-                        self._state[self.pcSCALARS]
-                    )
-                )
-
-                active_actor.mapper.SelectColorArray(self._state[self.pcSCALARS])
-                active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
-                active_actor.mapper.SetScalarModeToUsePointFieldData()
-                active_actor.mapper.scalar_visibility = True
-                active_actor.mapper.Update()
-                self._plotter.actors[active_name] = active_actor
-                self.on_legend_change()
-
+        if str(active_name).startswith("PC"):
+            if self._state[self.pcSCALARS] in ["none", "None", None]:
+                active_actor.mapper.scalar_visibility = False
                 for morpho_key in ["MorphoField", "MorphoPath"]:
                     if morpho_key in self._plotter.actors.keys():
-                        morpho_actor = self._plotter.actors[morpho_key]
-                        morpho_index = morpho_actor.mapper.dataset.point_data[
-                            "obs_index"
-                        ]
-
-                        morpho_array = np.asarray(
-                            pd.DataFrame(array, index=_obs_index).loc[morpho_index, 0]
-                        )
-                        morpho_actor.mapper.dataset.point_data[
-                            self._state[self.pcSCALARS]
-                        ] = morpho_array
-                        morpho_actor.mapper.scalar_range = (
-                            active_actor.mapper.scalar_range
-                        )
-                        morpho_actor.mapper.SelectColorArray(
-                            self._state[self.pcSCALARS]
-                        )
-                        morpho_actor.mapper.lookup_table.cmap = self._state[
-                            self.pcCOLORMAP
-                        ]
-                        morpho_actor.mapper.SetScalarModeToUsePointFieldData()
-                        morpho_actor.mapper.scalar_visibility = True
-                        morpho_actor.mapper.Update()
-                        self._plotter.actors[morpho_key] = morpho_actor
+                        self._plotter.actors[
+                            morpho_key
+                        ].mapper.scalar_visibility = False
                 self._ctrl.view_update()
+            else:
+                _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
+                _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
+                if self._state[self.pcSCALARS] in set(_adata.obs_keys()):
+                    change_array = True
+                    array = _adata.obs[self._state[self.pcSCALARS]].values
+                    if array.dtype == "category":
+                        array = np.asarray(array, dtype=str)
+                    if np.issubdtype(array.dtype, np.number):
+                        array = np.asarray(array, dtype=float)
+                        self._state.pc_scalars_raw = {"None": "None"}
+                    else:
+                        od = {o: i for i, o in enumerate(np.unique(array))}
+                        array = np.asarray(
+                            list(map(lambda x: od[x], array)), dtype=float
+                        )
+                        self._state.pc_scalars_raw = od
+                    array = array.reshape(-1, 1)
+                elif self._state[self.pcSCALARS] in set(_adata.var_names.tolist()):
+                    change_array = True
+                    matrix_id = self._state[self.pcMATRIX]
+                    self._state.pc_scalars_raw = {"None": "None"}
+                    if matrix_id == "X":
+                        array = np.asarray(
+                            _adata[:, self._state[self.pcSCALARS]].X.sum(axis=1),
+                            dtype=float,
+                        )
+                    else:
+                        array = np.asarray(
+                            _adata[:, self._state[self.pcSCALARS]]
+                            .layers[matrix_id]
+                            .sum(axis=1),
+                            dtype=float,
+                        )
+                elif (
+                    self._state[self.pcSCALARS]
+                    in active_actor.mapper.dataset.point_data.keys()
+                ):
+                    array = active_actor.mapper.dataset[
+                        self._state[self.pcSCALARS]
+                    ].copy()
+                    change_array = True
+                else:
+                    return
+
+                if change_array is True:
+                    active_actor.mapper.dataset.point_data[
+                        self._state[self.pcSCALARS]
+                    ] = array
+                    active_actor.mapper.scalar_range = (
+                        active_actor.mapper.dataset.get_data_range(
+                            self._state[self.pcSCALARS]
+                        )
+                    )
+
+                    active_actor.mapper.SelectColorArray(self._state[self.pcSCALARS])
+                    active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
+                    active_actor.mapper.SetScalarModeToUsePointFieldData()
+                    active_actor.mapper.scalar_visibility = True
+                    active_actor.mapper.Update()
+                    self._plotter.actors[active_name] = active_actor
+                    self.on_legend_change()
+
+                    for morpho_key in ["MorphoField", "MorphoPath"]:
+                        if morpho_key in self._plotter.actors.keys():
+                            morpho_actor = self._plotter.actors[morpho_key]
+                            morpho_index = morpho_actor.mapper.dataset.point_data[
+                                "obs_index"
+                            ]
+
+                            morpho_array = np.asarray(
+                                pd.DataFrame(array, index=_obs_index).loc[
+                                    morpho_index, 0
+                                ]
+                            )
+                            morpho_actor.mapper.dataset.point_data[
+                                self._state[self.pcSCALARS]
+                            ] = morpho_array
+                            morpho_actor.mapper.scalar_range = (
+                                active_actor.mapper.scalar_range
+                            )
+                            morpho_actor.mapper.SelectColorArray(
+                                self._state[self.pcSCALARS]
+                            )
+                            morpho_actor.mapper.lookup_table.cmap = self._state[
+                                self.pcCOLORMAP
+                            ]
+                            morpho_actor.mapper.SetScalarModeToUsePointFieldData()
+                            morpho_actor.mapper.scalar_visibility = True
+                            morpho_actor.mapper.Update()
+                            self._plotter.actors[morpho_key] = morpho_actor
+                    self._ctrl.view_update()
 
     @vuwrap
     def on_legend_change(self, **kwargs):
@@ -623,9 +631,17 @@ class PVCB:
                         self._plotter.actors[morpho_key].prop.color = self._state[
                             self.pcCOLOR
                         ]
-            else:
+                self._ctrl.view_update()
+
+        if not self._state[self.meshCOLOR] in ["none", "None", None]:
+            _active_id = (
+                1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+            )
+            active_name = self._state.actor_ids[_active_id]
+            if str(active_name).startswith("Mesh"):
+                active_actor = self._plotter.actors[active_name]
                 active_actor.prop.color = self._state[self.meshCOLOR]
-            self._ctrl.view_update()
+                self._ctrl.view_update()
 
     @vuwrap
     def on_colormap_change(self, **kwargs):
@@ -912,8 +928,8 @@ class PVCB:
             if str(_filename).endswith(".mp4"):
                 viewup = self._plotter.camera_position[2]
                 path = self._plotter.generate_orbital_path(
-                    factor=2.0,
-                    shift=0,
+                    # factor=2.0,
+                    # shift=0,
                     viewup=viewup,
                     n_points=int(self._state.animation_npoints),
                 )
