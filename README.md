@@ -13,11 +13,6 @@ dedicated to the 3D reconstruction of spatial transcriptomics and the visualizat
 
 Please view the [**Slides**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/spateo-viewer.html) to learn more about Spateo-viewer.
 
-<video align="center">
-  <video src="https://github.com/aristoteleo/spateo-viewer/blob/main/usage/spateo-viewer.mp4" />
-</video>
-
-
 ## Highlights
 
 * In the interactive-viewer, 3D serial slices of spatial transcriptomics datasets can be aligned to create 3D models. The 3D model can be also cleaned up by freely clipping and editing. 
