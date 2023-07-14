@@ -77,7 +77,7 @@ def toolbar_widgets(server, plotter: BasePlotter):
         classes="ml-8",
         style="max-width: 300px;",
         rounded=True,
-        accept=".vtk",
+        accept=".h5ad",
         __properties=["accept"],
     )
 
