@@ -221,15 +221,7 @@ class Viewer:
                     adata_object = ad.read_h5ad(self._state[self.UPLOAD_ANNDATA])
             if str(self._state.slices_key) in adata_object.obs_keys():
                 active_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
-                obs_index_labels = {
-                    j: i
-                    for i, j in self._state.scalarParameters["obs_index"][
-                        "raw_labels"
-                    ].items()
-                }
-                _obs_index = [
-                    obs_index_labels[i] for i in active_model.point_data["obs_index"]
-                ]
+                _obs_index = active_model.point_data["obs_index"]
 
                 slices_labels = {
                     j: i
