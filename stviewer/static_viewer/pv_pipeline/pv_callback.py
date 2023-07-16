@@ -2,7 +2,6 @@ import os
 import tempfile
 from pathlib import Path
 
-import anndata as ad
 import matplotlib.colors as mc
 import numpy as np
 import pandas as pd
@@ -12,6 +11,12 @@ from trame.app.file_upload import ClientFile
 from stviewer.assets import local_dataset_manager
 from stviewer.assets.dataset_acquisition import abstract_anndata, sample_dataset
 
+from .init_parameters import (
+    init_mesh_parameters,
+    init_morphogenesis_parameters,
+    init_output_parameters,
+    init_pc_parameters,
+)
 from .pv_actors import generate_actors, generate_actors_tree
 
 # -----------------------------------------------------------------------------
@@ -215,37 +220,33 @@ class SwitchModels:
                 mesh_actors=mesh_actors,
             )
 
-            self._state["init_dataset"] = False
-            self._state["anndata_path"] = os.path.join(
-                os.path.join(path, "h5ad"),
-                os.listdir(path=os.path.join(path, "h5ad"))[0],
+            self._state.update(
+                {
+                    "init_dataset": False,
+                    "anndata_path": os.path.join(
+                        os.path.join(path, "h5ad"),
+                        os.listdir(path=os.path.join(path, "h5ad"))[0],
+                    ),
+                    "matrices_list": ["X"] + [i for i in adata.layers.keys()],
+                    # setting
+                    "actor_ids": actor_names,
+                    "pipeline": actor_tree,
+                    "active_id": 1,
+                    "active_ui": actor_names[0],
+                    "active_model_type": str(actor_names[0]).split("_")[0],
+                    "vis_ids": [
+                        i
+                        for i, actor in enumerate(self.plotter.actors.values())
+                        if actor.visibility
+                    ],
+                    "show_model_card": True,
+                    "show_output_card": True,
+                }
             )
-            self._state["init_dataset"] = False
-            self._state["active_id"] = 1
-            self._state["actor_ids"] = actor_names
-            self._state["active_ui"] = actor_names[0]
-            self._state["active_model_type"] = actor_names[0].split("_")[0]
-            self._state["pipeline"] = actor_tree
-            self._state["matrices_list"] = ["X"] + [i for i in adata.layers.keys()]
-            self._state["pc_scalars_value"] = "None"
-            self._state["pc_matrix_value"] = "X"
-            self._state["pc_scalars_raw"] = {"None": "None"}
-            self._state["pc_coords_value"] = "spatial"
-            self._state["pc_opacity_value"] = 1.0
-            self._state["pc_ambient_value"] = 0.2
-            self._state["pc_color_value"] = "gainsboro"
-            self._state["pc_colormap_value"] = "Set3_r"
-            self._state["pc_point_size_value"] = 8
-            self._state["pc_add_legend"] = False
-            self._state["pc_picking_group"] = "None"
-            self._state["pc_overwrite"] = False
-            self._state["pc_reload"] = False
-
-            self._state["mesh_opacity_value"] = 0.6
-            self._state["mesh_ambient_value"] = 0.2
-            self._state["mesh_color_value"] = "gainsboro"
-            self._state["mesh_style_value"] = "surface"
-            self._state["mesh_morphology"] = False
+            self._state.update(init_pc_parameters)
+            self._state.update(init_mesh_parameters)
+            self._state.update(init_morphogenesis_parameters)
+            self._state.update(init_output_parameters)
             self._ctrl.view_reset_camera(force=True)
             self._ctrl.view_update()
 
@@ -567,21 +568,27 @@ class PVCB:
         _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
         _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
         if str(self._state[self.pcCOORDS]).lower() == "spatial":
-            coords = np.asarray(_adata.obsm["spatial"])
-            coords = (
-                np.c_[coords, np.ones(shape=(coords.shape[0], 1))]
-                if coords.shape[1] == 2
-                else coords
-            )
-            active_actor.mapper.dataset.points = np.asarray(coords)
+            if "spatial" in _adata.obsm.keys():
+                coords = np.asarray(_adata.obsm["spatial"])
+                coords = (
+                    np.c_[coords, np.ones(shape=(coords.shape[0], 1))]
+                    if coords.shape[1] == 2
+                    else coords
+                )
+                active_actor.mapper.dataset.points = np.asarray(coords)
+            else:
+                raise ValueError("`spatial` is not included in anndata.obsm.")
         elif str(self._state[self.pcCOORDS]).lower() == "umap":
-            coords = np.asarray(_adata.obsm["X_umap"])
-            coords = (
-                np.c_[coords, np.ones(shape=(coords.shape[0], 1))]
-                if coords.shape[1] == 2
-                else coords
-            )
-            active_actor.mapper.dataset.points = np.asarray(coords)
+            if "X_umap" in _adata.obsm.keys():
+                coords = np.asarray(_adata.obsm["X_umap"])
+                coords = (
+                    np.c_[coords, np.ones(shape=(coords.shape[0], 1))]
+                    if coords.shape[1] == 2
+                    else coords
+                )
+                active_actor.mapper.dataset.points = np.asarray(coords)
+            else:
+                raise ValueError("`X_umap` is not included in anndata.obsm.")
         else:
             pass
 

@@ -12,9 +12,13 @@ from .server import get_trame_server
 from .static_viewer import (
     create_plotter,
     init_actors,
+    init_mesh_parameters,
+    init_morphogenesis_parameters,
+    init_output_parameters,
+    init_pc_parameters,
+    ui_drawer,
     ui_layout,
     ui_standard_container,
-    ui_standard_drawer,
     ui_standard_toolbar,
 )
 
@@ -42,56 +46,27 @@ plotter = create_plotter()
 )
 
 # Init parameters
+state.update(init_pc_parameters)
+state.update(init_mesh_parameters)
+state.update(init_morphogenesis_parameters)
+state.update(init_output_parameters)
+
 state.update(
     {
         "init_dataset": True,
         "anndata_path": anndata_path,
+        "matrices_list": anndata_metrices,
+        # setting
         "actor_ids": actor_names,
         "pipeline": actor_tree,
         "active_id": 1,
         "active_ui": actor_names[0],
-        "active_model_type": str(state.active_ui).split("_")[0],
+        "active_model_type": str(actor_names[0]).split("_")[0],
         "vis_ids": [
             i for i, actor in enumerate(plotter.actors.values()) if actor.visibility
         ],
-        # pc model
-        "matrices_list": anndata_metrices,
-        "pc_scalars_value": "None",
-        "pc_scalars_raw": {"None": "None"},
-        "pc_matrix_value": "X",
-        "pc_coords_value": "spatial",
-        "pc_opacity_value": 1.0,
-        "pc_ambient_value": 0.2,
-        "pc_color_value": "None",
-        "pc_colormap_value": "Set3_r",
-        "pc_point_size_value": 8,
-        "pc_add_legend": False,
-        "pc_picking_group": "None",
-        "pc_overwrite": False,
-        "pc_reload": False,
-        # mesh model
-        "mesh_opacity_value": 0.6,
-        "mesh_ambient_value": 0.2,
-        "mesh_color_value": "gainsboro",
-        "mesh_style_value": "surface",
-        "mesh_morphology": False,
-        # morphogenesis
-        "cal_morphogenesis": False,
-        "morpho_target_anndata_path": None,
-        "morpho_uploaded_target_anndata_path": None,
-        "morpho_mapping_factor": 0.001,
-        "morphofield_factor": 3000,
-        "morphopath_t_end": 10000,
-        "morphopath_downsampling": 500,
-        "morphofield_visibile": False,
-        "morphopath_visibile": True,
-        "morphopath_predicted_models": None,
-        "morphopath_animation_path": None,
-        # output
-        "screenshot_path": None,
-        "animation_path": None,
-        "animation_npoints": 50,
-        "animation_framerate": 10,
+        "show_model_card": True,
+        "show_output_card": True,
     }
 )
 
@@ -132,9 +107,7 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
-    ui_standard_drawer(
-        server=static_server, layout=layout, plotter=plotter, mode="trame"
-    )
+    ui_drawer(server=static_server, layout=layout, plotter=plotter, mode="trame")
 
     # -----------------------------------------------------------------------------
     # Main Content
