@@ -67,8 +67,8 @@ class Viewer:
         self._state.change(self.UPLOAD_ANNDATA)(self.on_upload_anndata)
         self._state.change(self.SLICES_ALIGNMENT)(self.on_slices_alignment)
         self._state.change("slices_key")(self.on_slices_alignment)
+        self._state.change("slices_align_method")(self.on_align_method_change)
         self._state.change("slices_align_device")(self.on_slices_alignment)
-        self._state.change("slices_align_method")(self.on_slices_alignment)
         self._state.change("slices_align_factor")(self.on_slices_alignment)
         self._state.change("slices_align_max_iter")(self.on_slices_alignment)
         self._state.change(self.RECONSTRUCT_MESH)(self.on_reconstruct_mesh)
@@ -202,6 +202,13 @@ class Viewer:
     #############
 
     @vuwrap
+    def on_align_method_change(self, **kwargs):
+        if str(self._state.slices_align_method) == "Paste":
+            self._state.slices_align_factor = 0.1
+        elif str(self._state.slices_align_method) == "Morpho":
+            self._state.slices_align_factor = 20
+
+    @vuwrap
     def on_slices_alignment(self, **kwargs):
         """Slices alignment based on the anndata of active point cloud model"""
         import torch
@@ -264,7 +271,7 @@ class Viewer:
                 _device = (
                     "0" if _device == "gpu" and torch.cuda.is_available() else "cpu"
                 )
-                print(_device)
+
                 if str(self._state.slices_align_method) == "Paste":
                     from .pv_alignment import paste_align
 

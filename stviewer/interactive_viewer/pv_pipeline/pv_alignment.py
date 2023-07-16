@@ -412,12 +412,11 @@ def BA_align(
     max_outlier_variance: int = 20,
     lambdaVF: Union[int, float] = 1e2,
     beta: Union[int, float] = 0.01,
-    beta2: Optional[Union[int, float]] = None,
     K: Union[int, float] = 15,
     normalize_c: bool = True,
     normalize_g: bool = True,
     select_high_exp_genes: Union[bool, float, int] = False,
-    dtype: str = "float32",
+    dtype: str = "float64",
     device: str = "cpu",
     inplace: bool = False,
     nn_init: bool = True,
@@ -485,6 +484,8 @@ def BA_align(
         inlier_A = _data(nx, inlier_A, type_as)
         inlier_B = _data(nx, inlier_B, type_as)
         inlier_P = _data(nx, inlier_P, type_as)
+        init_R = _data(nx, init_R, type_as)
+        init_t = _data(nx, init_t, type_as)
     else:
         init_R = _identity(nx, D, type_as)
         init_t = _data(nx, nx.zeros((D)), type_as)
@@ -519,9 +520,7 @@ def BA_align(
     R = _identity(nx, D, type_as)
     minGeneDistMat = nx.min(GeneDistMat, 1)
     # Automatically determine the value of beta2
-    beta2_end = (
-        nx.max(minGeneDistMat) / 5 if beta2 is None else _data(nx, beta2, type_as)
-    )
+    beta2_end = nx.max(minGeneDistMat) / 5
     beta2 = (
         minGeneDistMat[nx.argsort(minGeneDistMat)[int(GeneDistMat.shape[0] * 0.05)]] / 5
     )
@@ -718,6 +717,9 @@ def BA_align(
         - _dot(nx)(normalize_mean_list[1], output_R.T)
     )
 
+    if str(device) != "cpu":
+        output_R = np.asarray(output_R.cpu())
+        output_t = np.asarray(output_t.cpu())
     return output_R, output_t
 
 
@@ -756,6 +758,7 @@ def morpho_align(
     models_sampling = [model.copy() for model in models]
     mean_cells = np.mean([model.shape[0] for model in models_sampling])
     to_sampling = 0 < n_sampling <= mean_cells and n_sampling is not None
+
     if to_sampling:
         models_ref = downsampling(
             models=models_sampling,
@@ -770,24 +773,19 @@ def morpho_align(
     models_ref_B = models_ref[1:]
     align_models = [model.copy() for model in models]
     align_models[0].obsm[key_added] = align_models[0].obsm[spatial_key]
-    with ProcessPoolExecutor(max_workers=worker_num) as pool:
-        futures = [
-            pool.submit(
-                lambda modelA, modelB: BA_align(
-                    modelA,
-                    modelB,
-                    spatial_key=spatial_key,
-                    max_iter=max_iter,
-                    max_outlier_variance=max_outlier_variance,
-                    device=device,
-                ),
-                modelA,
-                modelB,
-            )
-            for modelA, modelB in zip(models_ref_A, models_ref_B)
-        ]
-    align_Rotation = [future.result()[0] for future in futures]
-    align_translation = [future.result()[1] for future in futures]
+    align_Rotation, align_translation = [], []
+    for modelA, modelB in zip(models_ref_A, models_ref_B):
+        output_R, output_t = BA_align(
+            modelA,
+            modelB,
+            spatial_key=spatial_key,
+            max_iter=max_iter,
+            max_outlier_variance=max_outlier_variance,
+            device=device,
+        )
+        align_Rotation.append(output_R)
+        align_translation.append(output_t)
+
     cur_R = np.eye(2)
     cur_t = np.zeros(2)
     for i in range(len(models) - 1):
