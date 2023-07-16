@@ -98,7 +98,7 @@ def toolbar_widgets(server, plotter: BasePlotter):
     )
 
 
-def ui_standard_toolbar(
+def ui_toolbar(
     server,
     layout,
     plotter: BasePlotter,

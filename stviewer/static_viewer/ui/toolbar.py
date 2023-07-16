@@ -182,7 +182,7 @@ def toolbar_switch_model(
     )
 
 
-def ui_standard_toolbar(
+def ui_toolbar(
     server,
     layout,
     plotter: BasePlotter,

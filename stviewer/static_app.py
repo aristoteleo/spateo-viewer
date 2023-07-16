@@ -16,10 +16,10 @@ from .static_viewer import (
     init_morphogenesis_parameters,
     init_output_parameters,
     init_pc_parameters,
+    ui_container,
     ui_drawer,
     ui_layout,
-    ui_standard_container,
-    ui_standard_toolbar,
+    ui_toolbar,
 )
 
 # export WSLINK_MAX_MSG_SIZE=1000000000    # 1GB
@@ -100,9 +100,7 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # ToolBar
     # -----------------------------------------------------------------------------
-    ui_standard_toolbar(
-        server=static_server, layout=layout, plotter=plotter, mode="trame"
-    )
+    ui_toolbar(server=static_server, layout=layout, plotter=plotter, mode="trame")
 
     # -----------------------------------------------------------------------------
     # Drawer
@@ -112,9 +110,7 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Main Content
     # -----------------------------------------------------------------------------
-    ui_standard_container(
-        server=static_server, layout=layout, plotter=plotter, mode="trame"
-    )
+    ui_container(server=static_server, layout=layout, plotter=plotter, mode="trame")
 
     # -----------------------------------------------------------------------------
     # Footer

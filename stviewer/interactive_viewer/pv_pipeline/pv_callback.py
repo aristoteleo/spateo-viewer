@@ -9,6 +9,14 @@ from vtkmodules.vtkFiltersCore import vtkThreshold
 from vtkmodules.vtkFiltersGeneral import vtkExtractSelectedFrustum
 from vtkmodules.web.utils import mesh as vtk_mesh
 
+from .init_parameters import (
+    init_active_parameters,
+    init_align_parameters,
+    init_mesh_parameters,
+    init_picking_parameters,
+    init_setting_parameters,
+)
+
 VIEW_INTERACT = [
     {"button": 1, "action": "Rotate"},
     {"button": 2, "action": "Pan"},
@@ -410,8 +418,14 @@ class Viewer:
                 plotter=self._plotter, anndata_path=anndata_path
             )
 
+        self._state.update(init_active_parameters)
+        self._state.update(init_picking_parameters)
+        self._state.update(init_align_parameters)
+        self._state.update(init_mesh_parameters)
+        self._state.update(init_setting_parameters)
         self._state.update(
             {
+                # main model
                 "mainModel": vtk_mesh(
                     main_model,
                     point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
@@ -423,46 +437,8 @@ class Viewer:
                     point_arrays=None if len(pdd) == 0 else [key for key in pdd.keys()],
                     cell_arrays=None if len(cdd) == 0 else [key for key in cdd.keys()],
                 ),
-                "activeModelVisible": True,
-                # slices alignment
-                "slices_alignment": False,
-                "slices_key": "slices",
-                "slices_align_device": "CPU",
-                "slices_align_method": "Paste",
-                "slices_align_factor": 0.1,
-                "slices_align_max_iter": 200,
-                # reconstructed mesh model
-                "meshModel": None,
-                "meshModelVisible": False,
-                "reconstruct_mesh": False,
-                "mc_factor": 1.0,
-                "mesh_voronoi": 20000,
-                "mesh_smooth_factor": 2000,
-                "mesh_scale_factor": 1.0,
-                "clip_pc_with_mesh": False,
-                # output path
-                "activeModel_output": None,
-                "mesh_output": None,
-                "anndata_output": None,
-                # Fields available
                 "scalar": init_scalar,
                 "scalarParameters": {**pdd, **cdd},
-                "picking_group": None,
-                "overwrite": False,
-                # picking controls
-                "modes": [
-                    {"value": "hover", "icon": "mdi-magnify"},
-                    {"value": "click", "icon": "mdi-cursor-default-click-outline"},
-                    {"value": "select", "icon": "mdi-select-drag"},
-                ],
-                # Picking feedback
-                "pickData": None,
-                "selectData": None,
-                "resetModel": False,
-                "tooltip": "",
-                # Render
-                "background_color": "[0, 0, 0]",
-                "pixel_ratio": 5,
             }
         )
         self._server.js_call(ref="render", method="resetCamera")

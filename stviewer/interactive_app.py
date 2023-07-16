@@ -9,11 +9,16 @@ from vtkmodules.web.utils import mesh as vtk_mesh
 from .assets import icon_manager, local_dataset_manager
 from .interactive_viewer import (
     create_plotter,
+    init_active_parameters,
+    init_align_parameters,
+    init_mesh_parameters,
     init_models,
+    init_picking_parameters,
+    init_setting_parameters,
+    ui_container,
+    ui_drawer,
     ui_layout,
-    ui_standard_container,
-    ui_standard_drawer,
-    ui_standard_toolbar,
+    ui_toolbar,
 )
 from .server import get_trame_server
 
@@ -33,6 +38,12 @@ main_model, active_model, init_scalar, pdd, cdd = init_models(
     plotter=plotter, anndata_path=init_anndata_path
 )
 
+# Init parameters
+state.update(init_active_parameters)
+state.update(init_picking_parameters)
+state.update(init_align_parameters)
+state.update(init_mesh_parameters)
+state.update(init_setting_parameters)
 state.update(
     {
         "init_anndata": init_anndata_path,
@@ -43,58 +54,19 @@ state.update(
             point_arrays=[key for key in pdd.keys()],
             cell_arrays=[key for key in cdd.keys()],
         ),
-        # active model
         "activeModel": vtk_mesh(
             active_model,
             point_arrays=[key for key in pdd.keys()],
             cell_arrays=[key for key in cdd.keys()],
         ),
-        "activeModelVisible": True,
-        # slices alignment
-        "slices_alignment": False,
-        "slices_key": "slices",
-        "slices_align_device": "CPU",
-        "slices_align_method": "Paste",
-        "slices_align_factor": 0.1,
-        "slices_align_max_iter": 200,
-        # reconstructed mesh model
-        "meshModel": None,
-        "meshModelVisible": False,
-        "reconstruct_mesh": False,
-        "mc_factor": 1.0,
-        "mesh_voronoi": 20000,
-        "mesh_smooth_factor": 2000,
-        "mesh_scale_factor": 1.0,
-        "clip_pc_with_mesh": False,
-        # output path
-        "activeModel_output": None,
-        "mesh_output": None,
-        "anndata_output": None,
-        # Fields available
         "scalar": "anno_tissue",
         "scalarParameters": {**pdd, **cdd},
-        "picking_group": None,
-        "overwrite": False,
-        # picking controls
-        "modes": [
-            {"value": "hover", "icon": "mdi-magnify"},
-            {"value": "click", "icon": "mdi-cursor-default-click-outline"},
-            {"value": "select", "icon": "mdi-select-drag"},
-        ],
-        # Picking feedback
-        "pickData": None,
-        "selectData": None,
-        "resetModel": False,
-        "tooltip": "",
-        # Render
-        "background_color": "[0, 0, 0]",
-        "pixel_ratio": 5,
     }
 )
 
 # GUI
 ui_standard_layout = ui_layout(
-    server=interactive_server, template_name="main", drawer_width=300
+    server=interactive_server, template_name="main", drawer_width=350
 )
 with ui_standard_layout as layout:
     # Let the server know the browser pixel ratio and the default theme
@@ -105,17 +77,17 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # ToolBar
     # -----------------------------------------------------------------------------
-    ui_standard_toolbar(server=interactive_server, layout=layout, plotter=plotter)
+    ui_toolbar(server=interactive_server, layout=layout, plotter=plotter)
     trame_widgets.ClientStateChange(name="activeModel", change=ctrl.view_reset_camera)
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
-    ui_standard_drawer(layout=layout)
+    ui_drawer(layout=layout)
 
     # -----------------------------------------------------------------------------
     # Main Content
     # -----------------------------------------------------------------------------
-    ui_standard_container(server=interactive_server, layout=layout)
+    ui_container(server=interactive_server, layout=layout)
 
     # -----------------------------------------------------------------------------
     # Footer

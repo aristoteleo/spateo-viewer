@@ -14,7 +14,7 @@ from .toolbar import Viewer
 # -----------------------------------------------------------------------------
 
 
-def ui_standard_container(
+def ui_container(
     server,
     layout,
     plotter: BasePlotter,
