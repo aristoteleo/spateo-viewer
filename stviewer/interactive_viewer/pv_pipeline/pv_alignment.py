@@ -725,8 +725,7 @@ def BA_align(
 
 def morpho_align(
     models: List[AnnData],
-    worker_num: int = 10,
-    n_sampling: Optional[int] = 5000,
+    n_sampling: Optional[int] = 2000,
     sampling_method: str = "random",
     spatial_key: str = "spatial",
     key_added: str = "align_spatial",
@@ -739,7 +738,6 @@ def morpho_align(
 
     Args:
         models: List of models (AnnData Object).
-        worker_num: Number of workers for parallelization.
         n_sampling: When ``models_ref`` is None, new data containing n_sampling coordinate points will be automatically generated for alignment.
         sampling_method: The method to sample data points, can be one of ``["trn", "kmeans", "random"]``.
         spatial_key: The key in ``.obsm`` that corresponds to the raw spatial coordinate.
