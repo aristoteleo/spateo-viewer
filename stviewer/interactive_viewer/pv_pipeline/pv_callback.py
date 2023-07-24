@@ -332,11 +332,9 @@ class Viewer:
                     point_arrays=[key for key in self._state.scalarParameters.keys()],
                 )
 
-
     ##################
     # Reconstruction #
     ##################
-
 
     @vuwrap
     def on_reconstruct_mesh(self, **kwargs):
