@@ -219,9 +219,22 @@ class Viewer:
     @vuwrap
     def on_slices_alignment(self, **kwargs):
         """Slices alignment based on the anndata of active point cloud model"""
-        import torch
-
         if self._state[self.SLICES_ALIGNMENT] is True:
+            try:
+                import torch
+            except ImportError:
+                raise ImportError(
+                    "You need to install the package `torch`."
+                    "\nInstall torch via `pip install torch`."
+                )
+            try:
+                import ot
+            except ImportError:
+                raise ImportError(
+                    "You need to install the package `POT`."
+                    "\nInstall POT via `pip install POT`."
+                )
+
             if self._state[self.UPLOAD_ANNDATA] is None:
                 download_anndata_path = self._state.init_anndata
                 adata_object = ad.read_h5ad(download_anndata_path)
@@ -319,9 +332,11 @@ class Viewer:
                     point_arrays=[key for key in self._state.scalarParameters.keys()],
                 )
 
+
     ##################
     # Reconstruction #
     ##################
+
 
     @vuwrap
     def on_reconstruct_mesh(self, **kwargs):

@@ -4,7 +4,6 @@ warnings.filterwarnings("ignore")
 
 import anndata as ad
 import numpy as np
-import pyvista as pv
 
 from .pv_plotter import add_single_model
 

@@ -1,8 +1,5 @@
-from typing import Optional
-
 import numpy as np
 from anndata import AnnData
-from dynamo.vectorfield import SvcVectorField
 from pyvista import PolyData
 from scipy.integrate import odeint
 
@@ -20,7 +17,15 @@ def morphogenesis(
         import spateo as st
     except ImportError:
         raise ImportError(
-            "You need to install the package `spateo`. \nInstall spateo via `pip install spateo-release`"
+            "You need to install the package `spateo`. "
+            "\nInstall spateo via `pip install spateo-release`."
+        )
+    try:
+        from dynamo.vectorfield import SvcVectorField
+    except ImportError:
+        raise ImportError(
+            "You need to install the package `dynamo`. "
+            "\nInstall dynamo via `pip install dynamo-release`."
         )
 
     # Preprocess

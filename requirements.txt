@@ -1,6 +1,7 @@
 anndata>=0.8.0
 numpy>=1.18.1
 matplotlib<=3.5.3
+POT>=0.8.1
 pyacvd>=0.2.9
 PyMCubes>=0.1.4
 pymeshfix>=0.16.2
