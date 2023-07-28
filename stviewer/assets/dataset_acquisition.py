@@ -1,10 +1,10 @@
 import os
 from typing import Optional
 
-import numpy as np
 import anndata as ad
-import pyvista as pv
 import matplotlib as mpl
+import numpy as np
+import pyvista as pv
 from matplotlib.colors import LinearSegmentedColormap
 
 try:
@@ -85,8 +85,8 @@ def sample_dataset(
         if str(key).endswith("colors"):
             colors = adata.uns[key]
             if isinstance(colors, dict):
-                colors = [i for i in colors.values()]
-            if isinstance(colors, list):
+                colors = np.asarray([i for i in colors.values()])
+            if isinstance(colors, (np.ndarray, list)):
                 custom_colors.append(key)
                 nodes = np.linspace(0, 1, num=len(colors))
                 if key not in mpl.colormaps():

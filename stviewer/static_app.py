@@ -3,9 +3,9 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-import matplotlib.pyplot as plt
 from tkinter import Tk, filedialog
 
+import matplotlib.pyplot as plt
 from trame.widgets import trame as trame_widgets
 
 from .assets import icon_manager, local_dataset_manager
@@ -69,9 +69,10 @@ state.update(
         ],
         "show_model_card": True,
         "show_output_card": True,
-        "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps()
+        "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps(),
     }
 )
+
 
 # Upload directory
 def open_directory():

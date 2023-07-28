@@ -2,8 +2,8 @@ import os
 import tempfile
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import matplotlib.colors as mc
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pyvista as pv
@@ -243,7 +243,7 @@ class SwitchModels:
                     ],
                     "show_model_card": True,
                     "show_output_card": True,
-                    "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps()
+                    "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps(),
                 }
             )
             self._state.update(init_pc_parameters)
@@ -450,7 +450,9 @@ class PVCB:
                     active_actor.mapper.scalar_visibility = False
                     for morpho_key in ["MorphoField", "MorphoPath"]:
                         if morpho_key in self._plotter.actors.keys():
-                            self._plotter.actors[morpho_key].mapper.scalar_visibility = False
+                            self._plotter.actors[
+                                morpho_key
+                            ].mapper.scalar_visibility = False
                 self._ctrl.view_update()
 
     @vuwrap
@@ -461,44 +463,43 @@ class PVCB:
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
 
-        if self._state[self.pcLEGEND]:
-            if not self._state[self.pcSCALARS] in ["none", "None", None]:
-                if len(self._plotter.scalar_bars.keys()) != 0:
-                    self._plotter.remove_scalar_bar()
-                if self._plotter.legend:
-                    self._plotter.remove_legend()
-                if "None" in self._state.pc_scalars_raw.keys():
-                    self._plotter.add_scalar_bar(
-                        self._state[self.pcSCALARS],
-                        mapper=active_actor.mapper,
-                        bold=True,
-                        interactive=False,
-                        vertical=True,
-                        title_font_size=30,
-                        label_font_size=25,
-                        outline=False,
-                        fmt="%10.2f",
-                    )
-                else:
-                    import matplotlib as mpl
+        if self._state[self.pcLEGEND] and active_actor.mapper.scalar_visibility:
+            if len(self._plotter.scalar_bars.keys()) != 0:
+                self._plotter.remove_scalar_bar()
+            if self._plotter.legend:
+                self._plotter.remove_legend()
+            if "None" in self._state.pc_scalars_raw.keys():
+                self._plotter.add_scalar_bar(
+                    self._state[self.pcSCALARS],
+                    mapper=active_actor.mapper,
+                    bold=True,
+                    interactive=False,
+                    vertical=True,
+                    title_font_size=30,
+                    label_font_size=25,
+                    outline=False,
+                    fmt="%10.2f",
+                )
+            else:
+                import matplotlib as mpl
 
-                    legend_labels = [i for i in self._state.pc_scalars_raw.keys()]
+                legend_labels = [i for i in self._state.pc_scalars_raw.keys()]
 
-                    lscmap = mpl.cm.get_cmap(self._state[self.pcCOLORMAP])
-                    legend_hex = [
-                        mpl.colors.to_hex(lscmap(i))
-                        for i in np.linspace(0, 1, len(legend_labels))
-                    ]
+                lscmap = mpl.cm.get_cmap(self._state[self.pcCOLORMAP])
+                legend_hex = [
+                    mpl.colors.to_hex(lscmap(i))
+                    for i in np.linspace(0, 1, len(legend_labels))
+                ]
 
-                    legend_entries = [
-                        [label, hex] for label, hex in zip(legend_labels, legend_hex)
-                    ]
-                    self._plotter.add_legend(
-                        legend_entries,
-                        face="circle",
-                        bcolor=None,
-                        loc="lower right",
-                    )
+                legend_entries = [
+                    [label, hex] for label, hex in zip(legend_labels, legend_hex)
+                ]
+                self._plotter.add_legend(
+                    legend_entries,
+                    face="circle",
+                    bcolor=None,
+                    loc="lower right",
+                )
         else:
             if len(self._plotter.scalar_bars.keys()) != 0:
                 self._plotter.remove_scalar_bar()
