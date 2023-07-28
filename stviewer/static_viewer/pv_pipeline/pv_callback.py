@@ -2,6 +2,7 @@ import os
 import tempfile
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import matplotlib.colors as mc
 import numpy as np
 import pandas as pd
@@ -202,6 +203,7 @@ class SwitchModels:
                 pc_model_ids,
                 mesh_models,
                 mesh_model_ids,
+                custom_colors,
             ) = sample_dataset(path=path)
 
             # Generate actors
@@ -241,6 +243,7 @@ class SwitchModels:
                     ],
                     "show_model_card": True,
                     "show_output_card": True,
+                    "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps()
                 }
             )
             self._state.update(init_pc_parameters)
@@ -342,6 +345,7 @@ class PVCB:
         )
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
+
         if str(active_name).startswith("PC"):
             if self._state[self.pcSCALARS] in ["none", "None", None]:
                 active_actor.mapper.scalar_visibility = False
@@ -394,7 +398,7 @@ class PVCB:
                     ].copy()
                     change_array = True
                 else:
-                    return
+                    change_array = False
 
                 if change_array is True:
                     active_actor.mapper.dataset.point_data[
@@ -442,7 +446,12 @@ class PVCB:
                             morpho_actor.mapper.scalar_visibility = True
                             morpho_actor.mapper.Update()
                             self._plotter.actors[morpho_key] = morpho_actor
-                    self._ctrl.view_update()
+                else:
+                    active_actor.mapper.scalar_visibility = False
+                    for morpho_key in ["MorphoField", "MorphoPath"]:
+                        if morpho_key in self._plotter.actors.keys():
+                            self._plotter.actors[morpho_key].mapper.scalar_visibility = False
+                self._ctrl.view_update()
 
     @vuwrap
     def on_legend_change(self, **kwargs):
@@ -470,7 +479,6 @@ class PVCB:
                         outline=False,
                         fmt="%10.2f",
                     )
-                    # print(self._plotter.scalar_bars)
                 else:
                     import matplotlib as mpl
 
@@ -577,7 +585,7 @@ class PVCB:
                 )
                 active_actor.mapper.dataset.points = np.asarray(coords)
             else:
-                raise ValueError("`spatial` is not included in anndata.obsm.")
+                print(f"!Warning: `spatial` is not included in anndata.obsm.")
         elif str(self._state[self.pcCOORDS]).lower() == "umap":
             if "X_umap" in _adata.obsm.keys():
                 coords = np.asarray(_adata.obsm["X_umap"])
@@ -588,7 +596,7 @@ class PVCB:
                 )
                 active_actor.mapper.dataset.points = np.asarray(coords)
             else:
-                raise ValueError("`X_umap` is not included in anndata.obsm.")
+                print(f"!Warning: `X_umap` is not included in anndata.obsm.")
         else:
             pass
 

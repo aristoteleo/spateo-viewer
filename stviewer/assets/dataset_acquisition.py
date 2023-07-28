@@ -1,8 +1,11 @@
 import os
 from typing import Optional
 
+import numpy as np
 import anndata as ad
 import pyvista as pv
+import matplotlib as mpl
+from matplotlib.colors import LinearSegmentedColormap
 
 try:
     from typing import Literal
@@ -76,10 +79,26 @@ def sample_dataset(
     else:
         mesh_models, mesh_model_ids = None, None
 
+    # Custom colors
+    custom_colors = []
+    for key in adata.uns.keys():
+        if str(key).endswith("colors"):
+            colors = adata.uns[key]
+            if isinstance(colors, dict):
+                colors = [i for i in colors.values()]
+            if isinstance(colors, list):
+                custom_colors.append(key)
+                nodes = np.linspace(0, 1, num=len(colors))
+                if key not in mpl.colormaps():
+                    mpl.colormaps.register(
+                        LinearSegmentedColormap.from_list(key, list(zip(nodes, colors)))
+                    )
+
     return (
         adata,
         pc_models,
         pc_model_ids,
         mesh_models,
         mesh_model_ids,
+        custom_colors,
     )

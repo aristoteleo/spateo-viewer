@@ -3,6 +3,7 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
+import matplotlib.pyplot as plt
 from tkinter import Tk, filedialog
 
 from trame.widgets import trame as trame_widgets
@@ -40,6 +41,7 @@ plotter = create_plotter()
     actors,
     actor_names,
     actor_tree,
+    custom_colors,
 ) = init_actors(
     plotter=plotter,
     path=local_dataset_manager.drosophila_E7_8h,
@@ -67,9 +69,9 @@ state.update(
         ],
         "show_model_card": True,
         "show_output_card": True,
+        "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps()
     }
 )
-
 
 # Upload directory
 def open_directory():

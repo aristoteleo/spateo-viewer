@@ -98,6 +98,7 @@ def init_actors(plotter, path):
         pc_model_ids,
         mesh_models,
         mesh_model_ids,
+        custom_colors
     ) = sample_dataset(path=path)
 
     # Generate actors
@@ -124,4 +125,5 @@ def init_actors(plotter, path):
         actors,
         actor_names,
         actor_tree,
+        custom_colors
     )

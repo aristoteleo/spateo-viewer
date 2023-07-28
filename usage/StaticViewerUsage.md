@@ -57,3 +57,13 @@ You can refer to the folder structure of the data we include by default in the [
    
    Change None in ``state.selected_dir = None`` to the absolute path of the folder you want to upload.(Please give priority to this method when used in remote servers)
 
+
+### How to upload custom colors
+The colors to be uploaded should be saved in the uploaded anndata object, which should be stored in anndata.uns in the 
+form of a list. Examples are as follows:
+
+Uploaded colors list (the key of colors ends with "colors"):
+
+   ```
+   adata.uns["anno_tissue_list_colors"] = ["#ef9b20", "#f46a9b", "#ece05a", "#ede15b", "#ea5545", "#9a82e0", "#87bc45", "#ec5646", "#bdcf32"]
+   ```

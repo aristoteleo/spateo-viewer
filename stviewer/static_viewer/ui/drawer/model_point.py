@@ -95,7 +95,7 @@ def pc_card_content():
             vuetify.VSelect(
                 label="Colormap",
                 v_model=("pc_colormap_value", "default_cmap"),
-                items=("colormaps", ["default_cmap"] + plt.colormaps()),
+                items=("pc_colormaps",),
                 hide_details=True,
                 dense=True,
                 outlined=True,
