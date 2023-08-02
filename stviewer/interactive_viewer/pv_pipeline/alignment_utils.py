@@ -9,7 +9,6 @@ from anndata import AnnData
 from scipy.linalg import pinv
 from scipy.sparse import issparse
 from scipy.special import psi
-from spateo.logging import logger_manager as lm
 
 # Get the intersection of lists
 intersect_lsts = lambda *lsts: list(set(lsts[0]).intersection(*lsts[1:]))
@@ -49,10 +48,8 @@ def check_backend(device: str = "cpu", dtype: str = "float32", verbose: bool = T
         else:
             backend = ot.backend.NumpyBackend()
             if verbose:
-                lm.main_info(
-                    message="GPU is not available, resorting to torch cpu.",
-                    indent_level=1,
-                )
+                print(f"!Warning: GPU is not available, resorting to torch cpu.")
+
     if nx_torch(backend):
         type_as = (
             backend.__type_list__[-2]
@@ -120,9 +117,8 @@ def filter_common_genes(*genes, verbose: bool = True) -> list:
         raise ValueError("The number of common gene between all samples is 0.")
     else:
         if verbose:
-            lm.main_info(
-                message=f"Filtered all samples for common genes. There are {(len(common_genes))} common genes.",
-                indent_level=1,
+            print(
+                f"Filtered all samples for common genes. There are {(len(common_genes))} common genes."
             )
         return common_genes
 
@@ -159,9 +155,7 @@ def normalize_coords(
     for i in range(len(coords)):
         coords[i] /= normalize_scale
     if verbose:
-        lm.main_info(message=f"Coordinates normalization params:", indent_level=1)
-        lm.main_info(message=f"Scale: {normalize_scale}.", indent_level=2)
-        # lm.main_info(message=f"Mean:  {normalize_mean_list}", indent_level=2)
+        print(f"Coordinates normalization params: Scale: {normalize_scale}.")
     return coords, normalize_scale, normalize_mean_list
 
 
@@ -196,9 +190,7 @@ def normalize_exps(
     for i in range(len(matrices)):
         matrices[i] /= normalize_scale
     if verbose:
-        lm.main_info(message=f"Gene expression normalization params:", indent_level=1)
-        # lm.main_info(message=f"Mean: {normalize_mean}.", indent_level=2)
-        lm.main_info(message=f"Scale: {normalize_scale}.", indent_level=2)
+        print(f"Gene expression normalization params: Scale: {normalize_scale}.")
 
     return matrices
 
@@ -268,9 +260,7 @@ def align_preprocess(
             exp_matrix[:, EvidenceExpression] for exp_matrix in exp_matrices
         ]
         if verbose:
-            lm.main_info(
-                message=f"Evidence expression number: {len(EvidenceExpression)}."
-            )
+            print(f"Evidence expression number: {len(EvidenceExpression)}.")
 
     # Spatial coordinates of all samples
     spatial_coords = [
