@@ -745,8 +745,6 @@ class PVCB:
                 self._plotter.remove_actor(self._plotter.actors["MorphoPath"])
 
             # target anndata
-            if self._state[self.morphoANNDATA] is None:
-                return
             if self._state[self.morphoANNDATA] == "uploaded_target_anndata":
                 if type(self._state[self.morphoUPLOADEDANNDATA]) is dict:
                     file = ClientFile(self._state[self.morphoUPLOADEDANNDATA])
@@ -759,6 +757,8 @@ class PVCB:
                     target_adata = abstract_anndata(
                         path=self._state[self.morphoUPLOADEDANNDATA]
                     )
+            elif self._state[self.morphoANNDATA] is None:
+                target_adata = None
             else:
                 path = local_dataset_manager[self._state[self.morphoANNDATA]]
                 target_adata = abstract_anndata(path=path)

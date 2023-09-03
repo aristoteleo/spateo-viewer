@@ -31,7 +31,6 @@ def morphogenesis_card_content():
             )
     with vuetify.VRow(classes="pt-2", dense=True):
         avaliable_samples = [
-            "drosophila_E8_9h_CNS_anndata",
             "drosophila_E8_9h_midgut_anndata",
             "uploaded_target_anndata",
         ]

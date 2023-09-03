@@ -130,10 +130,6 @@ local_dataset_manager.file_url(
     r"./stviewer/assets/dataset/drosophila_E8_9h/h5ad/E8_9h_cellbin.h5ad",
 )
 local_dataset_manager.file_url(
-    "drosophila_E8_9h_CNS_anndata",
-    r"./stviewer/assets/dataset/drosophila_E8_9h/h5ad/E8_9h_cellbin_CNS.h5ad",
-)
-local_dataset_manager.file_url(
     "drosophila_E8_9h_midgut_anndata",
     r"./stviewer/assets/dataset/drosophila_E8_9h/h5ad/E8_9h_cellbin_midgut.h5ad",
 )

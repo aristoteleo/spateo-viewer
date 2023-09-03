@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 from anndata import AnnData
 from pyvista import PolyData
@@ -6,8 +8,8 @@ from scipy.integrate import odeint
 
 def morphogenesis(
     source_adata: AnnData,
-    target_adata: AnnData,
     source_pc_model: PolyData,
+    target_adata: Optional[AnnData] = None,
     mapping_factor: float = 0.001,
     morphofield_factor: int = 3000,
     morphopath_t_end: int = 10000,
@@ -33,16 +35,20 @@ def morphogenesis(
     source_adata = source_adata[_obs_index, :]
 
     # 3D mapping
-    _ = st.tdr.cell_directions(
-        adataA=source_adata,
-        adataB=target_adata,
-        numItermaxEmd=2000000,
-        spatial_key="spatial",
-        key_added="cells_mapping",
-        alpha=mapping_factor,
-        device="cpu",
-        inplace=True,
-    )
+    if not (target_adata is None):
+        _ = st.tdr.cell_directions(
+            adataA=source_adata,
+            adataB=target_adata,
+            numItermaxEmd=2000000,
+            spatial_key="spatial",
+            key_added="cells_mapping",
+            alpha=mapping_factor,
+            device="cpu",
+            inplace=True,
+        )
+
+    if "V_cells_mapping" not in source_adata.obsm.keys():
+        raise ValueError("You need to add the target anndata object. ")
 
     # morphofield
     st.tdr.morphofield(
