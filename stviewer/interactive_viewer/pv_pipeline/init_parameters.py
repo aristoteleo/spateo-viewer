@@ -1,3 +1,5 @@
+import pyautogui
+
 # Init parameters
 init_active_parameters = {
     "picking_group": None,
@@ -41,5 +43,5 @@ init_setting_parameters = {
     "show_align_card": True,
     "show_mesh_card": True,
     "background_color": "[0, 0, 0]",
-    "pixel_ratio": 5,
+    "pixel_ratio": pyautogui.size()[0] / 500,
 }

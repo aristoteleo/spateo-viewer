@@ -91,9 +91,7 @@ ctrl.open_directory = open_directory
 
 
 # GUI
-ui_standard_layout = ui_layout(
-    server=static_server, template_name="main", drawer_width=350
-)
+ui_standard_layout = ui_layout(server=static_server, template_name="main")
 with ui_standard_layout as layout:
     # Let the server know the browser pixel ratio and the default theme
     trame_widgets.ClientTriggers(
