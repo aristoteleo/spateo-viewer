@@ -46,15 +46,22 @@ def sample_dataset(
 ):
     # Generate anndata object
     anndata_path = os.path.join(path, "h5ad")
+    anndata_list = [
+        f for f in os.listdir(path=anndata_path) if str(f).endswith(".h5ad")
+    ]
     adata = abstract_anndata(
-        path=os.path.join(anndata_path, os.listdir(path=anndata_path)[0]),
+        path=os.path.join(anndata_path, anndata_list[0]),
         X_layer=X_layer,
     )
 
     # Generate point cloud models
     pc_models_path = os.path.join(path, "pc_models")
     if os.path.exists(pc_models_path):
-        pc_model_files = os.listdir(path=pc_models_path)
+        pc_model_files = [
+            f
+            for f in os.listdir(path=pc_models_path)
+            if str(f).endswith(".vtk") or str(f).endswith(".vtm")
+        ]
         pc_model_files.sort()
 
         if pc_model_ids is None:
@@ -68,7 +75,11 @@ def sample_dataset(
     # Generate mesh models
     mesh_models_path = os.path.join(path, "mesh_models")
     if os.path.exists(mesh_models_path):
-        mesh_model_files = os.listdir(path=mesh_models_path)
+        mesh_model_files = [
+            f
+            for f in os.listdir(path=mesh_models_path)
+            if str(f).endswith(".vtk") or str(f).endswith(".vtm")
+        ]
         mesh_model_files.sort()
 
         if mesh_model_ids is None:
