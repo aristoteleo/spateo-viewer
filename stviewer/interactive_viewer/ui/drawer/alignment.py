@@ -54,15 +54,14 @@ def align_card_content():
                 classes="pt-1",
             )
         with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
+            vuetify.VTextField(
                 v_model=("slices_align_device", "CPU"),
-                items=(["CPU", "GPU"],),
+                label="Device",
                 show_size=True,
                 dense=True,
                 outlined=True,
                 hide_details=True,
                 classes="pt-1",
-                label="Device",
             )
 
 

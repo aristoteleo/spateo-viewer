@@ -296,6 +296,8 @@ class PVCB:
         self.morphoCALCULATION = f"cal_morphogenesis"
         self.morphoANNDATA = f"morpho_target_anndata_path"
         self.morphoUPLOADEDANNDATA = f"morpho_uploaded_target_anndata_path"
+        self.morphoMAPPINGmethod = f"morpho_mapping_method"
+        self.morphoMAPPINGdevice = f"morpho_mapping_device"
         self.morphoMAPPING = f"morpho_mapping_factor"
         self.morphoFIELD = f"morphofield_factor"
         self.morphoTEND = f"morphopath_t_end"
@@ -774,6 +776,17 @@ class PVCB:
                 active_model_index, :
             ]
 
+            # device
+            try:
+                import torch
+
+                _device = str(self._state.morphoMAPPINGdevice).lower()
+                _device = (
+                    _device if _device != "cpu" and torch.cuda.is_available() else "cpu"
+                )
+            except:
+                _device = "cpu"
+
             # Calculate morphogenesis
             from .pv_morphogenesis import morphogenesis
 
@@ -781,6 +794,8 @@ class PVCB:
                 source_adata=source_adata,
                 target_adata=target_adata,
                 source_pc_model=active_model,
+                mapping_device=_device,
+                mapping_method=str(self._state[self.morphoMAPPINGmethod]),
                 mapping_factor=float(self._state[self.morphoMAPPING]),
                 morphofield_factor=int(self._state[self.morphoFIELD]),
                 morphopath_t_end=int(self._state[self.morphoTEND]),

@@ -294,7 +294,7 @@ class Viewer:
 
                 _device = str(self._state.slices_align_device).lower()
                 _device = (
-                    "0" if _device == "gpu" and torch.cuda.is_available() else "cpu"
+                    _device if _device != "cpu" and torch.cuda.is_available() else "cpu"
                 )
 
                 if str(self._state.slices_align_method) == "Paste":
@@ -532,7 +532,7 @@ class Viewer:
         """Reconstruct the backbone model based on the active point cloud model"""
         if self._state.custom_func is True:
             if self._state.reconstruct_custom_model is True:
-                from .pv_backbone import construct_backbone
+                from .pv_custom import construct_backbone
 
                 pc_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
                 custom_model = construct_backbone(

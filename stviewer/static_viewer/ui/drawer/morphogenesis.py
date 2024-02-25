@@ -47,8 +47,29 @@ def morphogenesis_card_content():
 
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
+            vuetify.VSelect(
+                v_model=("morpho_mapping_method", "GP"),
+                items=(["OT", "GP"],),
+                label="Mapping method",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
             vuetify.VTextField(
-                v_model=("morpho_mapping_factor", 0.001),
+                v_model=("morpho_mapping_device", "cpu"),
+                label="Mapping device",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1",
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
+            vuetify.VTextField(
+                v_model=("morpho_mapping_factor", 0.2),
                 label="Mapping Factor",
                 hide_details=True,
                 dense=True,
