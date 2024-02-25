@@ -91,3 +91,21 @@ def ui_container(
                     ),
                 ):
                     vtk_widgets.VtkMesh("meshModel", state=("meshModel",))
+
+                # Custom model visibility
+                if state.custom_func is True:
+                    with vtk_widgets.VtkGeometryRepresentation(
+                        id="customModel",
+                        v_if="customModel",
+                        actor=("{ visibility: customModelVisible }",),
+                        property=(
+                            {
+                                "lineWidth": state.custom_model_size,
+                                "pointSize": state.custom_model_size,
+                                "representation": 1,
+                                "opacity": 1,
+                                "ambient": 0.1,
+                            },
+                        ),
+                    ):
+                        vtk_widgets.VtkMesh("customModel", state=("customModel",))

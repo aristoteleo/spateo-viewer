@@ -62,7 +62,6 @@ class Viewer:
         self.SELECTION = f"selectData"
         self.UPLOAD_ANNDATA = f"upload_anndata"
         self.SLICES_ALIGNMENT = "slices_alignment"
-        self.RECONSTRUCT_MESH = f"reconstruct_mesh"
         self.PICKING_GROUP = f"picking_group"
         self.OVERWRITE = f"overwrite"
         self.OUTPUT_PATH_AM = f"activeModel_output"
@@ -79,7 +78,7 @@ class Viewer:
         self._state.change("slices_align_device")(self.on_slices_alignment)
         self._state.change("slices_align_factor")(self.on_slices_alignment)
         self._state.change("slices_align_max_iter")(self.on_slices_alignment)
-        self._state.change(self.RECONSTRUCT_MESH)(self.on_reconstruct_mesh)
+        self._state.change("reconstruct_mesh")(self.on_reconstruct_mesh)
         self._state.change("mc_factor")(self.on_reconstruct_mesh)
         self._state.change("mesh_voronoi")(self.on_reconstruct_mesh)
         self._state.change("mesh_smooth_factor")(self.on_reconstruct_mesh)
@@ -87,10 +86,15 @@ class Viewer:
         self._state.change("clip_pc_with_mesh")(self.on_clip_pc_model)
         self._state.change(self.PICKING_GROUP)(self.on_picking_pc_model)
         self._state.change(self.OVERWRITE)(self.on_picking_pc_model)
-
         self._state.change(self.OUTPUT_PATH_AM)(self.on_download_active_model)
         self._state.change(self.OUTPUT_PATH_MESH)(self.on_download_mesh_model)
         self._state.change(self.OUTPUT_PATH_ADATA)(self.on_download_anndata)
+
+        # Custom controller
+        if self._state.custom_func is True:
+            self._state.change("reconstruct_custom_model")(self.on_custom_callback)
+            self._state.change("custom_parameter1")(self.on_custom_callback)
+            self._state.change("custom_parameter2")(self.on_custom_callback)
 
     ##########################
     # Selecting active model #
@@ -517,4 +521,34 @@ class Viewer:
                 download_adata_object.write_h5ad(
                     f"stv_model/{self._state[self.OUTPUT_PATH_ADATA]}",
                     compression="gzip",
+                )
+
+    ####################
+    # Custom Callbacks #
+    ####################
+
+    @vuwrap
+    def on_custom_callback(self, **kwargs):
+        """Reconstruct the backbone model based on the active point cloud model"""
+        if self._state.custom_func is True:
+            if self._state.reconstruct_custom_model is True:
+                from .pv_backbone import construct_backbone
+
+                pc_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+                custom_model = construct_backbone(
+                    model=pc_model,
+                    spatial_key=None,
+                    nodes_key="nodes",
+                    rd_method=str(self._state.custom_parameter1),
+                    num_nodes=int(self._state.custom_parameter2),
+                )
+                custom_model.cell_data["Default"] = np.ones(
+                    shape=(custom_model.n_cells, 1)
+                )
+                self._plotter.add_mesh(custom_model, name="customModel")
+                self._plotter.actors["customModel"].prop.SetRepresentationToWireframe()
+                self._state.customModel = vtk_mesh(
+                    custom_model,
+                    point_arrays=["nodes"],
+                    cell_arrays=["Default"],
                 )

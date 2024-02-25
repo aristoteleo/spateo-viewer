@@ -45,3 +45,16 @@ init_setting_parameters = {
     "background_color": "[0, 0, 0]",
     "pixel_ratio": pyautogui.size()[0] / 500,
 }
+
+# costum init parameters
+init_custom_parameters = {
+    "custom_func": False,
+    "reconstruct_custom_model": False,
+    "customModel": None,
+    "customModelVisible": False,
+    "custom_model_size": pyautogui.size()[0] / 200,
+    "custom_model_output": None,
+    "show_custom_card": True,
+    "custom_parameter1": "ElPiGraph",
+    "custom_parameter2": 50,
+}

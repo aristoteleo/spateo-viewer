@@ -1,8 +1,3 @@
-from .alignment import align_card_panel
-from .model_point import pc_card_panel
-from .reconstruction import mesh_card_panel
-
-
 def _get_default_cmap():
     import matplotlib as mpl
     from matplotlib.colors import LinearSegmentedColormap
@@ -17,19 +12,31 @@ def _get_default_cmap():
     return "default_cmap"
 
 
-def ui_drawer(layout):
+def ui_drawer(server, layout):
     """
     Generate standard Drawer for Spateo UI.
 
     Args:
+        server: The trame server.
         layout: The layout object.
     """
 
     _get_default_cmap()
     with layout.drawer as dr:
         # Active model
+        from .model_point import pc_card_panel
+
         pc_card_panel()
         # Slices alignment
+        from .alignment import align_card_panel
+
         align_card_panel()
         # Mesh reconstruction
+        from .reconstruction import mesh_card_panel
+
         mesh_card_panel()
+        # Custom
+        if server.state.custom_func is True:
+            from .custom_card import custom_card_panel
+
+            custom_card_panel()

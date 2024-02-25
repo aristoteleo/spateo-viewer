@@ -11,6 +11,7 @@ from .interactive_viewer import (
     create_plotter,
     init_active_parameters,
     init_align_parameters,
+    init_custom_parameters,
     init_mesh_parameters,
     init_models,
     init_picking_parameters,
@@ -63,6 +64,12 @@ state.update(
         "scalarParameters": {**pdd, **cdd},
     }
 )
+# Custom init parameters
+if init_custom_parameters["custom_func"] is True:
+    state.update(init_custom_parameters)
+else:
+    state.update({"custom_func": False})
+
 
 # GUI
 ui_standard_layout = ui_layout(server=interactive_server, template_name="main")
@@ -80,7 +87,7 @@ with ui_standard_layout as layout:
     # -----------------------------------------------------------------------------
     # Drawer
     # -----------------------------------------------------------------------------
-    ui_drawer(layout=layout)
+    ui_drawer(server=interactive_server, layout=layout)
 
     # -----------------------------------------------------------------------------
     # Main Content
