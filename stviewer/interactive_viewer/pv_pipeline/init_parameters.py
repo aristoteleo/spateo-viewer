@@ -49,9 +49,9 @@ init_setting_parameters = {
 # costum init parameters
 init_custom_parameters = {
     "custom_func": False,
-    "reconstruct_custom_model": False,
-    "customModel": None,
-    "customModelVisible": False,
+    "custom_analysis": False,
+    "custom_model": None,
+    "custom_model_visible": False,
     "custom_model_size": pyautogui.size()[0] / 200,
     "custom_model_output": None,
     "show_custom_card": True,

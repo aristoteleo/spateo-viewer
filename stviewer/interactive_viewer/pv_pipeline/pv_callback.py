@@ -92,7 +92,7 @@ class Viewer:
 
         # Custom controller
         if self._state.custom_func is True:
-            self._state.change("reconstruct_custom_model")(self.on_custom_callback)
+            self._state.change("custom_analysis")(self.on_custom_callback)
 
     ##########################
     # Selecting active model #
@@ -529,23 +529,24 @@ class Viewer:
     def on_custom_callback(self, **kwargs):
         """Reconstruct the backbone model based on the active point cloud model"""
         if self._state.custom_func is True:
-            if self._state.reconstruct_custom_model is True:
+            if self._state.custom_analysis is True:
+                pc_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
+
                 from .pv_custom import construct_backbone
 
-                pc_model = self._plotter.actors["activeModel"].mapper.dataset.copy()
                 custom_model = construct_backbone(
                     model=pc_model,
                     spatial_key=None,
                     nodes_key="nodes",
-                    rd_method=str(self._state.custom_parameter1),
-                    num_nodes=int(self._state.custom_parameter2),
+                    rd_method=str(self._state["custom_parameter1"]),
+                    num_nodes=int(self._state["custom_parameter2"]),
                 )
                 custom_model.cell_data["Default"] = np.ones(
                     shape=(custom_model.n_cells, 1)
                 )
-                self._plotter.add_mesh(custom_model, name="customModel")
-                self._plotter.actors["customModel"].prop.SetRepresentationToWireframe()
-                self._state.customModel = vtk_mesh(
+                self._plotter.add_mesh(custom_model, name="custom_model")
+                self._plotter.actors["custom_model"].prop.SetRepresentationToWireframe()
+                self._state["custom_model"] = vtk_mesh(
                     custom_model,
                     point_arrays=["nodes"],
                     cell_arrays=["Default"],

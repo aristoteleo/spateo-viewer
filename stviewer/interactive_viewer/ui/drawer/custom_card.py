@@ -5,8 +5,8 @@ def custom_card_content():
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
-                v_model=("reconstruct_custom_model", False),
-                label="Reconstruct Custom Model",
+                v_model=("custom_analysis", False),
+                label="Custom analysis calculation",
                 on_icon="mdi-billiards-rack",
                 off_icon="mdi-dots-triangle",
                 dense=True,
@@ -15,8 +15,8 @@ def custom_card_content():
             )
         with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
-                v_model=("customModelVisible", False),
-                label="Visibility of Custom Model",
+                v_model=("custom_model_visible", False),
+                label="Custom model visibility",
                 on_icon="mdi-eye-outline",
                 off_icon="mdi-eye-off-outline",
                 dense=True,

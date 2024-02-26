@@ -7,25 +7,13 @@ except ImportError:
 
 from typing import Optional, Tuple, Union
 
-import anndata as ad
 import numpy as np
-import pandas as pd
-from anndata import AnnData
 from pyvista import PolyData, UnstructuredGrid
-from scipy.sparse import issparse
-from scipy.spatial.distance import cdist
 
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
-
-import numpy as np
-import tensorflow as tf
-from dynamo.tools.sampling import sample
-from keras import optimizers
-from keras.layers import Dense, Input
-from keras.models import Model
 
 #####################################################################
 # Principal curves algorithm                                        #
@@ -38,15 +26,6 @@ from keras.models import Model
 # Reference: https://doi.org/10.1016/j.cam.2015.11.041              #
 # ================================================================= #
 #####################################################################
-
-
-def orth_dist(y_true, y_pred):
-    """
-    Loss function for the NLPCA NN. Returns the sum of the orthogonal
-    distance from the output tensor to the real tensor.
-    """
-    loss = tf.math.reduce_sum((y_true - y_pred) ** 2)
-    return loss
 
 
 class NLPCA(object):
@@ -79,6 +58,13 @@ class NLPCA(object):
             lr: Learning rate for backprop. Defaults to .01
             verbose: Verbose = 0 mutes the training text from Keras. Defaults to 0.
         """
+        try:
+            from keras.models import Model
+        except ImportError:
+            raise ImportError(
+                "You need to install the package `tensorflow`."
+                "\nInstall tensorflow via `pip install -U tensorflow`."
+            )
         num_dim = data.shape[1]  # get number of dimensions for pts
 
         # create models, base and intermediate
@@ -134,6 +120,24 @@ class NLPCA(object):
         """
         # Create layers:
         # Function G
+        try:
+            import tensorflow as tf
+            from keras import optimizers
+            from keras.layers import Dense, Input
+            from keras.models import Model
+        except ImportError:
+            raise ImportError(
+                "You need to install the package `tensorflow`."
+                "\nInstall tensorflow via `pip install -U tensorflow`."
+            )
+
+        def orth_dist(y_true, y_pred):
+            """
+            Loss function for the NLPCA NN. Returns the sum of the orthogonal
+            distance from the output tensor to the real tensor.
+            """
+            return tf.math.reduce_sum((y_true - y_pred) ** 2)
+
         input = Input(shape=(num_dim,))  # input layer
         mapping = Dense(nodes, activation="sigmoid")(input)  # mapping layer
         bottle = Dense(1, activation="sigmoid")(mapping)  # bottle-neck layer
@@ -362,7 +366,13 @@ def PrinCurve_method(
         nodes: The nodes in the principal tree.
         edges: The edges between nodes in the principal tree.
     """
-
+    try:
+        from dynamo.tools.sampling import sample
+    except ImportError:
+        raise ImportError(
+            "You need to install the package `dynamo`."
+            "\nInstall dynamo via `pip install -U dynamo-release`."
+        )
     PrinCurve_kwargs = {
         "epochs": epochs,
         "lr": lr,
