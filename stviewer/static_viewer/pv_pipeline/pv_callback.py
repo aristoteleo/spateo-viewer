@@ -340,6 +340,11 @@ class PVCB:
         self._state.change(self.PLOTTER_SCREENSHOT)(self.on_plotter_screenshot)
         self._state.change(self.PLOTTER_ANIMATION)(self.on_plotter_animation)
 
+        # Custom controller
+        if self._state.custom_func is True:
+            self._state.change("custom_analysis")(self.on_custom_callback)
+            self._state.change("custom_model_visible")(self.on_show_custom_model)
+
     @vuwrap
     def on_scalars_change(self, **kwargs):
         _active_id = (
@@ -970,3 +975,64 @@ class PVCB:
                 self._plotter.orbit_on_path(
                     path, write_frames=True, viewup=viewup, step=0.1
                 )
+
+    ####################
+    # Custom Callbacks #
+    ####################
+
+    @vuwrap
+    def on_custom_callback(self, **kwargs):
+        """RNA velocity."""
+        if self._state["custom_func"] is True:
+            if self._state["custom_analysis"] is True:
+                if "custom_model" in self._plotter.actors.keys():
+                    self._plotter.remove_actor(self._plotter.actors["custom_model"])
+                _active_id = (
+                    1
+                    if int(self._state.active_id) == 0
+                    else int(self._state.active_id) - 1
+                )
+                active_name = self._state.actor_ids[_active_id]
+                active_model = self._plotter.actors[active_name].mapper.dataset.copy()
+                active_model_index = active_model.point_data["obs_index"]
+                adata = abstract_anndata(path=self._state.anndata_path)[
+                    active_model_index, :
+                ]
+
+                # RNA velocity
+                from .pv_custom import RNAvelocity
+
+                pc_model, vectors = RNAvelocity(
+                    adata=adata,
+                    pc_model=active_model,
+                    layer=str(self._state["custom_parameter1"]),
+                    data_preprocess=str(self._state["custom_parameter2"]),
+                    basis_pca=str(self._state["custom_parameter3"]),
+                    basis_umap=str(self._state["custom_parameter4"]),
+                    harmony_debatch=bool(self._state["custom_parameter5"]),
+                    group_key=str(self._state["custom_parameter6"]),
+                    n_neighbors=int(self._state["custom_parameter7"]),
+                    n_pca_components=int(self._state["custom_parameter8"]),
+                    n_vectors_downsampling=self._state["custom_parameter9"],
+                    vectors_size=float(self._state["custom_parameter10"]),
+                )
+
+                self._plotter.actors[active_name].mapper.dataset = pc_model
+                CustomModel_actor = self._plotter.add_mesh(
+                    vectors,
+                    scalars=f"speed_{str(self._state['custom_parameter3'])}",
+                    style="surface",
+                    show_scalar_bar=False,
+                    name="custom_model",
+                )
+                CustomModel_actor.mapper.scalar_visibility = True
+                CustomModel_actor.SetVisibility(self._state["custom_model_visible"])
+                self._ctrl.view_update()
+
+    @vuwrap
+    def on_show_custom_model(self, **kwargs):
+        """Toggle rna velocity vector model visibility."""
+        if "custom_model" in self._plotter.actors.keys():
+            custom_actor = self._plotter.actors["custom_model"]
+            custom_actor.SetVisibility(self._state["custom_model_visible"])
+        self._ctrl.view_update()

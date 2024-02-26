@@ -42,3 +42,21 @@ init_output_parameters = {
     "animation_npoints": 50,
     "animation_framerate": 10,
 }
+
+# costum init parameters
+init_custom_parameters = {
+    "custom_func": False,
+    "custom_analysis": False,
+    "custom_model": None,
+    "custom_model_visible": False,
+    "custom_parameter1": "X",
+    "custom_parameter2": "recipe_monocle",
+    "custom_parameter3": "pca",
+    "custom_parameter4": "umap",
+    "custom_parameter5": False,
+    "custom_parameter6": "None",
+    "custom_parameter7": 30,
+    "custom_parameter8": 30,
+    "custom_parameter9": "None",
+    "custom_parameter10": 1,
+}

@@ -39,7 +39,7 @@ def pc_card_content():
         with vuetify.VCol(cols="4"):
             vuetify.VCheckbox(
                 v_model=("pc_overwrite", False),
-                label="Add Group",
+                label="Add picked Group",
                 on_icon="mdi-plus-thick",
                 off_icon="mdi-close-thick",
                 dense=True,

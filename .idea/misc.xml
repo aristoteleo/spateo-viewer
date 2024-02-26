@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.8 (BioProjects)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.8 (BioProjects)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="scanpy_env" project-jdk-type="Python SDK" />
 </project>

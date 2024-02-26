@@ -93,8 +93,6 @@ class Viewer:
         # Custom controller
         if self._state.custom_func is True:
             self._state.change("reconstruct_custom_model")(self.on_custom_callback)
-            self._state.change("custom_parameter1")(self.on_custom_callback)
-            self._state.change("custom_parameter2")(self.on_custom_callback)
 
     ##########################
     # Selecting active model #

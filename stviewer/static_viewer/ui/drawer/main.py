@@ -3,19 +3,8 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-from typing import Optional
-
-import matplotlib.pyplot as plt
 from pyvista import BasePlotter
-from trame.widgets import trame, vuetify
-
-from stviewer.static_viewer.pv_pipeline import PVCB
-
-from .model_mesh import mesh_card_content
-from .model_point import pc_card_content
-from .morphogenesis import morphogenesis_card_content
-from .output import output_panel
-from .pipeline import pipeline_panel
+from trame.widgets import vuetify
 
 
 def _get_default_cmap():
@@ -53,9 +42,14 @@ def ui_drawer(
     """
 
     _get_default_cmap()
+    from stviewer.static_viewer.pv_pipeline import PVCB
+
     PVCB(server=server, plotter=plotter, suppress_rendering=mode == "client")
+
     with layout.drawer as dr:
         # Pipeline
+        from .pipeline import pipeline_panel
+
         pipeline_panel(server=server, plotter=plotter)
 
         # Active model
@@ -86,6 +80,9 @@ def ui_drawer(
                 v_if=("show_model_card",),
             ):
                 items = ["Model", "Morphogenesis"]
+                items = (
+                    items + ["Custom"] if server.state.custom_func is True else items
+                )
                 with vuetify.VTabs(v_model=("pc_active_tab", 0), left=True):
                     for item in items:
                         vuetify.VTab(
@@ -97,15 +94,29 @@ def ui_drawer(
                     style="width: 100%; height: 100%;",
                 ):
                     with vuetify.VTabItem(value=(0,)):
+                        from .model_point import pc_card_content
+
                         pc_card_content()
                     with vuetify.VTabItem(value=(1,)):
+                        from .morphogenesis import morphogenesis_card_content
+
                         morphogenesis_card_content()
+                    # Custom
+                    if server.state.custom_func is True:
+                        with vuetify.VTabItem(value=(2,)):
+                            from .custom_card import custom_card_content
+
+                            custom_card_content()
             with vuetify.VCardText(
                 classes="py-2",
                 v_show=f"active_model_type === 'Mesh'",
                 v_if=("show_model_card",),
             ):
+                from .model_mesh import mesh_card_content
+
                 mesh_card_content()
 
         # Output
+        from .output import output_panel
+
         output_panel()

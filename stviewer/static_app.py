@@ -13,6 +13,7 @@ from .server import get_trame_server
 from .static_viewer import (
     create_plotter,
     init_actors,
+    init_custom_parameters,
     init_mesh_parameters,
     init_morphogenesis_parameters,
     init_output_parameters,
@@ -52,7 +53,6 @@ state.update(init_pc_parameters)
 state.update(init_mesh_parameters)
 state.update(init_morphogenesis_parameters)
 state.update(init_output_parameters)
-
 state.update(
     {
         "init_dataset": True,
@@ -72,6 +72,11 @@ state.update(
         "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps(),
     }
 )
+# Custom init parameters
+if init_custom_parameters["custom_func"] is True:
+    state.update(init_custom_parameters)
+else:
+    state.update({"custom_func": False})
 
 
 # Upload directory
