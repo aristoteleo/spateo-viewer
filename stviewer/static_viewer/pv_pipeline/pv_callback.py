@@ -308,6 +308,9 @@ class PVCB:
         self.morphoPREDICTEDMODELS = f"morphopath_predicted_models"
         self.morphoSHOWFIELD = f"morphofield_visibile"
         self.morphoSHOWTRAJECTORY = f"morphopath_visibile"
+        # Interpolation
+        self.interpolationCALCULATION = f"cal_interpolation"
+        self.interpolationCALdevice = "interpolation_device"
 
         # output
         self.PLOTTER_SCREENSHOT = "screenshot_path"
@@ -339,6 +342,11 @@ class PVCB:
         self._state.change(self.morphoSHOWFIELD)(self.on_show_morpho_model_change)
         self._state.change(self.morphoSHOWTRAJECTORY)(self.on_show_morpho_model_change)
         self._state.change(self.morphoANIMATION)(self.on_morphogenesis_animation)
+
+        self._state.change(self.interpolationCALCULATION)(self.on_cal_interpolation)
+
+        self._state.change("custom_analysis")(self.on_custom_callback)
+        self._state.change("custom_model_visible")(self.on_show_custom_model)
 
         self._state.change(self.PLOTTER_SCREENSHOT)(self.on_plotter_screenshot)
         self._state.change(self.PLOTTER_ANIMATION)(self.on_plotter_animation)
@@ -857,7 +865,7 @@ class PVCB:
             try:
                 import torch
 
-                _device = str(self._state.morphoMAPPINGdevice).lower()
+                _device = str(self._state[self.morphoMAPPINGdevice]).lower()
                 _device = (
                     _device if _device != "cpu" and torch.cuda.is_available() else "cpu"
                 )
@@ -1010,6 +1018,51 @@ class PVCB:
                             start_block.overwrite(blocks[block_name])
                             pl.write_frame()
                         pl.close()
+
+    @vuwrap
+    def on_cal_interpolation(self, **kwargs):
+        """Learn a continuous mapping from space to gene expression pattern with the Gaussian Process method."""
+        if self._state[self.interpolationCALCULATION]:
+            # source anndata
+            _active_id = (
+                1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+            )
+            active_name = self._state.actor_ids[_active_id]
+            active_actor = self._plotter.actors[active_name]
+            active_model_index = active_actor.mapper.dataset.point_data["obs_index"]
+            source_adata = abstract_anndata(path=self._state.anndata_path)[
+                active_model_index, :
+            ]
+
+            # device
+            try:
+                import torch
+
+                _device = str(self._state[self.interpolationCALdevice]).lower()
+                _device = (
+                    _device if _device != "cpu" and torch.cuda.is_available() else "cpu"
+                )
+            except:
+                _device = "cpu"
+
+            # Calculate interpolated gene pattern
+            from .pv_interpolation import gp_interpolation
+
+            interpolated_adata = gp_interpolation(
+                source_adata=source_adata.copy(),
+                target_points=np.asarray(source_adata.obsm[self._state[self.pcCOORDS]]),
+                spatial_key=self._state[self.pcCOORDS],
+                keys=self._state[self.pcSCALARS],
+                device=_device,
+                training_iter=100,
+            )
+            active_actor.mapper.dataset.point_data[
+                f"{self._state[self.pcSCALARS]}_interpolated"
+            ] = np.asarray(
+                interpolated_adata[:, self._state[self.pcSCALARS]].X.flatten()
+            )
+            self._plotter.actors[active_name] = active_actor
+            self._ctrl.view_update()
 
     @vuwrap
     def on_plotter_screenshot(self, **kwargs):

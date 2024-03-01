@@ -14,6 +14,7 @@ from .static_viewer import (
     create_plotter,
     init_actors,
     init_custom_parameters,
+    init_interpolation_parameters,
     init_mesh_parameters,
     init_morphogenesis_parameters,
     init_output_parameters,
@@ -52,6 +53,7 @@ plotter = create_plotter()
 state.update(init_pc_parameters)
 state.update(init_mesh_parameters)
 state.update(init_morphogenesis_parameters)
+state.update(init_interpolation_parameters)
 state.update(init_output_parameters)
 state.update(
     {

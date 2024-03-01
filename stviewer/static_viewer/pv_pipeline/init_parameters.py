@@ -7,7 +7,7 @@ init_pc_parameters = {
     "pc_opacity_value": 1.0,
     "pc_ambient_value": 0.2,
     "pc_color_value": "None",
-    "pc_colormap_value": "Set3_r",
+    "pc_colormap_value": "default_cmap",
     "pc_point_size_value": 8,
     "pc_add_legend": False,
     "pc_picking_group": "None",
@@ -36,6 +36,10 @@ init_morphogenesis_parameters = {
     "morphopath_visibile": False,
     "morphopath_predicted_models": None,
     "morphopath_animation_path": None,
+}
+init_interpolation_parameters = {
+    "cal_interpolation": False,
+    "interpolation_device": "cpu",
 }
 init_output_parameters = {
     "screenshot_path": None,

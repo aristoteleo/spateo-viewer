@@ -5,6 +5,28 @@ from trame.widgets import vuetify
 def pc_card_content():
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("anndata_info", False),
+                label="Anndata Info",
+                on_icon="mdi-information",
+                off_icon="mdi-information-off",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("pc_reload", False),
+                label="Reload Model",
+                on_icon="mdi-restore",
+                off_icon="mdi-restore",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 label="Scalars",
                 v_model=("pc_scalars_value", "None"),
@@ -14,6 +36,18 @@ def pc_card_content():
                 outlined=True,
                 classes="pt-1",
             )
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("pc_add_legend", True),
+                label="Add Legend",
+                on_icon="mdi-view-grid-plus",
+                off_icon="mdi-view-grid",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
             vuetify.VSelect(
                 v_model=("pc_picking_group", None),
@@ -25,17 +59,6 @@ def pc_card_content():
                 classes="pt-1",
                 label="Picking Group",
             )
-    with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="6"):
-            vuetify.VCheckbox(
-                v_model=("pc_add_legend", True),
-                label="Add Legend",
-                on_icon="mdi-view-grid-plus",
-                off_icon="mdi-view-grid",
-                dense=True,
-                hide_details=True,
-                classes="pt-1",
-            )
         with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
                 v_model=("pc_overwrite", False),
@@ -46,23 +69,23 @@ def pc_card_content():
                 hide_details=True,
                 classes="pt-1",
             )
+
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
-            vuetify.VCheckbox(
-                v_model=("pc_reload", False),
-                label="Reload Model",
-                on_icon="mdi-restore",
-                off_icon="mdi-restore",
-                dense=True,
+            vuetify.VTextField(
+                v_model=("interpolation_device", "cpu"),
+                label="Interpolation device",
                 hide_details=True,
+                dense=True,
+                outlined=True,
                 classes="pt-1",
             )
         with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
-                v_model=("anndata_info", False),
-                label="Anndata Info",
-                on_icon="mdi-information",
-                off_icon="mdi-information-off",
+                v_model=("cal_interpolation", True),
+                label="GP interpolation",
+                on_icon="mdi-smoke-detector",
+                off_icon="mdi-smoke-detector-off",
                 dense=True,
                 hide_details=True,
                 classes="pt-1",
@@ -112,6 +135,7 @@ def pc_card_content():
                 outlined=True,
                 classes="pt-1",
             )
+
     # Opacity
     vuetify.VSlider(
         v_model=("pc_opacity_value", 1.0),
