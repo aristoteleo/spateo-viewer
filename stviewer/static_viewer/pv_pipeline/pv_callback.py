@@ -6,6 +6,7 @@ import matplotlib.colors as mc
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pyautogui
 import pyvista as pv
 from trame.app.file_upload import ClientFile
 
@@ -390,11 +391,15 @@ class PVCB:
 
             if "anndata_info_actor" in self._plotter.actors.keys():
                 self._plotter.remove_actor(self._plotter.actors["anndata_info_actor"])
+
+            cbg_color = (
+                "white" if self._plotter.background_color.name is "black" else "black"
+            )
             self._plotter.add_text(
                 text=ad_info,
                 font="arial",
-                color="white",
-                font_size=15,
+                color=cbg_color,
+                font_size=int(pyautogui.size()[0] / 200),
                 position="upper_left",
                 name="anndata_info_actor",
             )
@@ -533,15 +538,20 @@ class PVCB:
                 self._plotter.remove_scalar_bar()
             if self._plotter.legend:
                 self._plotter.remove_legend()
+
+            cbg_color = (
+                "white" if self._plotter.background_color.name is "black" else "black"
+            )
             if "None" in self._state.pc_scalars_raw.keys():
                 self._plotter.add_scalar_bar(
                     self._state[self.pcSCALARS],
                     mapper=active_actor.mapper,
+                    color=cbg_color,
                     bold=True,
                     interactive=False,
                     vertical=True,
-                    title_font_size=30,
-                    label_font_size=25,
+                    title_font_size=int(pyautogui.size()[0] / 80),
+                    label_font_size=int(pyautogui.size()[0] / 100),
                     outline=False,
                     fmt="%10.2f",
                 )
@@ -784,6 +794,10 @@ class PVCB:
 
             if "model_morphology" in self._plotter.actors.keys():
                 self._plotter.remove_actor(self._plotter.actors["model_morphology"])
+
+            cbg_color = (
+                "white" if self._plotter.background_color.name is "black" else "black"
+            )
             self._plotter.add_text(
                 text=f"Length (x) of model: {model_x}\n"
                 f"Width (y) of model: {model_y}\n"
@@ -791,9 +805,9 @@ class PVCB:
                 f"Surface area of model: {model_sa}\n"
                 f"Volume of model: {model_v}\n",
                 font="arial",
-                color="white",
-                font_size=15,
-                position="upper_left",
+                color=cbg_color,
+                font_size=int(pyautogui.size()[0] / 200),
+                position="lower_left",
                 name="model_morphology",
             )
         else:
