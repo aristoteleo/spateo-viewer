@@ -13,6 +13,7 @@ init_pc_parameters = {
     "pc_picking_group": "None",
     "pc_overwrite": False,
     "pc_reload": False,
+    "anndata_info": False,
 }
 init_mesh_parameters = {
     "mesh_opacity_value": 0.6,

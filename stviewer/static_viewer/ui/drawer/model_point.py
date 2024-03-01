@@ -26,7 +26,7 @@ def pc_card_content():
                 label="Picking Group",
             )
     with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="4"):
+        with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
                 v_model=("pc_add_legend", True),
                 label="Add Legend",
@@ -36,7 +36,7 @@ def pc_card_content():
                 hide_details=True,
                 classes="pt-1",
             )
-        with vuetify.VCol(cols="4"):
+        with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
                 v_model=("pc_overwrite", False),
                 label="Add picked Group",
@@ -46,12 +46,23 @@ def pc_card_content():
                 hide_details=True,
                 classes="pt-1",
             )
-        with vuetify.VCol(cols="4"):
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
                 v_model=("pc_reload", False),
                 label="Reload Model",
                 on_icon="mdi-restore",
                 off_icon="mdi-restore",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("anndata_info", False),
+                label="Anndata Info",
+                on_icon="mdi-information",
+                off_icon="mdi-information-off",
                 dense=True,
                 hide_details=True,
                 classes="pt-1",

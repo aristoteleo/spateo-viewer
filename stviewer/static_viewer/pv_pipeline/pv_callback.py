@@ -286,6 +286,7 @@ class PVCB:
         self.pcPICKINGGROUP = f"pc_picking_group"
         self.pcOVERWRITE = f"pc_overwrite"
         self.pcRELOAD = f"pc_reload"
+        self.adINFO = f"anndata_info"
         # mesh model
         self.meshOPACITY = f"mesh_opacity_value"
         self.meshAMBIENT = f"mesh_ambient_value"
@@ -325,6 +326,7 @@ class PVCB:
         self._state.change(self.pcPICKINGGROUP)(self.on_picking_pc_model)
         self._state.change(self.pcOVERWRITE)(self.on_picking_pc_model)
         self._state.change(self.pcRELOAD)(self.on_reload_main_model)
+        self._state.change(self.adINFO)(self.on_show_anndata_info)
 
         self._state.change(self.meshOPACITY)(self.on_opacity_change)
         self._state.change(self.meshAMBIENT)(self.on_ambient_change)
@@ -344,6 +346,62 @@ class PVCB:
         if self._state.custom_func is True:
             self._state.change("custom_analysis")(self.on_custom_callback)
             self._state.change("custom_model_visible")(self.on_show_custom_model)
+
+    @vuwrap
+    def on_show_anndata_info(self, **kwargs):
+        if self._state[self.adINFO]:
+            _active_id = (
+                1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+            )
+            active_name = self._state.actor_ids[_active_id]
+            active_actor = self._plotter.actors[active_name]
+            _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
+            _adata = abstract_anndata(path=self._state.anndata_path)[_obs_index, :]
+
+            # Anndata basic info
+            obs_str, var_str, uns_str, obsm_str, layers_str = (
+                f"    obs:",
+                f"    var:",
+                f"    uns:",
+                f"    obsm:",
+                f"    layers:",
+            )
+
+            if len(list(_adata.obs.keys())) != 0:
+                for key in list(_adata.obs.keys()):
+                    obs_str = obs_str + f" '{key}',"
+            if len(list(_adata.var.keys())) != 0:
+                for key in list(_adata.var.keys()):
+                    var_str = var_str + f" '{key}',"
+            if len(list(_adata.uns.keys())) != 0:
+                for key in list(_adata.uns.keys()):
+                    uns_str = uns_str + f" '{key}',"
+            if len(list(_adata.obsm.keys())) != 0:
+                for key in list(_adata.obsm.keys()):
+                    obsm_str = obsm_str + f" '{key}',"
+            if len(list(_adata.layers.keys())) != 0:
+                for key in list(_adata.layers.keys()):
+                    layers_str = layers_str + f" '{key}',"
+
+            ad_info = f"AnnData object with n_obs × n_vars = {_adata.shape[0]} × {_adata.shape[1]}\n"
+            for ad_str in [obs_str, var_str, uns_str, obsm_str, layers_str]:
+                if ad_str.endswith(","):
+                    ad_info = ad_info + f"{ad_str[:-1]}\n"
+
+            if "anndata_info_actor" in self._plotter.actors.keys():
+                self._plotter.remove_actor(self._plotter.actors["anndata_info_actor"])
+            self._plotter.add_text(
+                text=ad_info,
+                font="arial",
+                color="white",
+                font_size=15,
+                position="upper_left",
+                name="anndata_info_actor",
+            )
+        else:
+            if "anndata_info_actor" in self._plotter.actors.keys():
+                self._plotter.remove_actor(self._plotter.actors["anndata_info_actor"])
+        self._ctrl.view_update()
 
     @vuwrap
     def on_scalars_change(self, **kwargs):
