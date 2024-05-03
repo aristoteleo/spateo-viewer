@@ -6,6 +6,7 @@ import matplotlib.colors as mc
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import psutil
 import pyautogui
 import pyvista as pv
 from trame.app.file_upload import ClientFile
@@ -59,6 +60,7 @@ class Viewer:
         self.AXIS = f"{plotter._id_name}_axis_visiblity"
         self.SCREENSHOT = f"{plotter._id_name}_download_screenshot"
         self.SERVER_RENDERING = f"{plotter._id_name}_use_server_rendering"
+        self.MEMORY_USAGE = f"{plotter._id_name}_memory_usage"
 
         # controller
         ctrl.get_render_window = lambda: self.plotter.render_window
@@ -71,6 +73,30 @@ class Viewer:
         self._state.change(self.EDGES)(self.on_edge_visiblity_change)
         self._state.change(self.AXIS)(self.on_axis_visiblity_change)
         self._state.change(self.SERVER_RENDERING)(self.on_rendering_mode_change)
+        self._state.change(self.MEMORY_USAGE)(self.on_memory_usage_change)
+
+    @vuwrap
+    def on_memory_usage_change(self, **kwargs):
+        if self._state[self.MEMORY_USAGE]:
+            if "model_memory" in self.plotter.actors.keys():
+                self.plotter.remove_actor(self.plotter.actors["model_memory"])
+
+            cbg_color = (
+                "white" if self.plotter.background_color.name is "black" else "black"
+            )
+            self.plotter.add_text(
+                text="Memory usage: %.4f GB"
+                % (psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024 / 1024),
+                font="arial",
+                color=cbg_color,
+                font_size=int(pyautogui.size()[0] / 200),
+                position="upper_right",
+                name="model_memory",
+            )
+        else:
+            if "model_memory" in self.plotter.actors.keys():
+                self.plotter.remove_actor(self.plotter.actors["model_memory"])
+        self._ctrl.view_update()
 
     @vuwrap
     def on_show_main_model_change(self, **kwargs):

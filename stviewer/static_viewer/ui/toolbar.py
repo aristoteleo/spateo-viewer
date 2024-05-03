@@ -97,6 +97,12 @@ def toolbar_widgets(
             icons=("mdi-lan-connect", "mdi-lan-disconnect"),
             tooltip=f"Toggle rendering mode ({{{{ {viewer.SERVER_RENDERING} ? 'remote' : 'local' }}}})",
         )
+    # Whether to visualize the memory usage
+    checkbox(
+        model=(viewer.MEMORY_USAGE, False),
+        icons=("mdi-memory", "mdi-memory"),
+        tooltip=f"Toggle memory usage ({{{{ {viewer.MEMORY_USAGE} ? 'on' : 'off' }}}})",
+    )
 
     vuetify.VDivider(vertical=True, classes="mx-1")
     # Whether to show the main model
