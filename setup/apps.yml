@@ -1,0 +1,35 @@
+trame:
+  cmd:
+    - python
+    - /deploy/stv_static_app.py
+    - --host
+    - ${host}
+    - --port
+    - ${port}
+    - --authKey
+    - ${secret}
+    - --server
+
+stv_static_app:
+  cmd:
+    - python
+    - /deploy/stv_static_app.py
+    - --host
+    - ${host}
+    - --port
+    - ${port}
+    - --authKey
+    - ${secret}
+    - --server
+
+stv_interactive_app:
+  cmd:
+    - python
+    - /deploy/stv_interactive_app.py
+    - --host
+    - ${host}
+    - --port
+    - ${port}
+    - --authKey
+    - ${secret}
+    - --server
