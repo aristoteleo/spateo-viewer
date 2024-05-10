@@ -9,4 +9,4 @@ if __name__ == "__main__":
 
     opts, args = getopt.getopt(sys.argv[1:], "p", ["port="])
     port = "1234" if len(opts) == 0 else opts[0][1]
-    static_server.start(port=port)
+    static_server.start(port=port, timeout=0)
