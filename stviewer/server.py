@@ -20,5 +20,5 @@ def get_trame_server(name: Optional[str] = None, **kwargs):
         Return a unique Server instance per given name.
     """
 
-    server = get_server(name=name, **kwargs)
+    server = get_server(name=name, client_type="vue2", **kwargs)
     return server
