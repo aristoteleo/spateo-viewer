@@ -13,3 +13,5 @@ pymeshfix>=0.16.2
 pyvista==0.40.0
 trame==2.5.2
 trame-server>=2.15.0
+trame-vtk
+trame-vuetify
