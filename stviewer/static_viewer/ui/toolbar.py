@@ -180,12 +180,12 @@ def toolbar_switch_model(
         rounded=True,
     )
     # Select local directory
-    button(
-        # Must use single-quote string for JS here
-        click=server.controller.open_directory,
-        icon="mdi-file-document-outline",
-        tooltip="Select directory",
-    )
+    # button(
+    #     # Must use single-quote string for JS here
+    #     click=server.controller.open_directory,
+    #     icon="mdi-file-document-outline",
+    #     tooltip="Select directory",
+    # )
 
 
 def ui_toolbar(

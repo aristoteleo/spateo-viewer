@@ -3,7 +3,7 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-from tkinter import Tk, filedialog
+# from tkinter import Tk, filedialog
 
 import matplotlib.pyplot as plt
 from trame.widgets import trame as trame_widgets
@@ -82,19 +82,19 @@ else:
 
 
 # Upload directory
-def open_directory():
-    dirpath = filedialog.askdirectory(title="Select Directory")
-    if not dirpath:
-        return
-    state.selected_dir = dirpath
-    ctrl.view_update()
-
-
-root = Tk()
-root.withdraw()
-root.wm_attributes("-topmost", 1)
-state.selected_dir = "None"
-ctrl.open_directory = open_directory
+# def open_directory():
+#     dirpath = filedialog.askdirectory(title="Select Directory")
+#     if not dirpath:
+#         return
+#     state.selected_dir = dirpath
+#     ctrl.view_update()
+#
+#
+# root = Tk()
+# root.withdraw()
+# root.wm_attributes("-topmost", 1)
+# state.selected_dir = "None"
+# ctrl.open_directory = open_directory
 
 
 # GUI
