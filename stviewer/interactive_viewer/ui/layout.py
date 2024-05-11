@@ -23,9 +23,7 @@ def ui_layout(
     from trame.ui.vuetify import SinglePageWithDrawerLayout
 
     if drawer_width is None:
-        import pyautogui
-
-        screen_width, screen_height = pyautogui.size()
+        screen_width, screen_height = (1920, 1080)
         drawer_width = int(screen_width * 0.15)
 
     return SinglePageWithDrawerLayout(

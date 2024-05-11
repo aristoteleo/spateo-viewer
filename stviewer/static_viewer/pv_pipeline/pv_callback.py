@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import psutil
-import pyautogui
 import pyvista as pv
 from trame.app.file_upload import ClientFile
 
@@ -89,7 +88,7 @@ class Viewer:
                 % (psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024 / 1024),
                 font="arial",
                 color=cbg_color,
-                font_size=int(pyautogui.size()[0] / 200),
+                font_size=10,
                 position="upper_right",
                 name="model_memory",
             )
@@ -433,7 +432,7 @@ class PVCB:
                 text=ad_info,
                 font="arial",
                 color=cbg_color,
-                font_size=int(pyautogui.size()[0] / 200),
+                font_size=10,
                 position="upper_left",
                 name="anndata_info_actor",
             )
@@ -584,8 +583,8 @@ class PVCB:
                     bold=True,
                     interactive=False,
                     vertical=True,
-                    title_font_size=int(pyautogui.size()[0] / 80),
-                    label_font_size=int(pyautogui.size()[0] / 100),
+                    title_font_size=25,
+                    label_font_size=20,
                     outline=False,
                     fmt="%10.2f",
                 )
@@ -840,7 +839,7 @@ class PVCB:
                 f"Volume of model: {model_v}\n",
                 font="arial",
                 color=cbg_color,
-                font_size=int(pyautogui.size()[0] / 200),
+                font_size=10,
                 position="lower_left",
                 name="model_morphology",
             )

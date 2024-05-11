@@ -1,5 +1,3 @@
-import pyautogui
-
 # Init parameters
 init_active_parameters = {
     "picking_group": None,
@@ -43,7 +41,7 @@ init_setting_parameters = {
     "show_align_card": True,
     "show_mesh_card": True,
     "background_color": "[0, 0, 0]",
-    "pixel_ratio": pyautogui.size()[0] / 500,
+    "pixel_ratio": 4,
 }
 
 # costum init parameters
@@ -52,7 +50,7 @@ init_custom_parameters = {
     "custom_analysis": False,
     "custom_model": None,
     "custom_model_visible": False,
-    "custom_model_size": pyautogui.size()[0] / 200,
+    "custom_model_size": 10,
     "custom_model_output": None,
     "show_custom_card": True,
     "custom_parameter1": "ElPiGraph",
