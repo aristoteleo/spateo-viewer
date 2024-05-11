@@ -15,4 +15,3 @@ trame==2.5.2
 trame-server>=2.15.0
 trame-vtk
 trame-vuetify
-tkinter
