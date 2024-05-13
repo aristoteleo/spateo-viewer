@@ -1,4 +1,4 @@
-aiohttp==3.9.1
+aiohttp
 anndata>=0.8.0
 av>=11.0.0
 imageio>=2.33.1
@@ -12,7 +12,8 @@ pyacvd>=0.2.9
 PyMCubes>=0.1.4
 pymeshfix>=0.16.2
 pyvista==0.40.0
-trame==2.5.2
+trame
+trame-components
 trame-server>=2.15.0
 trame-vtk
 trame-vuetify
