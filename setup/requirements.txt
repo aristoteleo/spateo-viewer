@@ -12,7 +12,7 @@ pyacvd>=0.2.9
 PyMCubes>=0.1.4
 pymeshfix>=0.16.2
 pyvista==0.40.0
-trame
+trame>=3.6
 trame-components
 trame-server>=2.15.0
 trame-vtk
