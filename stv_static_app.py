@@ -7,4 +7,4 @@ if __name__ == "__main__":
     # upload anndata
     state.selected_dir = None
 
-    static_server.start(timeout=0)
+    static_server.start()

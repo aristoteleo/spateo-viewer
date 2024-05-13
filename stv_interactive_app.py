@@ -7,4 +7,4 @@ if __name__ == "__main__":
     # upload anndata
     state.upload_anndata = None
 
-    interactive_server.start(timeout=0)
+    interactive_server.start()
