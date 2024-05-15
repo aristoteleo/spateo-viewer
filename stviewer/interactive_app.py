@@ -1,3 +1,5 @@
+import os
+
 try:
     from typing import Literal
 except ImportError:
@@ -34,7 +36,9 @@ state.setdefault("active_ui", None)
 
 # Generate anndata object
 plotter = create_plotter()
-init_anndata_path = local_dataset_manager.drosophila_E7_8h_anndata
+init_anndata_dir = os.path.join(local_dataset_manager.drosophila_E7_8h, "h5ad")
+init_anndata_path = os.path.join(init_anndata_dir, os.listdir(path=init_anndata_dir)[0])
+# init_anndata_path = local_dataset_manager.drosophila_E7_8h_anndata
 main_model, active_model, init_scalar, pdd, cdd = init_models(
     plotter=plotter, anndata_path=init_anndata_path
 )
