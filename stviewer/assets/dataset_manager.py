@@ -120,6 +120,7 @@ class LocalFileManager:
 local_dataset_manager = LocalFileManager(__file__)
 local_dataset_manager.dir_url("drosophila_E7_8h", r"./dataset/drosophila_E7_8h")
 local_dataset_manager.dir_url("drosophila_E8_9h", r"./dataset/drosophila_E8_9h")
+local_dataset_manager.dir_url("mouse_E95", r"./dataset/mouse_E95")
 
 local_dataset_manager.file_url(
     "drosophila_E7_8h_anndata",
@@ -130,8 +131,8 @@ local_dataset_manager.file_url(
     r"./stviewer/assets/dataset/drosophila_E8_9h/h5ad/E8_9h_cellbin.h5ad",
 )
 local_dataset_manager.file_url(
-    "drosophila_E8_9h_midgut_anndata",
-    r"./stviewer/assets/dataset/drosophila_E8_9h/h5ad/E8_9h_cellbin_midgut.h5ad",
+    "mouse_E95_anndata",
+    r"./stviewer/assets/dataset/mouse_E95/h5ad/mouse_E95.h5ad",
 )
 
 """
