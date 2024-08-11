@@ -1120,6 +1120,8 @@ class PVCB:
         """RNA velocity."""
         if self._state["custom_func"] is True:
             if self._state["custom_analysis"] is True:
+                from stviewer.assets.dataset_acquisition import abstract_anndata
+
                 if "custom_model" in self._plotter.actors.keys():
                     self._plotter.remove_actor(self._plotter.actors["custom_model"])
                 _active_id = (
@@ -1130,9 +1132,8 @@ class PVCB:
                 active_name = self._state.actor_ids[_active_id]
                 active_model = self._plotter.actors[active_name].mapper.dataset.copy()
                 active_model_index = active_model.point_data["obs_index"]
-                adata = abstract_anndata(path=self._state.anndata_path)[
-                    active_model_index, :
-                ]
+                adata, _ = abstract_anndata(path=self._state.anndata_path)
+                adata = adata[active_model_index, :]
 
                 # RNA velocity
                 from .pv_custom import RNAvelocity
