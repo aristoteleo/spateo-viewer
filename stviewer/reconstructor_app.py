@@ -36,7 +36,7 @@ state.setdefault("active_ui", None)
 
 # Generate anndata object
 plotter = create_plotter()
-init_anndata_dir = os.path.join(local_dataset_manager.drosophila_S11_anndata, "h5ad")
+init_anndata_dir = os.path.join(local_dataset_manager.drosophila_S11, "h5ad")
 init_anndata_path = os.path.join(init_anndata_dir, os.listdir(path=init_anndata_dir)[0])
 # init_anndata_path = local_dataset_manager.drosophila_S11_anndata
 main_model, active_model, init_scalar, pdd, cdd = init_models(
