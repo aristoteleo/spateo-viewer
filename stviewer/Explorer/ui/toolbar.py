@@ -193,7 +193,7 @@ def ui_toolbar(
     layout,
     plotter: BasePlotter,
     mode: Literal["trame", "server", "client"] = "trame",
-    default_server_rendering: bool = True,
+    default_server_rendering: bool = False,
     ui_name: str = "SPATEO VIEWER",
     ui_icon=icon_manager.spateo_logo,
 ):
