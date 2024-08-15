@@ -187,7 +187,6 @@ class Imputation_GPR:
 
         self.PCA_reduction = False
         self.info_keys = {"obs_keys": obs_keys, "var_keys": var_keys}
-        print(self.info_keys)
 
         # Target data
         self.target_points = torch.from_numpy(target_points).float()

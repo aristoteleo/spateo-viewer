@@ -87,7 +87,6 @@ def sample_dataset(
     mesh_model_ids: Optional[list] = None,
 ):
     # Generate anndata object
-    print(path)
     if os.path.isfile(path) and path.endswith(".h5ad"):
         anndata_path = path
         matrices_npz_path = f"./temp/matrices_{path.split('/')[-1]}"
@@ -127,7 +126,6 @@ def sample_dataset(
         Path(anndata_info["matrices_npz_path"]).mkdir(parents=True, exist_ok=True)
         for matrix_id in anndata_info["anndata_metrices"]:
             matrix = adata.X if matrix_id == "X" else adata.layers[matrix_id]
-            print(matrix)
             sparse.save_npz(
                 f"{anndata_info['matrices_npz_path']}/{matrix_id}_sparse_martrix.npz",
                 matrix,
