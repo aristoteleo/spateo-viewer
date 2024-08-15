@@ -93,10 +93,7 @@ def generate_actors_tree(
 
 def init_actors(plotter, path):
     (
-        anndata_metrices,
         anndata_info,
-        anndata_obs_index,
-        anndata_var_index,
         pc_models,
         pc_model_ids,
         mesh_models,
@@ -119,14 +116,11 @@ def init_actors(plotter, path):
         mesh_actors=mesh_actors,
     )
 
-    anndata_dir = os.path.join(path, "h5ad")
-    anndata_path = os.path.join(anndata_dir, os.listdir(path=anndata_dir)[0])
+    anndata_info["anndata_path"] = os.path.join(
+        os.path.join(path, "h5ad"), os.listdir(path=os.path.join(path, "h5ad"))[0]
+    )
     return (
-        anndata_path,
-        anndata_metrices,
         anndata_info,
-        anndata_obs_index,
-        anndata_var_index,
         actors,
         actor_names,
         actor_tree,

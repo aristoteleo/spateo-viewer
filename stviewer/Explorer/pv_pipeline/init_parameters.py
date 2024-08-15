@@ -1,25 +1,35 @@
+import matplotlib.colors as mcolors
+
 # Init parameters
+init_card_parameters = {
+    "show_anndata_card": False,
+    "show_model_card": True,
+    "show_output_card": True,
+}
 init_pc_parameters = {
-    "pc_scalars_value": "None",
+    "pc_obs_value": None,
+    "pc_gene_value": None,
     "pc_scalars_raw": {"None": "None"},
     "pc_matrix_value": "X",
     "pc_coords_value": "spatial",
     "pc_opacity_value": 1.0,
     "pc_ambient_value": 0.2,
-    "pc_color_value": "None",
-    "pc_colormap_value": "default_cmap",
-    "pc_point_size_value": 8,
+    "pc_color_value": None,
+    "pc_colormap_value": "Spectral",
+    "pc_point_size_value": 4,
     "pc_add_legend": False,
-    "pc_picking_group": "None",
+    "pc_picking_group": None,
     "pc_overwrite": False,
     "pc_reload": False,
+    "pc_colors_list": [c for c in mcolors.CSS4_COLORS.keys()],
 }
 init_mesh_parameters = {
-    "mesh_opacity_value": 0.6,
+    "mesh_opacity_value": 0.3,
     "mesh_ambient_value": 0.2,
     "mesh_color_value": "gainsboro",
     "mesh_style_value": "surface",
     "mesh_morphology": False,
+    "mesh_colors_list": [c for c in mcolors.CSS4_COLORS.keys()],
 }
 init_morphogenesis_parameters = {
     "cal_morphogenesis": False,

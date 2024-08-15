@@ -7,18 +7,18 @@ from pyvista import BasePlotter
 from trame.widgets import vuetify
 
 
-def _get_default_cmap():
+def _get_spateo_cmap():
     import matplotlib as mpl
     from matplotlib.colors import LinearSegmentedColormap
 
-    if "default_cmap" not in mpl.colormaps():
+    if "spateo_cmap" not in mpl.colormaps():
         colors = ["#4B0082", "#800080", "#F97306", "#FFA500", "#FFD700", "#FFFFCB"]
         nodes = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
         mpl.colormaps.register(
-            LinearSegmentedColormap.from_list("default_cmap", list(zip(nodes, colors)))
+            LinearSegmentedColormap.from_list("spateo_cmap", list(zip(nodes, colors)))
         )
-    return "default_cmap"
+    return "spateo_cmap"
 
 
 def ui_drawer(
@@ -41,7 +41,7 @@ def ui_drawer(
             * ``'client'``: Uses a view that is purely client rendering (generally safe without a virtual frame buffer)
     """
 
-    _get_default_cmap()
+    _get_spateo_cmap()
     from stviewer.Explorer.pv_pipeline import PVCB
 
     PVCB(server=server, plotter=plotter, suppress_rendering=mode == "client")
@@ -51,6 +51,11 @@ def ui_drawer(
         from .pipeline import pipeline_panel
 
         pipeline_panel(server=server, plotter=plotter)
+
+        # AnnData object
+        from .adata_obj import anndata_panel
+
+        anndata_panel()
 
         # Active model
         with vuetify.VToolbar(

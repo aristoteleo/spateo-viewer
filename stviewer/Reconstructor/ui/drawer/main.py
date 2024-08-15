@@ -1,15 +1,15 @@
-def _get_default_cmap():
+def _get_spateo_cmap():
     import matplotlib as mpl
     from matplotlib.colors import LinearSegmentedColormap
 
-    if "default_cmap" not in mpl.colormaps():
+    if "spateo_cmap" not in mpl.colormaps():
         colors = ["#4B0082", "#800080", "#F97306", "#FFA500", "#FFD700", "#FFFFCB"]
         nodes = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
         mpl.colormaps.register(
-            LinearSegmentedColormap.from_list("default_cmap", list(zip(nodes, colors)))
+            LinearSegmentedColormap.from_list("spateo_cmap", list(zip(nodes, colors)))
         )
-    return "default_cmap"
+    return "spateo_cmap"
 
 
 def ui_drawer(server, layout):
@@ -21,7 +21,7 @@ def ui_drawer(server, layout):
         layout: The layout object.
     """
 
-    _get_default_cmap()
+    _get_spateo_cmap()
     with layout.drawer as dr:
         # Active model
         from .model_point import pc_card_panel

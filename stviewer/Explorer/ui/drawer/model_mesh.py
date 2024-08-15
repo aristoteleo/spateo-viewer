@@ -4,9 +4,10 @@ from trame.widgets import vuetify
 def mesh_card_content():
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
-            vuetify.VTextField(
+            vuetify.VCombobox(
                 label="Color",
-                v_model=("mesh_color_value", "gainsboro"),
+                v_model=("mesh_color_value", "None"),
+                items=("mesh_colors_list",),
                 type="str",
                 hide_details=True,
                 dense=True,
@@ -14,7 +15,7 @@ def mesh_card_content():
                 classes="pt-1",
             )
         with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
+            vuetify.VCombobox(
                 label="Style",
                 v_model=("mesh_style_value", "surface"),
                 items=(f"styles", ["surface", "points", "wireframe"]),
@@ -25,7 +26,7 @@ def mesh_card_content():
             )
     # Opacity
     vuetify.VSlider(
-        v_model=("mesh_opacity_value", 0.6),
+        v_model=("mesh_opacity_value", 0.3),
         min=0,
         max=1,
         step=0.01,
