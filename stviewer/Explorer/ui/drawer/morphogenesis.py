@@ -18,7 +18,7 @@ def morphogenesis_card_content():
         with vuetify.VCol(cols="12"):
             vuetify.VFileInput(
                 v_model=("morpho_uploaded_target_anndata_path", None),
-                label="Uploaded Target Anndata",
+                label="Upload Target AnnData (.h5ad)",
                 dense=True,
                 classes="pt-1",
                 accept=".h5ad",
@@ -31,12 +31,11 @@ def morphogenesis_card_content():
             )
     with vuetify.VRow(classes="pt-2", dense=True):
         avaliable_samples = [
-            "drosophila_E8_9h_midgut_anndata",
             "uploaded_target_anndata",
         ]
         with vuetify.VCol(cols="12"):
             vuetify.VSelect(
-                label="Target Anndata",
+                label="Target AnnData",
                 v_model=("morpho_target_anndata_path", None),
                 items=(avaliable_samples,),
                 dense=True,
@@ -50,7 +49,7 @@ def morphogenesis_card_content():
             vuetify.VSelect(
                 v_model=("morpho_mapping_method", "GP"),
                 items=(["OT", "GP"],),
-                label="Mapping method",
+                label="Mapping Method",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -59,7 +58,7 @@ def morphogenesis_card_content():
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 v_model=("morpho_mapping_device", "cpu"),
-                label="Mapping device",
+                label="Mapping Device",
                 hide_details=True,
                 dense=True,
                 outlined=True,

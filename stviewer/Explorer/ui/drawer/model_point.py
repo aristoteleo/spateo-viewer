@@ -5,12 +5,14 @@ from trame.widgets import vuetify
 def pc_card_content():
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
-            vuetify.VCheckbox(
-                v_model=("show_anndata_info", False),
-                label="Anndata Info",
-                on_icon="mdi-information",
-                off_icon="mdi-information-off",
+            vuetify.VCombobox(
+                label="Observation Annotation",
+                v_model=("pc_obs_value", None),
+                items=("available_obs",),
+                type="str",
+                show_size=True,
                 dense=True,
+                outlined=True,
                 hide_details=True,
                 classes="pt-1",
             )
@@ -27,13 +29,38 @@ def pc_card_content():
 
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
-            vuetify.VTextField(
-                label="Scalars",
-                v_model=("pc_scalars_value", "None"),
-                type="str",
-                hide_details=True,
+            vuetify.VCombobox(
+                v_model=("pc_picking_group", None),
+                items=("Object.keys(pc_scalars_raw)",),
+                label="Picking Group",
+                show_size=True,
                 dense=True,
                 outlined=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+        with vuetify.VCol(cols="6"):
+            vuetify.VCheckbox(
+                v_model=("pc_overwrite", False),
+                label="Add Picked Group",
+                on_icon="mdi-plus-thick",
+                off_icon="mdi-close-thick",
+                dense=True,
+                hide_details=True,
+                classes="pt-1",
+            )
+
+    with vuetify.VRow(classes="pt-2", dense=True):
+        with vuetify.VCol(cols="6"):
+            vuetify.VCombobox(
+                label="Available Genes",
+                v_model=("pc_gene_value", None),
+                items=("available_genes",),
+                type="str",
+                show_size=True,
+                dense=True,
+                outlined=True,
+                hide_details=True,
                 classes="pt-1",
             )
         with vuetify.VCol(cols="6"):
@@ -46,35 +73,11 @@ def pc_card_content():
                 hide_details=True,
                 classes="pt-1",
             )
-
-    with vuetify.VRow(classes="pt-2", dense=True):
-        with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
-                v_model=("pc_picking_group", None),
-                items=("Object.keys(pc_scalars_raw)",),
-                show_size=True,
-                dense=True,
-                outlined=True,
-                hide_details=True,
-                classes="pt-1",
-                label="Picking Group",
-            )
-        with vuetify.VCol(cols="6"):
-            vuetify.VCheckbox(
-                v_model=("pc_overwrite", False),
-                label="Add picked Group",
-                on_icon="mdi-plus-thick",
-                off_icon="mdi-close-thick",
-                dense=True,
-                hide_details=True,
-                classes="pt-1",
-            )
-
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
             vuetify.VTextField(
                 v_model=("interpolation_device", "cpu"),
-                label="Interpolation device",
+                label="Interpolation Device",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -83,7 +86,7 @@ def pc_card_content():
         with vuetify.VCol(cols="6"):
             vuetify.VCheckbox(
                 v_model=("cal_interpolation", True),
-                label="GP interpolation",
+                label="GP Interpolation",
                 on_icon="mdi-smoke-detector",
                 off_icon="mdi-smoke-detector-off",
                 dense=True,
@@ -93,20 +96,22 @@ def pc_card_content():
 
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
-                label="Coords",
+            vuetify.VCombobox(
                 v_model=("pc_coords_value", "spatial"),
-                items=(["spatial", "umap"],),
+                items=("anndata_info.anndata_obsm_keys",),
+                label="Coords",
+                type="str",
                 hide_details=True,
                 dense=True,
                 outlined=True,
                 classes="pt-1",
             )
         with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
-                label="Matrices",
+            vuetify.VCombobox(
                 v_model=("pc_matrix_value", "X"),
-                items=("matrices_list",),
+                items=("anndata_info.anndata_metrices",),
+                label="Matrices",
+                type="str",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -115,9 +120,10 @@ def pc_card_content():
 
     with vuetify.VRow(classes="pt-2", dense=True):
         with vuetify.VCol(cols="6"):
-            vuetify.VTextField(
-                label="Color",
+            vuetify.VCombobox(
                 v_model=("pc_color_value", "None"),
+                items=("pc_colors_list",),
+                label="Color",
                 type="str",
                 hide_details=True,
                 dense=True,
@@ -126,10 +132,11 @@ def pc_card_content():
             )
         # Colormap
         with vuetify.VCol(cols="6"):
-            vuetify.VSelect(
+            vuetify.VCombobox(
+                v_model=("pc_colormap_value", "Spectral"),
+                items=("pc_colormaps_list",),
                 label="Colormap",
-                v_model=("pc_colormap_value", "default_cmap"),
-                items=("pc_colormaps",),
+                type="str",
                 hide_details=True,
                 dense=True,
                 outlined=True,
@@ -160,7 +167,7 @@ def pc_card_content():
     )
     # Point size
     vuetify.VSlider(
-        v_model=("pc_point_size_value", 8),
+        v_model=("pc_point_size_value", 4),
         min=0,
         max=20,
         step=1,

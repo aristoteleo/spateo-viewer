@@ -16,6 +16,8 @@ from trame.app.file_upload import ClientFile
 from stviewer.assets import local_dataset_manager
 
 from .init_parameters import (
+    init_adata_parameters,
+    init_card_parameters,
     init_mesh_parameters,
     init_morphogenesis_parameters,
     init_output_parameters,
@@ -198,7 +200,7 @@ class Viewer:
 
 
 class SwitchModels:
-    """Callbacks for toolbar based on pyvista."""
+    """Callbacks for Input based on pyvista."""
 
     def __init__(self, server, plotter):
         """Initialize SwitchModels."""
@@ -210,11 +212,11 @@ class SwitchModels:
 
         # State variable names
         self.SELECT_SAMPLES = "select_samples"
-        self.MATRICES_LIST = f"matrices_list"
+        self.UPLOAD_ANNDATA = "uploaded_anndata_path"
 
         # Listen to state changes
         self._state.change(self.SELECT_SAMPLES)(self.on_dataset_change)
-        self._state.change(self.MATRICES_LIST)(self.on_dataset_change)
+        self._state.change(self.UPLOAD_ANNDATA)(self.on_anndata_change)
 
     @vuwrap
     def on_dataset_change(self, **kwargs):
@@ -223,16 +225,14 @@ class SwitchModels:
         else:
             from stviewer.assets.dataset_acquisition import sample_dataset
 
+            self._state[self.UPLOAD_ANNDATA] = None
             if self._state[self.SELECT_SAMPLES] == "uploaded_sample":
                 path = self._state.selected_dir
             else:
                 path = local_dataset_manager[self._state[self.SELECT_SAMPLES]]
 
             (
-                anndata_metrices,
                 anndata_info,
-                anndata_obs_index,
-                anndata_var_index,
                 pc_models,
                 pc_model_ids,
                 mesh_models,
@@ -259,15 +259,12 @@ class SwitchModels:
             self._state.update(
                 {
                     "init_dataset": False,
-                    "anndata_path": os.path.join(
-                        os.path.join(path, "h5ad"),
-                        os.listdir(path=os.path.join(path, "h5ad"))[0],
-                    ),
-                    "matrices_list": anndata_metrices,
-                    "show_anndata_info": False,
-                    "anndata_info_text": anndata_info,
-                    "anndata_obs_index": anndata_obs_index,
-                    "anndata_var_index": anndata_var_index,
+                    "anndata_info": anndata_info,
+                    "available_obs": ["None"] + anndata_info["anndata_obs_keys"],
+                    "available_genes": ["None"] + anndata_info["anndata_var_index"],
+                    "pc_colormaps_list": ["spateo_cmap"]
+                    + custom_colors
+                    + plt.colormaps(),
                     # setting
                     "actor_ids": actor_names,
                     "pipeline": actor_tree,
@@ -279,11 +276,78 @@ class SwitchModels:
                         for i, actor in enumerate(self.plotter.actors.values())
                         if actor.visibility
                     ],
-                    "show_model_card": True,
-                    "show_output_card": True,
-                    "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps(),
                 }
             )
+            self._state.update(init_card_parameters)
+            self._state.update(init_adata_parameters)
+            self._state.update(init_pc_parameters)
+            self._state.update(init_mesh_parameters)
+            self._state.update(init_morphogenesis_parameters)
+            self._state.update(init_output_parameters)
+            self._ctrl.view_reset_camera(force=True)
+            self._ctrl.view_update()
+
+    @vuwrap
+    def on_anndata_change(self, **kwargs):
+        if self._state[self.UPLOAD_ANNDATA] is None:
+            pass
+        else:
+            from stviewer.assets.dataset_acquisition import sample_dataset
+
+            self._state[self.SELECT_SAMPLES] = None
+            file = ClientFile(self._state[self.UPLOAD_ANNDATA])
+            with tempfile.NamedTemporaryFile(suffix=file.name) as path:
+                with open(path.name, "wb") as f:
+                    f.write(file.content)
+                    (
+                        anndata_info,
+                        pc_models,
+                        pc_model_ids,
+                        mesh_models,
+                        mesh_model_ids,
+                        custom_colors,
+                    ) = sample_dataset(path=path.name)
+
+            # Generate actors
+            self.plotter.clear_actors()
+            pc_actors, mesh_actors = generate_actors(
+                plotter=self.plotter,
+                pc_models=pc_models,
+                pc_model_names=pc_model_ids,
+                mesh_models=mesh_models,
+                mesh_model_names=mesh_model_ids,
+            )
+
+            # Generate the relationship tree of actors
+            actors, actor_names, actor_tree = generate_actors_tree(
+                pc_actors=pc_actors,
+                mesh_actors=mesh_actors,
+            )
+
+            self._state.update(
+                {
+                    "init_dataset": False,
+                    "anndata_info": anndata_info,
+                    "available_obs": ["None"] + anndata_info["anndata_obs_keys"],
+                    "available_genes": ["None"] + anndata_info["anndata_var_index"],
+                    "pc_colormaps_list": ["spateo_cmap"]
+                    + custom_colors
+                    + plt.colormaps(),
+                    # setting
+                    "actor_ids": actor_names,
+                    "pipeline": actor_tree,
+                    "active_id": 1,
+                    "active_ui": actor_names[0],
+                    "active_model_type": str(actor_names[0]).split("_")[0],
+                    "vis_ids": [
+                        i
+                        for i, actor in enumerate(self.plotter.actors.values())
+                        if actor.visibility
+                    ],
+                }
+            )
+            self._state.update(init_card_parameters)
+            self._state.update(init_adata_parameters)
             self._state.update(init_pc_parameters)
             self._state.update(init_mesh_parameters)
             self._state.update(init_morphogenesis_parameters)
@@ -310,83 +374,36 @@ class PVCB:
         self._plotter = plotter
         self._plotter.suppress_rendering = suppress_rendering
 
-        # State variable names
-        # pc model
-        self.pcSCALARS = f"pc_scalars_value"
-        self.pcMATRIX = f"pc_matrix_value"
-        self.pcCOORDS = f"pc_coords_value"
-        self.pcOPACITY = f"pc_opacity_value"
-        self.pcAMBIENT = f"pc_ambient_value"
-        self.pcCOLOR = f"pc_color_value"
-        self.pcCOLORMAP = f"pc_colormap_value"
-        self.pcPOINTSIZE = f"pc_point_size_value"
-        self.pcLEGEND = "pc_add_legend"
-        self.pcPICKINGGROUP = f"pc_picking_group"
-        self.pcOVERWRITE = f"pc_overwrite"
-        self.pcRELOAD = f"pc_reload"
-        self.adINFO = f"show_anndata_info"
-        # mesh model
-        self.meshOPACITY = f"mesh_opacity_value"
-        self.meshAMBIENT = f"mesh_ambient_value"
-        self.meshCOLOR = f"mesh_color_value"
-        self.meshSTYLE = f"mesh_style_value"
-        self.meshMORPHOLOGY = f"mesh_morphology"
-        # morphogenesis
-        self.morphoCALCULATION = f"cal_morphogenesis"
-        self.morphoANNDATA = f"morpho_target_anndata_path"
-        self.morphoUPLOADEDANNDATA = f"morpho_uploaded_target_anndata_path"
-        self.morphoMAPPINGmethod = f"morpho_mapping_method"
-        self.morphoMAPPINGdevice = f"morpho_mapping_device"
-        self.morphoMAPPING = f"morpho_mapping_factor"
-        self.morphoFIELD = f"morphofield_factor"
-        self.morphoTEND = f"morphopath_t_end"
-        self.morphoSAMPLING = f"morphopath_downsampling"
-        self.morphoANIMATION = f"morphopath_animation_path"
-        self.morphoPREDICTEDMODELS = f"morphopath_predicted_models"
-        self.morphoSHOWFIELD = f"morphofield_visibile"
-        self.morphoSHOWTRAJECTORY = f"morphopath_visibile"
-        # Interpolation
-        self.interpolationCALCULATION = f"cal_interpolation"
-        self.interpolationCALdevice = "interpolation_device"
-
-        # output
-        self.PLOTTER_SCREENSHOT = "screenshot_path"
-        self.PLOTTER_ANIMATION = "animation_path"
-
         # Listen to state changes
-        self._state.change(self.pcSCALARS)(self.on_scalars_change)
-        self._state.change(self.pcSCALARS)(self.on_legend_change)
-        self._state.change(self.pcMATRIX)(self.on_scalars_change)
-        self._state.change(self.pcCOORDS)(self.on_coords_change)
-        self._state.change(self.pcOPACITY)(self.on_opacity_change)
-        self._state.change(self.pcAMBIENT)(self.on_ambient_change)
-        self._state.change(self.pcCOLOR)(self.on_color_change)
-        self._state.change(self.pcCOLORMAP)(self.on_colormap_change)
-        self._state.change(self.pcPOINTSIZE)(self.on_point_size_change)
-        self._state.change(self.pcLEGEND)(self.on_legend_change)
-        self._state.change(self.pcPICKINGGROUP)(self.on_picking_pc_model)
-        self._state.change(self.pcOVERWRITE)(self.on_picking_pc_model)
-        self._state.change(self.pcRELOAD)(self.on_reload_main_model)
-        self._state.change(self.adINFO)(self.on_show_anndata_info)
+        self._state.change("pc_obs_value")(self.on_obs_change)
+        self._state.change("pc_gene_value")(self.on_gene_change)
+        self._state.change("pc_matrix_value")(self.on_gene_change)
+        self._state.change("pc_coords_value")(self.on_coords_change)
+        self._state.change("pc_opacity_value")(self.on_opacity_change)
+        self._state.change("pc_ambient_value")(self.on_ambient_change)
+        self._state.change("pc_color_value")(self.on_color_change)
+        self._state.change("pc_colormap_value")(self.on_colormap_change)
+        self._state.change("pc_point_size_value")(self.on_point_size_change)
+        self._state.change("pc_add_legend")(self.on_legend_change)
+        self._state.change("pc_picking_group")(self.on_picking_pc_model)
+        self._state.change("pc_overwrite")(self.on_picking_pc_model)
+        self._state.change("pc_reload")(self.on_reload_main_model)
 
-        self._state.change(self.meshOPACITY)(self.on_opacity_change)
-        self._state.change(self.meshAMBIENT)(self.on_ambient_change)
-        self._state.change(self.meshCOLOR)(self.on_color_change)
-        self._state.change(self.meshSTYLE)(self.on_style_change)
-        self._state.change(self.meshMORPHOLOGY)(self.on_morphology_change)
+        self._state.change("mesh_opacity_value")(self.on_opacity_change)
+        self._state.change("mesh_ambient_value")(self.on_ambient_change)
+        self._state.change("mesh_color_value")(self.on_color_change)
+        self._state.change("mesh_style_value")(self.on_style_change)
+        self._state.change("mesh_morphology")(self.on_morphology_change)
 
-        self._state.change(self.morphoCALCULATION)(self.on_cal_morphogenesis)
-        self._state.change(self.morphoSHOWFIELD)(self.on_show_morpho_model_change)
-        self._state.change(self.morphoSHOWTRAJECTORY)(self.on_show_morpho_model_change)
-        self._state.change(self.morphoANIMATION)(self.on_morphogenesis_animation)
+        self._state.change("cal_morphogenesis")(self.on_cal_morphogenesis)
+        self._state.change("morphofield_visibile")(self.on_show_morpho_model_change)
+        self._state.change("morphopath_visibile")(self.on_show_morpho_model_change)
+        self._state.change("morphopath_animation_path")(self.on_morphogenesis_animation)
 
-        self._state.change(self.interpolationCALCULATION)(self.on_cal_interpolation)
+        self._state.change("cal_interpolation")(self.on_cal_interpolation)
 
-        self._state.change("custom_analysis")(self.on_custom_callback)
-        self._state.change("custom_model_visible")(self.on_show_custom_model)
-
-        self._state.change(self.PLOTTER_SCREENSHOT)(self.on_plotter_screenshot)
-        self._state.change(self.PLOTTER_ANIMATION)(self.on_plotter_animation)
+        self._state.change("screenshot_path")(self.on_plotter_screenshot)
+        self._state.change("animation_path")(self.on_plotter_animation)
 
         # Custom controller
         if self._state.custom_func is True:
@@ -394,33 +411,7 @@ class PVCB:
             self._state.change("custom_model_visible")(self.on_show_custom_model)
 
     @vuwrap
-    def on_show_anndata_info(self, **kwargs):
-        if self._state[self.adINFO]:
-            _active_id = (
-                1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
-            )
-
-            if "anndata_info_actor" in self._plotter.actors.keys():
-                self._plotter.remove_actor(self._plotter.actors["anndata_info_actor"])
-
-            cbg_color = (
-                "white" if self._plotter.background_color.name is "black" else "black"
-            )
-            self._plotter.add_text(
-                text=self._state.anndata_info_text,
-                font="arial",
-                color=cbg_color,
-                font_size=10,
-                position="upper_left",
-                name="anndata_info_actor",
-            )
-        else:
-            if "anndata_info_actor" in self._plotter.actors.keys():
-                self._plotter.remove_actor(self._plotter.actors["anndata_info_actor"])
-        self._ctrl.view_update()
-
-    @vuwrap
-    def on_scalars_change(self, **kwargs):
+    def on_obs_change(self, **kwargs):
         _active_id = (
             1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
         )
@@ -428,61 +419,49 @@ class PVCB:
         active_actor = self._plotter.actors[active_name]
 
         if str(active_name).startswith("PC"):
-            if self._state[self.pcSCALARS] in ["none", "None", None]:
+            if self._state.pc_obs_value in ["none", "None"]:
                 active_actor.mapper.scalar_visibility = False
                 for morpho_key in ["MorphoField", "MorphoPath"]:
                     if morpho_key in self._plotter.actors.keys():
                         self._plotter.actors[
                             morpho_key
                         ].mapper.scalar_visibility = False
+                self.on_legend_change()
                 self._ctrl.view_update()
             else:
                 _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
-                if self._state[self.pcSCALARS] in self._state.anndata_var_index:
-                    change_array = True
-                    _matrix_id = self._state[self.pcMATRIX]
-                    self._state.pc_scalars_raw = {"None": "None"}
-
-                    obs_indices = np.where(
-                        np.isin(self._state.anndata_obs_index, _obs_index)
-                    )[0]
-                    var_indices = np.where(
-                        np.isin(
-                            self._state.anndata_var_index, [self._state[self.pcSCALARS]]
-                        )
-                    )[0]
-                    martix = sparse.load_npz(
-                        f"{self._state.anndata_path.split('/h5ad/')[0]}/matrices/{_matrix_id}_sparse_martrix.npz"
-                    )
-                    array = np.asarray(
-                        martix[obs_indices, var_indices].A, dtype=float
-                    ).reshape(-1, 1)
-                    del martix
-                    gc.collect()
-
-                elif (
-                    self._state[self.pcSCALARS]
-                    in active_actor.mapper.dataset.point_data.keys()
+                if (
+                    self._state.pc_obs_value
+                    in self._state.anndata_info["anndata_obs_keys"]
                 ):
-                    array = active_actor.mapper.dataset[
-                        self._state[self.pcSCALARS]
-                    ].copy()
+                    self._state.pc_gene_value = None
+
                     change_array = True
+                    array = active_actor.mapper.dataset[self._state.pc_obs_value].copy()
+
+                    if np.issubdtype(array.dtype, np.number):
+                        array = np.asarray(array, dtype=float)
+                        self._state.pc_scalars_raw = {"None": "None"}
+                    else:
+                        od = {o: i for i, o in enumerate(np.unique(array))}
+                        array = np.asarray(
+                            list(map(lambda x: od[x], array)), dtype=float
+                        )
+                        self._state.pc_scalars_raw = od
                 else:
                     array, change_array = None, False
 
                 if change_array is True:
-                    active_actor.mapper.dataset.point_data[
-                        self._state[self.pcSCALARS]
-                    ] = array
+                    scalar_key = self._state.pc_obs_value
+                    active_actor.mapper.dataset.point_data[f"{scalar_key}_vis"] = array
                     active_actor.mapper.scalar_range = (
-                        active_actor.mapper.dataset.get_data_range(
-                            self._state[self.pcSCALARS]
-                        )
+                        active_actor.mapper.dataset.get_data_range(f"{scalar_key}_vis")
                     )
 
-                    active_actor.mapper.SelectColorArray(self._state[self.pcSCALARS])
-                    active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
+                    active_actor.mapper.SelectColorArray(f"{scalar_key}_vis")
+                    active_actor.mapper.lookup_table.cmap = (
+                        self._state.pc_colormap_value
+                    )
                     active_actor.mapper.SetScalarModeToUsePointFieldData()
                     active_actor.mapper.scalar_visibility = True
                     active_actor.mapper.Update()
@@ -502,28 +481,133 @@ class PVCB:
                                 ]
                             )
                             morpho_actor.mapper.dataset.point_data[
-                                self._state[self.pcSCALARS]
+                                f"{scalar_key}_vis"
                             ] = morpho_array
                             morpho_actor.mapper.scalar_range = (
                                 active_actor.mapper.scalar_range
                             )
-                            morpho_actor.mapper.SelectColorArray(
-                                self._state[self.pcSCALARS]
-                            )
+                            morpho_actor.mapper.SelectColorArray(f"{scalar_key}_vis")
                             morpho_actor.mapper.lookup_table.cmap = self._state[
-                                self.pcCOLORMAP
+                                f"{scalar_key}_vis"
                             ]
                             morpho_actor.mapper.SetScalarModeToUsePointFieldData()
                             morpho_actor.mapper.scalar_visibility = True
                             morpho_actor.mapper.Update()
                             self._plotter.actors[morpho_key] = morpho_actor
                 else:
-                    active_actor.mapper.scalar_visibility = False
+                    pass
+                self._ctrl.view_update()
+
+    @vuwrap
+    def on_gene_change(self, **kwargs):
+        _active_id = (
+            1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
+        )
+        active_name = self._state.actor_ids[_active_id]
+        active_actor = self._plotter.actors[active_name]
+
+        if str(active_name).startswith("PC"):
+            if self._state.pc_gene_value in ["none", "None"]:
+                active_actor.mapper.scalar_visibility = False
+                for morpho_key in ["MorphoField", "MorphoPath"]:
+                    if morpho_key in self._plotter.actors.keys():
+                        self._plotter.actors[
+                            morpho_key
+                        ].mapper.scalar_visibility = False
+                self.on_legend_change()
+                self._ctrl.view_update()
+            else:
+                _obs_index = active_actor.mapper.dataset.point_data["obs_index"]
+                if (
+                    self._state.pc_gene_value
+                    in self._state.anndata_info["anndata_var_index"]
+                ):
+                    self._state.pc_obs_value = None
+
+                    change_array = True
+                    obs_indices = np.where(
+                        np.isin(
+                            self._state.anndata_info["anndata_obs_index"], _obs_index
+                        )
+                    )[0]
+                    var_indices = np.where(
+                        np.isin(
+                            self._state.anndata_info["anndata_var_index"],
+                            [self._state.pc_gene_value],
+                        )
+                    )[0]
+
+                    martix_path = f"{self._state.anndata_info['matrices_npz_path']}/{self._state.pc_matrix_value}_sparse_martrix.npz"
+                    martix = sparse.load_npz(martix_path)
+                    array = np.asarray(
+                        martix[obs_indices, var_indices].A, dtype=float
+                    ).reshape(-1, 1)
+                    self._state.pc_scalars_raw = {"None": "None"}
+
+                    del martix
+                    gc.collect()
+                elif (
+                    self._state.pc_gene_value
+                    in active_actor.mapper.dataset.point_data.keys()
+                ):
+                    self._state.pc_obs_value = None
+
+                    change_array = True
+                    array = np.asarray(
+                        active_actor.mapper.dataset[
+                            str(self._state.pc_gene_value)
+                        ].copy(),
+                        dtype=float,
+                    )
+                    self._state.pc_scalars_raw = {"None": "None"}
+                else:
+                    array, change_array = None, False
+
+                if change_array is True:
+                    scalar_key = self._state.pc_gene_value
+                    active_actor.mapper.dataset.point_data[f"{scalar_key}_vis"] = array
+                    active_actor.mapper.scalar_range = (
+                        active_actor.mapper.dataset.get_data_range(f"{scalar_key}_vis")
+                    )
+
+                    active_actor.mapper.SelectColorArray(f"{scalar_key}_vis")
+                    active_actor.mapper.lookup_table.cmap = (
+                        self._state.pc_colormap_value
+                    )
+                    active_actor.mapper.SetScalarModeToUsePointFieldData()
+                    active_actor.mapper.scalar_visibility = True
+                    active_actor.mapper.Update()
+                    self._plotter.actors[active_name] = active_actor
+                    self.on_legend_change()
+
                     for morpho_key in ["MorphoField", "MorphoPath"]:
                         if morpho_key in self._plotter.actors.keys():
-                            self._plotter.actors[
-                                morpho_key
-                            ].mapper.scalar_visibility = False
+                            morpho_actor = self._plotter.actors[morpho_key]
+                            morpho_index = morpho_actor.mapper.dataset.point_data[
+                                "obs_index"
+                            ]
+
+                            morpho_array = np.asarray(
+                                pd.DataFrame(array, index=_obs_index).loc[
+                                    morpho_index, 0
+                                ]
+                            )
+                            morpho_actor.mapper.dataset.point_data[
+                                f"{scalar_key}_vis"
+                            ] = morpho_array
+                            morpho_actor.mapper.scalar_range = (
+                                active_actor.mapper.scalar_range
+                            )
+                            morpho_actor.mapper.SelectColorArray(f"{scalar_key}_vis")
+                            morpho_actor.mapper.lookup_table.cmap = self._state[
+                                f"{scalar_key}_vis"
+                            ]
+                            morpho_actor.mapper.SetScalarModeToUsePointFieldData()
+                            morpho_actor.mapper.scalar_visibility = True
+                            morpho_actor.mapper.Update()
+                            self._plotter.actors[morpho_key] = morpho_actor
+                else:
+                    pass
                 self._ctrl.view_update()
 
     @vuwrap
@@ -534,7 +618,7 @@ class PVCB:
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
 
-        if self._state[self.pcLEGEND] and active_actor.mapper.scalar_visibility:
+        if self._state.pc_add_legend and active_actor.mapper.scalar_visibility:
             if len(self._plotter.scalar_bars.keys()) != 0:
                 self._plotter.remove_scalar_bar()
             if self._plotter.legend:
@@ -544,8 +628,14 @@ class PVCB:
                 "white" if self._plotter.background_color.name is "black" else "black"
             )
             if "None" in self._state.pc_scalars_raw.keys():
+                scalar_key = (
+                    self._state.pc_obs_value
+                    if self._state.pc_obs_value not in ["none", "None", None]
+                    else self._state.pc_gene_value
+                )
+
                 self._plotter.add_scalar_bar(
-                    self._state[self.pcSCALARS],
+                    scalar_key,
                     mapper=active_actor.mapper,
                     color=cbg_color,
                     bold=True,
@@ -561,7 +651,7 @@ class PVCB:
 
                 legend_labels = [i for i in self._state.pc_scalars_raw.keys()]
 
-                lscmap = mpl.cm.get_cmap(self._state[self.pcCOLORMAP])
+                lscmap = mpl.cm.get_cmap(self._state.pc_colormap_value)
                 legend_hex = [
                     mpl.colors.to_hex(lscmap(i))
                     for i in np.linspace(0, 1, len(legend_labels))
@@ -570,11 +660,15 @@ class PVCB:
                 legend_entries = [
                     [label, hex] for label, hex in zip(legend_labels, legend_hex)
                 ]
+                legend_height = len(legend_entries) / 80
+                legend_height = 0.05 if legend_height < 0.05 else legend_height
+                legend_height = 1 if legend_height > 1 else legend_height
                 self._plotter.add_legend(
                     legend_entries,
                     face="circle",
                     bcolor=None,
-                    loc="lower right",
+                    loc="center left",
+                    size=(0.2, legend_height),
                 )
         else:
             if len(self._plotter.scalar_bars.keys()) != 0:
@@ -586,7 +680,7 @@ class PVCB:
     @vuwrap
     def on_picking_pc_model(self, **kwargs):
         """Picking the part of active model based on the scalar"""
-        if not (self._state[self.pcPICKINGGROUP] in ["none", "None", None]):
+        if not (self._state.pc_picking_group in ["none", "None", None]):
             _active_id = (
                 1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
             )
@@ -601,20 +695,20 @@ class PVCB:
 
             active_model = active_actor.mapper.dataset.copy()
             if "None" in self._state.pc_scalars_raw.keys():
-                custom_picking_group = self._state[self.pcPICKINGGROUP]
+                custom_picking_group = self._state.pc_picking_group
                 added_active_model = active_model.extract_points(
-                    active_model.point_data[self._state[self.pcSCALARS]]
+                    active_model.point_data[self._state.pc_obs_value]
                     == float(custom_picking_group)
                 )
             else:
                 custom_picking_group = self._state.pc_scalars_raw[
-                    self._state[self.pcPICKINGGROUP]
+                    self._state.pc_picking_group
                 ]
                 added_active_model = active_model.extract_points(
-                    active_model.point_data[self._state[self.pcSCALARS]]
+                    active_model.point_data[f"{self._state.pc_obs_value}_vis"]
                     == float(custom_picking_group)
                 )
-            if self._state[self.pcOVERWRITE] is True:
+            if self._state.pc_overwrite is True:
                 active_model = (
                     added_active_model
                     if basis_model is None
@@ -638,8 +732,8 @@ class PVCB:
                 "pc_raw_model"
             ].mapper.dataset.copy()
             self._plotter.remove_actor(self._plotter.actors["pc_raw_model"])
-            self._state[self.pcPICKINGGROUP] = "None"
-            self._state[self.pcOVERWRITE] = False
+            self._state.pc_picking_group = None
+            self._state.pc_overwrite = False
         self._ctrl.view_update()
 
     @vuwrap
@@ -650,34 +744,19 @@ class PVCB:
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
 
-        if str(self._state[self.pcCOORDS]).lower() == "spatial":
-            if "spatial_X" in active_actor.mapper.dataset.point_data.keys():
-                active_actor.mapper.dataset.points[
-                    :, 0
-                ] = active_actor.mapper.dataset.point_data["spatial_X"]
-                active_actor.mapper.dataset.points[
-                    :, 1
-                ] = active_actor.mapper.dataset.point_data["spatial_Y"]
-                active_actor.mapper.dataset.points[
-                    :, 2
-                ] = active_actor.mapper.dataset.point_data["spatial_Z"]
-            else:
-                print(f"!Warning: `spatial` is not included in anndata.obsm.")
-        elif str(self._state[self.pcCOORDS]).lower() == "umap":
-            if "UMAP_X" in active_actor.mapper.dataset.point_data.keys():
-                active_actor.mapper.dataset.points[
-                    :, 0
-                ] = active_actor.mapper.dataset.point_data["UMAP_X"]
-                active_actor.mapper.dataset.points[
-                    :, 1
-                ] = active_actor.mapper.dataset.point_data["UMAP_Y"]
-                active_actor.mapper.dataset.points[
-                    :, 2
-                ] = active_actor.mapper.dataset.point_data["UMAP_Z"]
-            else:
-                print(f"!Warning: `X_umap` is not included in anndata.obsm.")
+        coords_key = str(self._state.pc_coords_value)
+        if coords_key in self._state.anndata_info["anndata_obsm_keys"]:
+            active_actor.mapper.dataset.points[
+                :, 0
+            ] = active_actor.mapper.dataset.point_data[f"{coords_key}_X"]
+            active_actor.mapper.dataset.points[
+                :, 1
+            ] = active_actor.mapper.dataset.point_data[f"{coords_key}_Y"]
+            active_actor.mapper.dataset.points[
+                :, 2
+            ] = active_actor.mapper.dataset.point_data[f"{coords_key}_Z"]
         else:
-            pass
+            print(f"!Warning: `{coords_key}` is not included in anndata.obsm.")
 
         self._plotter.actors[active_name] = active_actor
         self._plotter.view_isometric()
@@ -692,9 +771,9 @@ class PVCB:
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
-            active_actor.prop.opacity = float(self._state[self.pcOPACITY])
+            active_actor.prop.opacity = float(self._state.pc_opacity_value)
         else:
-            active_actor.prop.opacity = float(self._state[self.meshOPACITY])
+            active_actor.prop.opacity = float(self._state.mesh_opacity_value)
         self._ctrl.view_update()
 
     @vuwrap
@@ -705,36 +784,36 @@ class PVCB:
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
-            active_actor.prop.ambient = float(self._state[self.pcAMBIENT])
+            active_actor.prop.ambient = float(self._state.pc_ambient_value)
         else:
-            active_actor.prop.ambient = float(self._state[self.meshAMBIENT])
+            active_actor.prop.ambient = float(self._state.mesh_ambient_value)
         self._ctrl.view_update()
 
     @vuwrap
     def on_color_change(self, **kwargs):
-        if not self._state[self.pcCOLOR] in ["none", "None", None]:
+        if not self._state.pc_color_value in ["none", "None", None]:
             _active_id = (
                 1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
             )
             active_name = self._state.actor_ids[_active_id]
             active_actor = self._plotter.actors[active_name]
             if str(active_name).startswith("PC"):
-                active_actor.prop.color = self._state[self.pcCOLOR]
+                active_actor.prop.color = self._state.pc_color_value
                 for morpho_key in ["MorphoField", "MorphoPath"]:
                     if morpho_key in self._plotter.actors.keys():
-                        self._plotter.actors[morpho_key].prop.color = self._state[
-                            self.pcCOLOR
-                        ]
+                        self._plotter.actors[
+                            morpho_key
+                        ].prop.color = self._state.pc_color_value
                 self._ctrl.view_update()
 
-        if not self._state[self.meshCOLOR] in ["none", "None", None]:
+        if not self._state.pc_color_value in ["none", "None", None]:
             _active_id = (
                 1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
             )
             active_name = self._state.actor_ids[_active_id]
             if str(active_name).startswith("Mesh"):
                 active_actor = self._plotter.actors[active_name]
-                active_actor.prop.color = self._state[self.meshCOLOR]
+                active_actor.prop.color = self._state.pc_color_value
                 self._ctrl.view_update()
 
     @vuwrap
@@ -745,13 +824,13 @@ class PVCB:
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
-            active_actor.mapper.lookup_table.cmap = self._state[self.pcCOLORMAP]
+            active_actor.mapper.lookup_table.cmap = self._state.pc_colormap_value
             self.on_legend_change()
         for morpho_key in ["MorphoField", "MorphoPath"]:
             if morpho_key in self._plotter.actors.keys():
-                self._plotter.actors[morpho_key].mapper.lookup_table.cmap = self._state[
-                    self.pcCOLORMAP
-                ]
+                self._plotter.actors[
+                    morpho_key
+                ].mapper.lookup_table.cmap = self._state.pc_colormap_value
         self._ctrl.view_update()
 
     @vuwrap
@@ -762,7 +841,7 @@ class PVCB:
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("Mesh"):
-            active_actor.prop.style = self._state[self.meshSTYLE]
+            active_actor.prop.style = self._state.mesh_style_value
         self._ctrl.view_update()
 
     @vuwrap
@@ -773,12 +852,12 @@ class PVCB:
         active_name = self._state.actor_ids[_active_id]
         active_actor = self._plotter.actors[active_name]
         if str(active_name).startswith("PC"):
-            active_actor.prop.point_size = float(self._state[self.pcPOINTSIZE])
+            active_actor.prop.point_size = float(self._state.pc_point_size_value)
         self._ctrl.view_update()
 
     @vuwrap
     def on_morphology_change(self, **kwargs):
-        if self._state[self.meshMORPHOLOGY]:
+        if self._state.mesh_morphology:
             _active_id = (
                 1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
             )
@@ -820,7 +899,7 @@ class PVCB:
 
     @vuwrap
     def on_cal_morphogenesis(self, **kwargs):
-        if self._state[self.morphoCALCULATION]:
+        if self._state.cal_morphogenesis:
             from stviewer.assets.dataset_acquisition import abstract_anndata
 
             if "MorphoField" in self._plotter.actors.keys():
@@ -829,9 +908,9 @@ class PVCB:
                 self._plotter.remove_actor(self._plotter.actors["MorphoPath"])
 
             # target anndata
-            if self._state[self.morphoANNDATA] == "uploaded_target_anndata":
-                if type(self._state[self.morphoUPLOADEDANNDATA]) is dict:
-                    file = ClientFile(self._state[self.morphoUPLOADEDANNDATA])
+            if self._state.morpho_target_anndata_path == "uploaded_target_anndata":
+                if type(self._state.morpho_uploaded_target_anndata_path) is dict:
+                    file = ClientFile(self._state.morpho_uploaded_target_anndata_path)
                     if file.content:
                         with tempfile.NamedTemporaryFile(suffix=file.name) as path:
                             with open(path.name, "wb") as f:
@@ -839,12 +918,12 @@ class PVCB:
                             target_adata, _ = abstract_anndata(path=path.name)
                 else:
                     target_adata, _ = abstract_anndata(
-                        path=self._state[self.morphoUPLOADEDANNDATA]
+                        path=self._state.morpho_uploaded_target_anndata_path
                     )
-            elif self._state[self.morphoANNDATA] is None:
+            elif self._state.morpho_target_anndata_path is None:
                 target_adata = None
             else:
-                path = local_dataset_manager[self._state[self.morphoANNDATA]]
+                path = local_dataset_manager[self._state.morpho_target_anndata_path]
                 target_adata, _ = abstract_anndata(path=path)
 
             # source anndata
@@ -854,15 +933,15 @@ class PVCB:
             active_name = self._state.actor_ids[_active_id]
             active_model = self._plotter.actors[active_name].mapper.dataset.copy()
             active_model_index = active_model.point_data["obs_index"]
-            source_adata, _ = abstract_anndata(path=self._state.anndata_path)[
-                active_model_index, :
-            ]
+            source_adata, _ = abstract_anndata(
+                path=self._state.anndata_info["anndata_path"]
+            )[active_model_index, :]
 
             # device
             try:
                 import torch
 
-                _device = str(self._state[self.morphoMAPPINGdevice]).lower()
+                _device = str(self._state.morpho_mapping_device).lower()
                 _device = (
                     _device if _device != "cpu" and torch.cuda.is_available() else "cpu"
                 )
@@ -877,15 +956,15 @@ class PVCB:
                 target_adata=target_adata,
                 source_pc_model=active_model,
                 mapping_device=_device,
-                mapping_method=str(self._state[self.morphoMAPPINGmethod]),
-                mapping_factor=float(self._state[self.morphoMAPPING]),
-                morphofield_factor=int(self._state[self.morphoFIELD]),
-                morphopath_t_end=int(self._state[self.morphoTEND]),
-                morphopath_sampling=int(self._state[self.morphoSAMPLING]),
+                mapping_method=str(self._state.morpho_mapping_method),
+                mapping_factor=float(self._state.morpho_mapping_factor),
+                morphofield_factor=int(self._state.morphofield_factor),
+                morphopath_t_end=int(self._state.morphopath_t_end),
+                morphopath_sampling=int(self._state.morphopath_downsampling),
             )
 
             self._plotter.actors[active_name].mapper.dataset = pc_model
-            self._state[self.morphoPREDICTEDMODELS] = stages_X
+            self._state.morphopath_predicted_models = stages_X
             morphofield_actor = self._plotter.add_mesh(
                 pc_vectors,
                 scalars="V_Z",
@@ -894,7 +973,7 @@ class PVCB:
                 name="MorphoField",
             )
             morphofield_actor.mapper.scalar_visibility = True
-            morphofield_actor.SetVisibility(self._state[self.morphoSHOWFIELD])
+            morphofield_actor.SetVisibility(self._state.morphofield_visibile)
             morphopath_actor = self._plotter.add_mesh(
                 trajectory_model,
                 scalars="V_Z",
@@ -904,7 +983,7 @@ class PVCB:
                 name="MorphoPath",
             )
             morphopath_actor.mapper.scalar_visibility = True
-            morphopath_actor.SetVisibility(self._state[self.morphoSHOWTRAJECTORY])
+            morphopath_actor.SetVisibility(self._state.morphopath_visibile)
             self._ctrl.view_update()
 
     @vuwrap
@@ -912,20 +991,20 @@ class PVCB:
         """Toggle morpho model visibility."""
         if "MorphoField" in self._plotter.actors.keys():
             morphofield_actor = self._plotter.actors["MorphoField"]
-            morphofield_actor.SetVisibility(self._state[self.morphoSHOWFIELD])
+            morphofield_actor.SetVisibility(self._state.morphofield_visibile)
         if "MorphoPath" in self._plotter.actors.keys():
             morphopath_actor = self._plotter.actors["MorphoPath"]
-            morphopath_actor.SetVisibility(self._state[self.morphoSHOWTRAJECTORY])
+            morphopath_actor.SetVisibility(self._state.morphopath_visibile)
         self._ctrl.view_update()
 
     @vuwrap
     def on_morphogenesis_animation(self, **kwargs):
         """Take morphogenesis animation."""
-        if not (self._state[self.morphoANIMATION] in ["none", "None", None]):
-            _filename = f"stv_image/{self._state[self.morphoANIMATION]}"
+        if not (self._state.morphopath_animation_path in ["none", "None", None]):
+            _filename = f"stv_image/{self._state.morphopath_animation_path}"
             Path("stv_image").mkdir(parents=True, exist_ok=True)
             if str(_filename).endswith(".mp4"):
-                if self._state[self.morphoPREDICTEDMODELS] is not None:
+                if self._state.morphopath_predicted_models is not None:
                     _active_id = (
                         1
                         if int(self._state.active_id) == 0
@@ -939,10 +1018,15 @@ class PVCB:
                         active_model.point_data["obs_index"]
                     )
 
-                    cells_index = np.asarray(self._state[self.morphoPREDICTEDMODELS][0])
-                    cells_points = self._state[self.morphoPREDICTEDMODELS][1:]
+                    cells_index = np.asarray(self._state.morphopath_predicted_models[0])
+                    cells_points = self._state.morphopath_predicted_models[1:]
                     if cells_index.shape == active_model_index.shape:
-                        array = active_model.point_data[self._state[self.pcSCALARS]]
+                        scalar_key = (
+                            self._state.pc_obs_value
+                            if self._state.pc_obs_value not in ["none", "None", None]
+                            else self._state.pc_gene_value
+                        )
+                        array = active_model.point_data[f"{scalar_key}_vis"]
                         array = np.asarray(
                             pd.DataFrame(array, index=active_model_index).loc[
                                 cells_index, 0
@@ -952,7 +1036,7 @@ class PVCB:
                         cells_models = []
                         for pts in cells_points:
                             model = pv.PolyData(pts)
-                            model.point_data[self._state[self.pcSCALARS]] = array
+                            model.point_data[f"{scalar_key}_vis"] = array
                             cells_models.append(model)
 
                         # Check models.
@@ -968,7 +1052,7 @@ class PVCB:
                         pl.background_color = "black"
                         pl.camera_position = self._plotter.camera_position
                         if (
-                            self._state[self.morphoSHOWFIELD] is True
+                            self._state.morphofield_visibile is True
                             and "MorphoField" in self._plotter.actors.keys()
                         ):
                             morphofield_model = self._plotter.actors[
@@ -976,14 +1060,14 @@ class PVCB:
                             ].mapper.dataset.copy()
                             pl.add_mesh(
                                 morphofield_model,
-                                scalars=self._state[self.pcSCALARS],
+                                scalars=f"{scalar_key}_vis",
                                 style="surface",
                                 ambient=0.2,
                                 opacity=1.0,
-                                cmap=self._state[self.pcCOLORMAP],
+                                cmap=self._state.pc_colormap_value,
                             )
                         if (
-                            self._state[self.morphoSHOWTRAJECTORY] is True
+                            self._state.morphopath_visibile is True
                             and "MorphoPath" in self._plotter.actors.keys()
                         ):
                             morphopath_model = self._plotter.actors[
@@ -991,24 +1075,24 @@ class PVCB:
                             ].mapper.dataset.copy()
                             pl.add_mesh(
                                 morphopath_model,
-                                scalars=self._state[self.pcSCALARS],
+                                scalars=f"{scalar_key}_vis",
                                 style="wireframe",
                                 line_width=3,
                                 ambient=0.2,
                                 opacity=1.0,
-                                cmap=self._state[self.pcCOLORMAP],
+                                cmap=self._state.pc_colormap_value,
                             )
 
                         start_block = blocks[blocks_name[0]].copy()
                         pl.add_mesh(
                             start_block,
-                            scalars=self._state[self.pcSCALARS],
+                            scalars=f"{scalar_key}_vis",
                             style="points",
                             point_size=5,
                             render_points_as_spheres=True,
                             ambient=0.2,
                             opacity=1.0,
-                            cmap=self._state[self.pcCOLORMAP],
+                            cmap=self._state.pc_colormap_value,
                         )
                         pl.open_movie(_filename, framerate=12, quality=5)
                         for block_name in blocks_name[1:]:
@@ -1019,22 +1103,27 @@ class PVCB:
     @vuwrap
     def on_cal_interpolation(self, **kwargs):
         """Learn a continuous mapping from space to gene expression pattern with the Gaussian Process method."""
-        if self._state[self.interpolationCALCULATION]:
+        if self._state.cal_interpolation and self._state.pc_gene_value not in [
+            "none",
+            "None",
+            None,
+        ]:
             # source anndata
             _active_id = (
                 1 if int(self._state.active_id) == 0 else int(self._state.active_id) - 1
             )
             active_name = self._state.actor_ids[_active_id]
             active_actor = self._plotter.actors[active_name]
+            gene = self._state.pc_gene_value
 
             source_adata = AnnData(
                 X=np.asarray(
-                    active_actor.mapper.dataset.point_data[self._state[self.pcSCALARS]]
+                    active_actor.mapper.dataset.point_data[f"{gene}_vis"]
                 ).reshape(-1, 1),
                 obs=pd.DataFrame(
                     index=active_actor.mapper.dataset.point_data["obs_index"]
                 ),
-                var=pd.DataFrame(index=[self._state[self.pcSCALARS]]),
+                var=pd.DataFrame(index=[gene]),
             )
             source_adata.obsm["target_points"] = np.asarray(
                 active_actor.mapper.dataset.points
@@ -1044,7 +1133,7 @@ class PVCB:
             try:
                 import torch
 
-                _device = str(self._state[self.interpolationCALdevice]).lower()
+                _device = str(self._state.interpolation_device).lower()
                 _device = (
                     _device if _device != "cpu" and torch.cuda.is_available() else "cpu"
                 )
@@ -1058,15 +1147,13 @@ class PVCB:
                 source_adata=source_adata,
                 target_points=np.asarray(source_adata.obsm["target_points"]),
                 spatial_key="target_points",
-                keys=self._state[self.pcSCALARS],
+                keys=gene,
                 device=_device,
                 training_iter=100,
             )
             active_actor.mapper.dataset.point_data[
-                f"{self._state[self.pcSCALARS]}_interpolated"
-            ] = np.asarray(
-                interpolated_adata[:, self._state[self.pcSCALARS]].X.flatten()
-            )
+                f"{self._state.pc_gene_value}_interpolated"
+            ] = np.asarray(interpolated_adata[:, gene].X.flatten())
             self._plotter.actors[active_name] = active_actor
             self._ctrl.view_update()
 
@@ -1076,8 +1163,8 @@ class PVCB:
     @vuwrap
     def on_plotter_screenshot(self, **kwargs):
         """Take screenshot."""
-        if not (self._state[self.PLOTTER_SCREENSHOT] in ["none", "None", None]):
-            _filename = f"stv_image/{self._state[self.PLOTTER_SCREENSHOT]}"
+        if not (self._state.screenshot_path in ["none", "None", None]):
+            _filename = f"stv_image/{self._state.screenshot_path}"
             Path("stv_image").mkdir(parents=True, exist_ok=True)
             if str(_filename).endswith(".png"):
                 self._plotter.screenshot(filename=_filename)
@@ -1092,8 +1179,8 @@ class PVCB:
     @vuwrap
     def on_plotter_animation(self, **kwargs):
         """Take animation."""
-        if not (self._state[self.PLOTTER_ANIMATION] in ["none", "None", None]):
-            _filename = f"stv_image/{self._state[self.PLOTTER_ANIMATION]}"
+        if not (self._state.animation_path in ["none", "None", None]):
+            _filename = f"stv_image/{self._state.animation_path}"
             Path("stv_image").mkdir(parents=True, exist_ok=True)
             if str(_filename).endswith(".mp4"):
                 viewup = self._plotter.camera_position[2]
@@ -1131,7 +1218,9 @@ class PVCB:
                 active_name = self._state.actor_ids[_active_id]
                 active_model = self._plotter.actors[active_name].mapper.dataset.copy()
                 active_model_index = active_model.point_data["obs_index"]
-                adata, _ = abstract_anndata(path=self._state.anndata_path)
+                adata, _ = abstract_anndata(
+                    path=self._state.anndata_info["anndata_path"]
+                )
                 adata = adata[active_model_index, :]
 
                 # RNA velocity
@@ -1140,28 +1229,28 @@ class PVCB:
                 pc_model, vectors = RNAvelocity(
                     adata=adata,
                     pc_model=active_model,
-                    layer=str(self._state["custom_parameter1"]),
-                    data_preprocess=str(self._state["custom_parameter2"]),
-                    basis_pca=str(self._state["custom_parameter3"]),
-                    basis_umap=str(self._state["custom_parameter4"]),
-                    harmony_debatch=bool(self._state["custom_parameter5"]),
-                    group_key=str(self._state["custom_parameter6"]),
-                    n_neighbors=int(self._state["custom_parameter7"]),
-                    n_pca_components=int(self._state["custom_parameter8"]),
-                    n_vectors_downsampling=self._state["custom_parameter9"],
-                    vectors_size=float(self._state["custom_parameter10"]),
+                    layer=self._state.custom_parameter1,
+                    data_preprocess=self._state.custom_parameter2,
+                    basis_pca=self._state.custom_parameter3,
+                    basis_umap=self._state.custom_parameter4,
+                    harmony_debatch=bool(self._state.custom_parameter5),
+                    group_key=self._state.custom_parameter6,
+                    n_neighbors=int(self._state.custom_parameter7),
+                    n_pca_components=int(self._state.custom_parameter8),
+                    n_vectors_downsampling=self._state.custom_parameter9,
+                    vectors_size=float(self._state.custom_parameter10),
                 )
 
                 self._plotter.actors[active_name].mapper.dataset = pc_model
                 CustomModel_actor = self._plotter.add_mesh(
                     vectors,
-                    scalars=f"speed_{str(self._state['custom_parameter3'])}",
+                    scalars=f"speed_{str(self._state.custom_parameter3)}",
                     style="surface",
                     show_scalar_bar=False,
                     name="custom_model",
                 )
                 CustomModel_actor.mapper.scalar_visibility = True
-                CustomModel_actor.SetVisibility(self._state["custom_model_visible"])
+                CustomModel_actor.SetVisibility(self._state.custom_model_visible)
                 self._ctrl.view_update()
 
     @vuwrap
@@ -1169,5 +1258,5 @@ class PVCB:
         """Toggle rna velocity vector model visibility."""
         if "custom_model" in self._plotter.actors.keys():
             custom_actor = self._plotter.actors["custom_model"]
-            custom_actor.SetVisibility(self._state["custom_model_visible"])
+            custom_actor.SetVisibility(self._state.custom_model_visible)
         self._ctrl.view_update()

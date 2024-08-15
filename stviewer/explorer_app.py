@@ -12,6 +12,8 @@ from .assets import icon_manager, local_dataset_manager
 from .Explorer import (
     create_plotter,
     init_actors,
+    init_adata_parameters,
+    init_card_parameters,
     init_custom_parameters,
     init_interpolation_parameters,
     init_mesh_parameters,
@@ -38,11 +40,7 @@ state.setdefault("active_ui", None)
 plotter = create_plotter()
 # Init model
 (
-    anndata_path,
-    anndata_metrices,
     anndata_info,
-    anndata_obs_index,
-    anndata_var_index,
     actors,
     actor_names,
     actor_tree,
@@ -53,6 +51,8 @@ plotter = create_plotter()
 )
 
 # Init parameters
+state.update(init_card_parameters)
+state.update(init_adata_parameters)
 state.update(init_pc_parameters)
 state.update(init_mesh_parameters)
 state.update(init_morphogenesis_parameters)
@@ -61,12 +61,12 @@ state.update(init_output_parameters)
 state.update(
     {
         "init_dataset": True,
-        "anndata_path": anndata_path,
-        "matrices_list": anndata_metrices,
-        "show_anndata_info": False,
-        "anndata_info_text": anndata_info,
-        "anndata_obs_index": anndata_obs_index,
-        "anndata_var_index": anndata_var_index,
+        "anndata_info": anndata_info,
+        "pc_obs_value": "mapped_celltype",
+        "available_obs": ["None"] + anndata_info["anndata_obs_keys"],
+        "pc_gene_value": None,
+        "available_genes": ["None"] + anndata_info["anndata_var_index"],
+        "pc_colormaps_list": ["spateo_cmap"] + custom_colors + plt.colormaps(),
         # setting
         "actor_ids": actor_names,
         "pipeline": actor_tree,
@@ -76,9 +76,6 @@ state.update(
         "vis_ids": [
             i for i, actor in enumerate(plotter.actors.values()) if actor.visibility
         ],
-        "show_model_card": True,
-        "show_output_card": True,
-        "pc_colormaps": ["default_cmap"] + custom_colors + plt.colormaps(),
     }
 )
 # Custom init parameters
