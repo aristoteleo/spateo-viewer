@@ -9,6 +9,7 @@ import numpy as np
 import pyvista as pv
 from anndata import AnnData
 from matplotlib.colors import LinearSegmentedColormap
+from pandas import DataFrame
 from scipy import sparse
 
 try:
@@ -86,15 +87,30 @@ def sample_dataset(
     mesh_model_ids: Optional[list] = None,
 ):
     # Generate anndata object
-    anndata_path = os.path.join(path, "h5ad")
-    anndata_list = [
-        f for f in os.listdir(path=anndata_path) if str(f).endswith(".h5ad")
-    ]
-    adata, anndata_structure = abstract_anndata(
-        path=os.path.join(anndata_path, anndata_list[0]),
-        X_layer=X_layer,
-    )
+    print(path)
+    if os.path.isfile(path) and path.endswith(".h5ad"):
+        anndata_path = path
+        matrices_npz_path = f"./temp/matrices_{path.split('/')[-1]}"
+
+        adata, anndata_structure = abstract_anndata(path=path, X_layer=X_layer)
+    elif os.path.isdir(path):
+        anndata_dir = os.path.join(path, "h5ad")
+        anndata_list = [
+            f for f in os.listdir(path=anndata_dir) if str(f).endswith(".h5ad")
+        ]
+        anndata_path = os.path.join(anndata_dir, anndata_list[0])
+        matrices_npz_path = os.path.join(path, "matrices")
+
+        adata, anndata_structure = abstract_anndata(
+            path=os.path.join(anndata_dir, anndata_list[0]),
+            X_layer=X_layer,
+        )
+    else:
+        raise ValueError(f"`{path}` is not available for spateo-viewer.")
+
+    ## Generate info-dict of anndata object
     anndata_info = {
+        "anndata_path": anndata_path,
         "anndata_structure": anndata_structure,
         "anndata_obs_keys": list(adata.obs_keys()),
         "anndata_obs_index": list(adata.obs.index.to_list()),
@@ -103,24 +119,27 @@ def sample_dataset(
             key for key in ["spatial", "X_umap"] if key in adata.obsm.keys()
         ],
         "anndata_metrices": ["X"] + [i for i in adata.layers.keys()],
+        "matrices_npz_path": matrices_npz_path,
     }
 
     # Check matrices
-    matrices_path = os.path.join(path, "matrices")
-    if os.path.exists(matrices_path):
-        pass
-    else:
-        Path(matrices_path).mkdir(parents=True, exist_ok=True)
+    if not os.path.exists(anndata_info["matrices_npz_path"]):
+        Path(anndata_info["matrices_npz_path"]).mkdir(parents=True, exist_ok=True)
         for matrix_id in anndata_info["anndata_metrices"]:
             matrix = adata.X if matrix_id == "X" else adata.layers[matrix_id]
-            sparse.save_npz(f"{matrices_path}/{matrix_id}_sparse_martrix.npz", matrix)
+            print(matrix)
+            sparse.save_npz(
+                f"{anndata_info['matrices_npz_path']}/{matrix_id}_sparse_martrix.npz",
+                matrix,
+            )
+    else:
+        pass
 
     # Generate point cloud models
-    pc_models_path = os.path.join(path, "pc_models")
-    if os.path.exists(pc_models_path):
+    if os.path.isdir(path) and os.path.exists(os.path.join(path, "pc_models")):
         pc_model_files = [
             f
-            for f in os.listdir(path=pc_models_path)
+            for f in os.listdir(path=os.path.join(path, "pc_models"))
             if str(f).endswith(".vtk") or str(f).endswith(".vtm")
         ]
         pc_model_files.sort()
@@ -128,37 +147,42 @@ def sample_dataset(
         if pc_model_ids is None:
             pc_model_ids = [f"PC_{str(i).split('_')[1]}" for i in pc_model_files]
         _pc_models, pc_model_ids = abstract_models(
-            path=pc_models_path, model_ids=pc_model_ids
+            path=os.path.join(path, "pc_models"), model_ids=pc_model_ids
         )
-        pc_models = []
-        for pc_model in _pc_models:
-            _obs_index = pc_model.point_data["obs_index"]
-            for obsm_key in anndata_info["anndata_obsm_keys"]:
-                coords = np.asarray(adata[_obs_index, :].obsm[obsm_key])
-                pc_model.point_data[f"{obsm_key}_X"] = coords[:, 0]
-                pc_model.point_data[f"{obsm_key}_Y"] = coords[:, 1]
-                pc_model.point_data[f"{obsm_key}_Z"] = (
-                    0 if coords.shape[1] == 2 else coords[:, 2]
-                )
-
-            for obs_key in adata.obs_keys():
-                array = np.asarray(adata[_obs_index, :].obs[obs_key])
-                array = (
-                    np.asarray(array, dtype=float)
-                    if np.issubdtype(array.dtype, np.number)
-                    else np.asarray(array, dtype=str)
-                )
-                pc_model.point_data[obs_key] = array
-            pc_models.append(pc_model)
     else:
-        pc_models, pc_model_ids = None, None
+        bucket_xyz = adata.obsm["spatial"].astype(np.float64)
+        if isinstance(bucket_xyz, DataFrame):
+            bucket_xyz = bucket_xyz.values
+        pc_model = pv.PolyData(bucket_xyz)
+        pc_model.point_data["obs_index"] = np.array(adata.obs_names.tolist())
+        _pc_models, pc_model_ids = [pc_model], ["PC_Model"]
+
+    pc_models = []
+    for pc_model in _pc_models:
+        _obs_index = pc_model.point_data["obs_index"]
+        for obsm_key in anndata_info["anndata_obsm_keys"]:
+            coords = np.asarray(adata[_obs_index, :].obsm[obsm_key])
+            pc_model.point_data[f"{obsm_key}_X"] = coords[:, 0]
+            pc_model.point_data[f"{obsm_key}_Y"] = coords[:, 1]
+            pc_model.point_data[f"{obsm_key}_Z"] = (
+                0 if coords.shape[1] == 2 else coords[:, 2]
+            )
+
+        for obs_key in adata.obs_keys():
+            array = np.asarray(adata[_obs_index, :].obs[obs_key])
+            array = (
+                np.asarray(array, dtype=float)
+                if np.issubdtype(array.dtype, np.number)
+                else np.asarray(array, dtype=str)
+            )
+            pc_model.point_data[obs_key] = array
+        pc_models.append(pc_model)
 
     # Generate mesh models
-    mesh_models_path = os.path.join(path, "mesh_models")
-    if os.path.exists(mesh_models_path):
+    if os.path.isdir(path) and os.path.exists(os.path.join(path, "mesh_models")):
         mesh_model_files = [
             f
-            for f in os.listdir(path=mesh_models_path)
+            for f in os.listdir(path=os.path.join(path, "mesh_models"))
             if str(f).endswith(".vtk") or str(f).endswith(".vtm")
         ]
         mesh_model_files.sort()
@@ -166,7 +190,7 @@ def sample_dataset(
         if mesh_model_ids is None:
             mesh_model_ids = [f"Mesh_{str(i).split('_')[1]}" for i in mesh_model_files]
         mesh_models, mesh_model_ids = abstract_models(
-            path=mesh_models_path, model_ids=mesh_model_ids
+            path=os.path.join(path, "mesh_models"), model_ids=mesh_model_ids
         )
     else:
         mesh_models, mesh_model_ids = None, None

@@ -12,6 +12,7 @@ from .assets import icon_manager, local_dataset_manager
 from .Explorer import (
     create_plotter,
     init_actors,
+    init_adata_parameters,
     init_card_parameters,
     init_custom_parameters,
     init_interpolation_parameters,
@@ -51,6 +52,7 @@ plotter = create_plotter()
 
 # Init parameters
 state.update(init_card_parameters)
+state.update(init_adata_parameters)
 state.update(init_pc_parameters)
 state.update(init_mesh_parameters)
 state.update(init_morphogenesis_parameters)

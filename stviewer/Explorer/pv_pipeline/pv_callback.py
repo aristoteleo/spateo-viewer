@@ -17,6 +17,7 @@ from trame.app.file_upload import ClientFile
 from stviewer.assets import local_dataset_manager
 
 from .init_parameters import (
+    init_adata_parameters,
     init_card_parameters,
     init_mesh_parameters,
     init_morphogenesis_parameters,
@@ -200,7 +201,7 @@ class Viewer:
 
 
 class SwitchModels:
-    """Callbacks for toolbar based on pyvista."""
+    """Callbacks for Input based on pyvista."""
 
     def __init__(self, server, plotter):
         """Initialize SwitchModels."""
@@ -212,11 +213,11 @@ class SwitchModels:
 
         # State variable names
         self.SELECT_SAMPLES = "select_samples"
-        self.MATRICES_LIST = f"matrices_list"
+        self.UPLOAD_ANNDATA = "uploaded_anndata_path"
 
         # Listen to state changes
         self._state.change(self.SELECT_SAMPLES)(self.on_dataset_change)
-        self._state.change(self.MATRICES_LIST)(self.on_dataset_change)
+        self._state.change(self.UPLOAD_ANNDATA)(self.on_anndata_change)
 
     @vuwrap
     def on_dataset_change(self, **kwargs):
@@ -225,6 +226,7 @@ class SwitchModels:
         else:
             from stviewer.assets.dataset_acquisition import sample_dataset
 
+            self._state[self.UPLOAD_ANNDATA] = None
             if self._state[self.SELECT_SAMPLES] == "uploaded_sample":
                 path = self._state.selected_dir
             else:
@@ -238,10 +240,6 @@ class SwitchModels:
                 mesh_model_ids,
                 custom_colors,
             ) = sample_dataset(path=path)
-            anndata_info["anndata_path"] = os.path.join(
-                os.path.join(path, "h5ad"),
-                os.listdir(path=os.path.join(path, "h5ad"))[0],
-            )
 
             # Generate actors
             self.plotter.clear_actors()
@@ -279,10 +277,78 @@ class SwitchModels:
                         for i, actor in enumerate(self.plotter.actors.values())
                         if actor.visibility
                     ],
-                    "pc_colormaps": ["spateo_cmap"] + custom_colors + plt.colormaps(),
                 }
             )
             self._state.update(init_card_parameters)
+            self._state.update(init_adata_parameters)
+            self._state.update(init_pc_parameters)
+            self._state.update(init_mesh_parameters)
+            self._state.update(init_morphogenesis_parameters)
+            self._state.update(init_output_parameters)
+            self._ctrl.view_reset_camera(force=True)
+            self._ctrl.view_update()
+
+    @vuwrap
+    def on_anndata_change(self, **kwargs):
+        if self._state[self.UPLOAD_ANNDATA] is None:
+            pass
+        else:
+            from stviewer.assets.dataset_acquisition import sample_dataset
+
+            self._state[self.SELECT_SAMPLES] = None
+            file = ClientFile(self._state[self.UPLOAD_ANNDATA])
+            with tempfile.NamedTemporaryFile(suffix=file.name) as path:
+                with open(path.name, "wb") as f:
+                    f.write(file.content)
+                    (
+                        anndata_info,
+                        pc_models,
+                        pc_model_ids,
+                        mesh_models,
+                        mesh_model_ids,
+                        custom_colors,
+                    ) = sample_dataset(path=path.name)
+
+            # Generate actors
+            self.plotter.clear_actors()
+            pc_actors, mesh_actors = generate_actors(
+                plotter=self.plotter,
+                pc_models=pc_models,
+                pc_model_names=pc_model_ids,
+                mesh_models=mesh_models,
+                mesh_model_names=mesh_model_ids,
+            )
+
+            # Generate the relationship tree of actors
+            actors, actor_names, actor_tree = generate_actors_tree(
+                pc_actors=pc_actors,
+                mesh_actors=mesh_actors,
+            )
+
+            self._state.update(
+                {
+                    "init_dataset": False,
+                    "anndata_info": anndata_info,
+                    "available_obs": ["None"] + anndata_info["anndata_obs_keys"],
+                    "available_genes": ["None"] + anndata_info["anndata_var_index"],
+                    "pc_colormaps_list": ["spateo_cmap"]
+                    + custom_colors
+                    + plt.colormaps(),
+                    # setting
+                    "actor_ids": actor_names,
+                    "pipeline": actor_tree,
+                    "active_id": 1,
+                    "active_ui": actor_names[0],
+                    "active_model_type": str(actor_names[0]).split("_")[0],
+                    "vis_ids": [
+                        i
+                        for i, actor in enumerate(self.plotter.actors.values())
+                        if actor.visibility
+                    ],
+                }
+            )
+            self._state.update(init_card_parameters)
+            self._state.update(init_adata_parameters)
             self._state.update(init_pc_parameters)
             self._state.update(init_mesh_parameters)
             self._state.update(init_morphogenesis_parameters)
@@ -472,9 +538,8 @@ class PVCB:
                         )
                     )[0]
 
-                    martix_path = f"{self._state.anndata_info['anndata_path'].split('/h5ad/')[0]}/matrices/{self._state.pc_matrix_value}_sparse_martrix.npz"
+                    martix_path = f"{self._state.anndata_info['matrices_npz_path']}/{self._state.pc_matrix_value}_sparse_martrix.npz"
                     martix = sparse.load_npz(martix_path)
-
                     array = np.asarray(
                         martix[obs_indices, var_indices].A, dtype=float
                     ).reshape(-1, 1)
@@ -490,7 +555,9 @@ class PVCB:
 
                     change_array = True
                     array = np.asarray(
-                        active_actor.mapper.dataset[self._state.pc_obs_value].copy(),
+                        active_actor.mapper.dataset[
+                            str(self._state.pc_gene_value)
+                        ].copy(),
                         dtype=float,
                     )
                     self._state.pc_scalars_raw = {"None": "None"}
@@ -567,7 +634,7 @@ class PVCB:
                     if self._state.pc_obs_value not in ["none", "None", None]
                     else self._state.pc_gene_value
                 )
-                print(scalar_key)
+
                 self._plotter.add_scalar_bar(
                     scalar_key,
                     mapper=active_actor.mapper,

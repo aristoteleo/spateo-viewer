@@ -18,7 +18,7 @@ def morphogenesis_card_content():
         with vuetify.VCol(cols="12"):
             vuetify.VFileInput(
                 v_model=("morpho_uploaded_target_anndata_path", None),
-                label="Uploaded Target Anndata",
+                label="Upload Target AnnData (.h5ad)",
                 dense=True,
                 classes="pt-1",
                 accept=".h5ad",
@@ -35,7 +35,7 @@ def morphogenesis_card_content():
         ]
         with vuetify.VCol(cols="12"):
             vuetify.VSelect(
-                label="Target Anndata",
+                label="Target AnnData",
                 v_model=("morpho_target_anndata_path", None),
                 items=(avaliable_samples,),
                 dense=True,

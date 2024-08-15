@@ -6,6 +6,9 @@ init_card_parameters = {
     "show_model_card": True,
     "show_output_card": True,
 }
+init_adata_parameters = {
+    "uploaded_anndata_path": None,
+}
 init_pc_parameters = {
     "pc_obs_value": None,
     "pc_gene_value": None,

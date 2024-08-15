@@ -116,9 +116,6 @@ def init_actors(plotter, path):
         mesh_actors=mesh_actors,
     )
 
-    anndata_info["anndata_path"] = os.path.join(
-        os.path.join(path, "h5ad"), os.listdir(path=os.path.join(path, "h5ad"))[0]
-    )
     return (
         anndata_info,
         actors,
