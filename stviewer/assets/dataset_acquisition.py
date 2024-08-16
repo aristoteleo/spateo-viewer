@@ -121,17 +121,17 @@ def sample_dataset(
         "matrices_npz_path": matrices_npz_path,
     }
 
-    # Check matrices
-    if not os.path.exists(anndata_info["matrices_npz_path"]):
-        Path(anndata_info["matrices_npz_path"]).mkdir(parents=True, exist_ok=True)
-        for matrix_id in anndata_info["anndata_metrices"]:
-            matrix = adata.X if matrix_id == "X" else adata.layers[matrix_id]
-            sparse.save_npz(
-                f"{anndata_info['matrices_npz_path']}/{matrix_id}_sparse_martrix.npz",
-                matrix,
-            )
-    else:
-        pass
+    # # Check matrices
+    # if not os.path.exists(anndata_info["matrices_npz_path"]):
+    #     Path(anndata_info["matrices_npz_path"]).mkdir(parents=True, exist_ok=True)
+    #     for matrix_id in anndata_info["anndata_metrices"]:
+    #         matrix = adata.X if matrix_id == "X" else adata.layers[matrix_id]
+    #         sparse.save_npz(
+    #             f"{anndata_info['matrices_npz_path']}/{matrix_id}_sparse_martrix.npz",
+    #             matrix,
+    #         )
+    # else:
+    #     pass
 
     # Generate point cloud models
     if os.path.isdir(path) and os.path.exists(os.path.join(path, "pc_models")):
