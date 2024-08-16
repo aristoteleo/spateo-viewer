@@ -8,18 +8,18 @@
 Relying on a set of powerful libraries and tools in the Python ecosystem, such as Trame, PyVista, VTK, etc., it delivers 
 a complete web application solution of creating convenient, vivid, and lightweight interface for 3D reconstruction and 
 visualization of [**Spateo**](https://github.com/aristoteleo/spateo-release) downstream analysis results. Currently, 
-Spateo-viewer includes two major applications, **interactive-viewer** and **static-viewer**, which are respectively 
+Spateo-viewer includes two major applications, ***Explorer*** and ***Reconstructor***, which are respectively 
 dedicated to the 3D reconstruction of spatial transcriptomics and the visualization of spatial transcriptomics analysis results.
 
 Please download and read the corresponding [**Slides**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/spateo-viewer.pdf) to learn more about Spateo-viewer.
 
 ## Highlights
 
-* In the interactive-viewer, 3D serial slices of spatial transcriptomics datasets can be aligned to create 3D models. The 3D model can be also cleaned up by freely clipping and editing. 
-* In the static-viewer, users can not only visualize gene expression, but also easily switch between raw and different types of normalized data or data layers. Users can also visualize all cell annotation information such as cell size, cell type, tissue type, etc. All done in 3D space!
+* In the ***Reconstructor***, 3D serial slices of spatial transcriptomics datasets can be aligned to create 3D models. The 3D model can be also cleaned up by freely clipping and editing. 
+* In the ***Explorer***, users can not only visualize gene expression, but also easily switch between raw and different types of normalized data or data layers. Users can also visualize all cell annotation information such as cell size, cell type, tissue type, etc. All done in 3D space!
 * Static-viewer allows users to not only visualize the point cloud model and mesh model of the whole embryo, but also for individual organ or tissue type at the same time. It even visualizes morphogenesis vector field model to animate how cell move in the physical 3D space. 
 * Spateo-viewer can not only run on the local computer, but also run freely on the remote server. 
-* Users can upload custom files in the web application, or access to custom files in local folders when running Spateo-Viewer as a stand alone App.(See [**StaticViewerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/StaticViewerUsage.md) or [**InteractiveViewerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/InteractiveViewerUsage.md))
+* Users can upload custom files in the web application, or access to custom files in local folders when running Spateo-Viewer as a stand alone App.(See [**ExplorerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/ExplorerUsage.md) or [**ReconstructorUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/ReconstructorUsage.md))
 
 ## Installation
 
@@ -31,17 +31,17 @@ You can clone the [**Spateo-viewer**](https://github.com/aristoteleo/spateo-view
 
 ## Usage
 
-#### Run the static-viewer application:
+#### Run the *Explorer* application:
 
-    python stv_static_app.py --port 1234
+    python stv_explorer.py --port 1234
 
-See the [**StaticViewerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/StaticViewerUsage.md) for more details.
+See the [**ExplorerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/ExplorerUsage.md) for more details.
 
-#### Run the interactive-viewer application:
+#### Run the *Reconstructor* application:
 
-    python stv_interactive_app.py --port 1234
+    python stv_reconstructor.py --port 1234
 
-See the [**InteractiveViewerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/InteractiveViewerUsage.md) for more details.
+See the [**ReconstructorUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/ReconstructorUsage.md) for more details.
 
 ## Citation
 

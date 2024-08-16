@@ -1,7 +1,7 @@
 trame:
   cmd:
     - python
-    - /deploy/stv_static_app.py
+    - /deploy/stv_explorer.py
     - --host
     - ${host}
     - --port
@@ -10,10 +10,10 @@ trame:
     - ${secret}
     - --server
 
-stv_static_app:
+stv_explorer:
   cmd:
     - python
-    - /deploy/stv_static_app.py
+    - /deploy/stv_explorer.py
     - --host
     - ${host}
     - --port
@@ -22,10 +22,10 @@ stv_static_app:
     - ${secret}
     - --server
 
-stv_interactive_app:
+stv_reconstructor:
   cmd:
     - python
-    - /deploy/stv_interactive_app.py
+    - /deploy/stv_reconstructor.py
     - --host
     - ${host}
     - --port
