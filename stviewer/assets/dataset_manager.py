@@ -1,4 +1,5 @@
 import base64
+import os
 from pathlib import Path
 
 from trame.app.mimetypes import to_mime
@@ -118,13 +119,18 @@ class LocalFileManager:
 
 
 local_dataset_manager = LocalFileManager(__file__)
-local_dataset_manager.dir_url("mouse_E95", r"./dataset/mouse_E95")
-local_dataset_manager.dir_url("drosophila_S11", r"./dataset/drosophila_S11")
+if os.path.exists(r"./dataset/mouse_E95"):
+    local_dataset_manager.dir_url("mouse_E95", r"./dataset/mouse_E95")
+if os.path.exists(r"./dataset/mouse_E115"):
+    local_dataset_manager.dir_url("mouse_E115", r"./dataset/mouse_E115")
+if os.path.exists(r"./dataset/drosophila_S11"):
+    local_dataset_manager.dir_url("drosophila_S11", r"./dataset/drosophila_S11")
 
-local_dataset_manager.file_url(
-    "drosophila_S11_anndata",
-    r"./stviewer/assets/dataset/drosophila_S11/h5ad/S11_cellbin.h5ad",
-)
+if os.path.exists(r"./stviewer/assets/dataset/drosophila_S11/h5ad/S11_cellbin.h5ad"):
+    local_dataset_manager.file_url(
+        "drosophila_S11_anndata",
+        r"./stviewer/assets/dataset/drosophila_S11/h5ad/S11_cellbin.h5ad",
+    )
 
 """
 # -----------------------------------------------------------------------------

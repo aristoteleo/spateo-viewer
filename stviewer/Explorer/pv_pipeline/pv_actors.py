@@ -23,7 +23,7 @@ def generate_actors(
     mesh_model_names: Optional[list] = None,
 ):
     # Generate actors for pc models
-    pc_kwargs = dict(model_style="points", model_size=8)
+    pc_kwargs = dict(model_style="points", model_size=5)
     if not (pc_models is None):
         pc_actors = [
             add_single_model(
@@ -35,7 +35,7 @@ def generate_actors(
         pc_actors = None
 
     # Generate actors for mesh models
-    mesh_kwargs = dict(opacity=0.6, model_style="surface")
+    mesh_kwargs = dict(opacity=0.2, model_style="surface", color="gainsboro")
     if not (mesh_models is None):
         mesh_actors = [
             add_single_model(

@@ -27,7 +27,7 @@ init_pc_parameters = {
     "pc_colors_list": [c for c in mcolors.CSS4_COLORS.keys()],
 }
 init_mesh_parameters = {
-    "mesh_opacity_value": 0.3,
+    "mesh_opacity_value": 0.2,
     "mesh_ambient_value": 0.2,
     "mesh_color_value": "gainsboro",
     "mesh_style_value": "surface",

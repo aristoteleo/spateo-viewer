@@ -26,10 +26,10 @@ def mesh_card_content():
             )
     # Opacity
     vuetify.VSlider(
-        v_model=("mesh_opacity_value", 0.3),
+        v_model=("mesh_opacity_value", 0.2),
         min=0,
         max=1,
-        step=0.01,
+        step=0.05,
         label="Opacity",
         classes="mt-1",
         hide_details=True,
@@ -40,7 +40,7 @@ def mesh_card_content():
         v_model=("mesh_ambient_value", 0.2),
         min=0,
         max=1,
-        step=0.01,
+        step=0.05,
         label="Ambient",
         classes="mt-1",
         hide_details=True,
