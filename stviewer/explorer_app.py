@@ -62,9 +62,9 @@ state.update(
     {
         "init_dataset": True,
         "anndata_info": anndata_info,
+        "pc_point_size_value": 4,
         "pc_obs_value": "mapped_celltype",
         "available_obs": ["None"] + anndata_info["anndata_obs_keys"],
-        "pc_gene_value": None,
         "available_genes": ["None"] + anndata_info["anndata_var_index"],
         "pc_colormaps_list": ["spateo_cmap"] + custom_colors + plt.colormaps(),
         # setting
@@ -78,6 +78,7 @@ state.update(
         ],
     }
 )
+
 # Custom init parameters
 if init_custom_parameters["custom_func"] is True:
     state.update(init_custom_parameters)

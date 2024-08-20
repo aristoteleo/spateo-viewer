@@ -230,7 +230,6 @@ class SwitchModels:
                 path = self._state.selected_dir
             else:
                 path = local_dataset_manager[self._state[self.SELECT_SAMPLES]]
-
             (
                 anndata_info,
                 pc_models,
@@ -281,6 +280,22 @@ class SwitchModels:
             self._state.update(init_card_parameters)
             self._state.update(init_adata_parameters)
             self._state.update(init_pc_parameters)
+            if self._state[self.SELECT_SAMPLES] == "mouse_E95":
+                self._state.update(
+                    {
+                        "pc_point_size_value": 4,
+                        "pc_obs_value": "mapped_celltype",
+                    }
+                )
+            if self._state[self.SELECT_SAMPLES] == "mouse_E115":
+                self._state.update(
+                    {"pc_point_size_value": 2, "pc_obs_value": "mapped_celltype"}
+                )
+            if self._state[self.SELECT_SAMPLES] == "drosophila_S11":
+                self._state.update(
+                    {"pc_point_size_value": 8, "pc_obs_value": "anno_tissue"}
+                )
+
             self._state.update(init_mesh_parameters)
             self._state.update(init_morphogenesis_parameters)
             self._state.update(init_output_parameters)

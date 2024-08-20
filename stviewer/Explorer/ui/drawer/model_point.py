@@ -148,7 +148,7 @@ def pc_card_content():
         v_model=("pc_opacity_value", 1.0),
         min=0,
         max=1,
-        step=0.01,
+        step=0.05,
         label="Opacity",
         classes="mt-1",
         hide_details=True,
@@ -159,7 +159,7 @@ def pc_card_content():
         v_model=("pc_ambient_value", 0.2),
         min=0,
         max=1,
-        step=0.01,
+        step=0.05,
         label="Ambient",
         classes="mt-1",
         hide_details=True,
@@ -167,7 +167,7 @@ def pc_card_content():
     )
     # Point size
     vuetify.VSlider(
-        v_model=("pc_point_size_value", 4),
+        v_model=("pc_point_size_value", 2),
         min=0,
         max=20,
         step=1,
