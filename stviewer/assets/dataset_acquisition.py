@@ -89,7 +89,7 @@ def sample_dataset(
     # Generate anndata object
     if os.path.isfile(path) and path.endswith(".h5ad"):
         anndata_path = path
-        matrices_npz_path = f"./temp/matrices_{path.split('/')[-1]}"
+        matrices_npz_path = f"./deploy/stviewer/assets/dataset/temp/matrices_{path.split('/')[-1]}"
 
         adata, anndata_structure = abstract_anndata(path=path, X_layer=X_layer)
     elif os.path.isdir(path):
@@ -121,17 +121,17 @@ def sample_dataset(
         "matrices_npz_path": matrices_npz_path,
     }
 
-    # # Check matrices
-    # if not os.path.exists(anndata_info["matrices_npz_path"]):
-    #     Path(anndata_info["matrices_npz_path"]).mkdir(parents=True, exist_ok=True)
-    #     for matrix_id in anndata_info["anndata_metrices"]:
-    #         matrix = adata.X if matrix_id == "X" else adata.layers[matrix_id]
-    #         sparse.save_npz(
-    #             f"{anndata_info['matrices_npz_path']}/{matrix_id}_sparse_martrix.npz",
-    #             matrix,
-    #         )
-    # else:
-    #     pass
+    # Check matrices
+    if not os.path.exists(anndata_info["matrices_npz_path"]):
+        Path(anndata_info["matrices_npz_path"]).mkdir(parents=True, exist_ok=True)
+        for matrix_id in anndata_info["anndata_metrices"]:
+            matrix = adata.X if matrix_id == "X" else adata.layers[matrix_id]
+            sparse.save_npz(
+                f"{anndata_info['matrices_npz_path']}/{matrix_id}_sparse_martrix.npz",
+                matrix,
+            )
+    else:
+        pass
 
     # Generate point cloud models
     if os.path.isdir(path) and os.path.exists(os.path.join(path, "pc_models")):
