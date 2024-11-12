@@ -1,5 +1,7 @@
 import base64
+import os
 from pathlib import Path
+from urllib.request import urlretrieve
 
 from trame.app.mimetypes import to_mime
 
@@ -118,20 +120,13 @@ class LocalFileManager:
 
 
 local_dataset_manager = LocalFileManager(__file__)
-local_dataset_manager.dir_url("drosophila_E7_8h", r"./dataset/drosophila_E7_8h")
-local_dataset_manager.dir_url("drosophila_E8_9h", r"./dataset/drosophila_E8_9h")
+local_dataset_manager.dir_url("mouse_E95", r"./dataset/mouse_E95")
+local_dataset_manager.dir_url("mouse_E115", r"./dataset/mouse_E115")
+local_dataset_manager.dir_url("drosophila_S11", r"./dataset/drosophila_S11")
 
 local_dataset_manager.file_url(
-    "drosophila_E7_8h_anndata",
-    r"./stviewer/assets/dataset/drosophila_E7_8h/h5ad/E7_8h_cellbin.h5ad",
-)
-local_dataset_manager.file_url(
-    "drosophila_E8_9h_anndata",
-    r"./stviewer/assets/dataset/drosophila_E8_9h/h5ad/E8_9h_cellbin.h5ad",
-)
-local_dataset_manager.file_url(
-    "drosophila_E8_9h_midgut_anndata",
-    r"./stviewer/assets/dataset/drosophila_E8_9h/h5ad/E8_9h_cellbin_midgut.h5ad",
+    "drosophila_S11_anndata",
+    r"./stviewer/assets/dataset/drosophila_S11/h5ad/S11_cellbin.h5ad",
 )
 
 """
