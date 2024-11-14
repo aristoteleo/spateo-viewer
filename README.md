@@ -47,7 +47,7 @@ See the [**ReconstructorUsage**](https://github.com/aristoteleo/spateo-viewer/bl
 
 #### [**Mouse E9.5 dataset**](https://github.com/aristoteleo/spateo-viewer/tree/main/stviewer/assets/dataset/mouse_E95): 
 - **h5ad/mouse_E95_demo.h5ad**：Single-cell resolution Stereo-seq data with alignment and cell annotation by the Spateo team. This data only contains 1000 highly variable genes. If you need the raw data, please check the [CNGB website](https://db.cngb.org/stomics/mosta/download/).
-- **matrices**: Contains various gene expression martices for .h5ad data.
+- **matrices**: Contains various gene expression matrices for .h5ad data.
 - **mesh_models**：Contains mesh model of mouse embryo.
 - **pc_models**：Contains point cloud model of mouse embryo.
 
