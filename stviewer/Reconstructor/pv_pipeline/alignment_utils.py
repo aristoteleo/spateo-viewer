@@ -93,9 +93,9 @@ def check_exp(sample: AnnData, layer: str = "X") -> np.ndarray:
         The expression matrix.
     """
 
-    exp_martix = sample.X.copy() if layer == "X" else sample.layers[layer].copy()
-    exp_martix = to_dense_matrix(exp_martix)
-    return exp_martix
+    exp_matrix = sample.X.copy() if layer == "X" else sample.layers[layer].copy()
+    exp_matrix = to_dense_matrix(exp_matrix)
+    return exp_matrix
 
 
 ######################

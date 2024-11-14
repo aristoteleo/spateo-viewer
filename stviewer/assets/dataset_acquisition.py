@@ -117,17 +117,17 @@ def sample_dataset(
         "anndata_obsm_keys": [
             key for key in ["spatial", "X_umap"] if key in adata.obsm.keys()
         ],
-        "anndata_metrices": ["X"] + [i for i in adata.layers.keys()],
+        "anndata_matrices": ["X"] + [i for i in adata.layers.keys()],
         "matrices_npz_path": matrices_npz_path,
     }
 
     # Check matrices
     if not os.path.exists(anndata_info["matrices_npz_path"]):
         Path(anndata_info["matrices_npz_path"]).mkdir(parents=True, exist_ok=True)
-        for matrix_id in anndata_info["anndata_metrices"]:
+        for matrix_id in anndata_info["anndata_matrices"]:
             matrix = adata.X if matrix_id == "X" else adata.layers[matrix_id]
             sparse.save_npz(
-                f"{anndata_info['matrices_npz_path']}/{matrix_id}_sparse_martrix.npz",
+                f"{anndata_info['matrices_npz_path']}/{matrix_id}_sparse_matrix.npz",
                 matrix,
             )
     else:

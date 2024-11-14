@@ -43,14 +43,23 @@ See the [**ExplorerUsage**](https://github.com/aristoteleo/spateo-viewer/blob/ma
 
 See the [**ReconstructorUsage**](https://github.com/aristoteleo/spateo-viewer/blob/main/usage/ReconstructorUsage.md) for more details.
 
+## Sample Datasets
+
+#### [**Mouse E9.5 dataset**](https://github.com/aristoteleo/spateo-viewer/tree/main/stviewer/assets/dataset/mouse_E95): 
+- **h5ad/mouse_E95_demo.h5ad**：Single-cell resolution Stereo-seq data with alignment and cell annotation by the Spateo team. This data only contains 1000 highly variable genes. If you need the raw data, please check the [CNGB website](https://db.cngb.org/stomics/mosta/download/).
+- **matrices**: Contains various gene expression martices for .h5ad data.
+- **mesh_models**：Contains mesh model of mouse embryo.
+- **pc_models**：Contains point cloud model of mouse embryo.
+
+#### [**Drosophila S11 dataset**](https://github.com/aristoteleo/spateo-viewer/tree/main/stviewer/assets/dataset/drosophila_S11):
+- **h5ad/S11_cellbin.h5ad_demo**：Single-cell resolution Stereo-seq data with alignment and cell annotation by the Spateo team. This data only contains 1000 highly variable genes. If you need the raw data, please check the [CNGB website](https://db.cngb.org/stomics/mosta/download/).
+- **mesh_models**：Contains mesh models of drosophila embryos and various organs.
+- **pc_models**：Contains point cloud models of drosophila embryos and various organs.
+
 ## Citation
 
-Xiaojie Qiu1$\*, Daniel Y. Zhu3$, Jiajun Yao2, 4, 5, 6$, Zehua Jing2, 4,7$, Lulu Zuo8$, Mingyue Wang2, 4, 9, 10$, Kyung
-Hoi (Joseph) Min11, Hailin Pan2, 4, Shuai Wang2, 4, 7, Sha Liao4, Yiwei Lai4, Shijie Hao2, 4, 7, Yuancheng Ryan Lu1, 
-Matthew Hill17, Jorge D. Martin-Rufino17, Chen Weng1, Anna Maria Riera-Escandell18, Mengnan Chen2, 4, Liang Wu4, Yong 
-Zhang4, Xiaoyu Wei2, 4, Mei Li4, Xin Huang4, Rong Xiang2, 4, 7, Zhuoxuan Yang4, 12, Chao Liu4, Tianyi Xia4, Yingxin 
-Liang10, Junqiang Xu4,7, Qinan Hu9, 10, Yuhui Hu9, 10, Hongmei Zhu8, Yuxiang Li4, Ao Chen4, Miguel A. Esteban4, Ying 
-Gu2, 4,7, Douglas A. Lauffenburger3, Xun Xu2, 4, 13, Longqi Liu2, 4, 14, 15\*, Jonathan S. Weissman1,19, 20\*, Shiping 
-Liu2, 4, 14, 15, 16\*, Yinqi Bai2, 4\*  $Co-first authors; *:Corresponding authors
- 
-[Spateo: multidimensional spatiotemporal modeling of single-cell spatial transcriptomics](https://www.biorxiv.org/content/10.1101/2022.12.07.519417v1)
+[<b> Spatiotemporal modeling of molecular holograms </b>](https://www.cell.com/cell/fulltext/S0092-8674(24)01159-0)
+
+Xiaojie Qiu1, 7, 8\$\*, Daniel Y. Zhu3\$, Yifan Lu1, 7, 8, 9\$, Jiajun Yao2, 4, 10\$, Zehua Jing2, 4, 11\$, Kyung Hoi (Joseph) Min12\$, Mengnan Cheng2，6\$, Hailin Pan6, Lulu Zuo6, Samuel King13, Qi Fang2, 6, Huiwen Zheng2, 11, Mingyue Wang2, 14, Shuai Wang2, 11, Qingquan Zhang25, Sichao Yu5, Sha Liao6, 17, 18, Chao Liu15, Xinchao Wu2, 4, 16, Yiwei Lai6, Shijie Hao2, Zhewei Zhang2, 4, 16, Liang Wu18, Yong Zhang15, Mei Li17, Zhencheng Tu2, 11, Jinpei Lin2, 4, Zhuoxuan Yang2, 16, Yuxiang Li15, Ying Gu2, 6, 11, Ao Chen6, 17, 18, Longqi Liu2, 19, 20, Jonathan S. Weissman5, 22, 23, Jiayi Ma9*, Xun Xu2, 11, 21*, Shiping Liu2, 19, 20, 24*, Yinqi Bai4, 26*
+
+$Co-first authors; *:Corresponding authors

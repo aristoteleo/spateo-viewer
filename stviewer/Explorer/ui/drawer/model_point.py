@@ -109,7 +109,7 @@ def pc_card_content():
         with vuetify.VCol(cols="6"):
             vuetify.VCombobox(
                 v_model=("pc_matrix_value", "X"),
-                items=("anndata_info.anndata_metrices",),
+                items=("anndata_info.anndata_matrices",),
                 label="Matrices",
                 type="str",
                 hide_details=True,

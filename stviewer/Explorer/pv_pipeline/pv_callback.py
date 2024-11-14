@@ -553,14 +553,14 @@ class PVCB:
                         )
                     )[0]
 
-                    martix_path = f"{self._state.anndata_info['matrices_npz_path']}/{self._state.pc_matrix_value}_sparse_martrix.npz"
-                    martix = sparse.load_npz(martix_path)
+                    matrix_path = f"{self._state.anndata_info['matrices_npz_path']}/{self._state.pc_matrix_value}_sparse_matrix.npz"
+                    matrix = sparse.load_npz(matrix_path)
                     array = np.asarray(
-                        martix[obs_indices, var_indices].A, dtype=float
+                        matrix[obs_indices, var_indices].A, dtype=float
                     ).reshape(-1, 1)
                     self._state.pc_scalars_raw = {"None": "None"}
 
-                    del martix
+                    del matrix
                     gc.collect()
                 elif (
                     self._state.pc_gene_value
