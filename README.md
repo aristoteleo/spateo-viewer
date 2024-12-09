@@ -52,7 +52,7 @@ See the [**ReconstructorUsage**](https://github.com/aristoteleo/spateo-viewer/bl
 - **pc_models**：Contains point cloud model of mouse embryo.
 
 #### [**Drosophila S11 dataset**](https://github.com/aristoteleo/spateo-viewer/tree/main/stviewer/assets/dataset/drosophila_S11):
-- **h5ad/S11_cellbin_demo.h5ad**：Single-cell resolution Stereo-seq data with alignment and cell annotation by the Spateo team. This data only contains 1000 highly variable genes. If you need the raw data, please check the [CNGB website](https://db.cngb.org/stomics/mosta/download/).
+- **h5ad/S11_cellbin_demo.h5ad**：Single-cell resolution Stereo-seq data with alignment and cell annotation by the Spateo team. This data only contains 1000 highly variable genes.
 - **mesh_models**：Contains mesh models of drosophila embryos and various organs.
 - **pc_models**：Contains point cloud models of drosophila embryos and various organs.
 
